@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07070c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<title>Liber Temporis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#07070c;--srf:#0e0e18;--card:#151520;--brd:#242438;--gold:#b89a42;--goldD:#7a6830;--silver:#8a96a8;--text:#ccccd8;--dim:#606078}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:15px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--goldD);border-radius:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 6px #b89a4222}50%{box-shadow:0 0 16px #b89a4244}}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:.85}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.fu{animation:fadeUp .4s ease both}
+.cin{font-family:'Cinzel',serif}
+.card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--brd);margin-bottom:10px}
+.label{font-size:10px;letter-spacing:3px;color:var(--dim);font-family:'Cinzel',serif;text-transform:uppercase}
+.title{font-size:11px;letter-spacing:3px;color:var(--gold);font-family:'Cinzel',serif;text-transform:uppercase;margin-bottom:8px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;display:inline-block;margin:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.back{background:none;border:1px solid var(--brd);color:var(--dim);padding:5px 12px;border-radius:8px;cursor:pointer;font-family:'EB Garamond',serif;font-size:13px;margin-bottom:12px}
+input[type=text],input[type=date],select{width:100%;padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--brd);color:var(--text);font-size:14px;font-family:'EB Garamond',serif;outline:none;margin-bottom:8px}
+.pill{padding:3px 9px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Cinzel',serif;border:1px solid var(--brd);background:var(--card);color:var(--dim);display:inline-block;margin:2px}
+.pill.on{border-color:var(--gold);color:var(--gold);background:#b89a4218}
+.row{background:var(--card);border:1px solid var(--brd);border-radius:10px;padding:8px 12px;margin-bottom:4px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#07070cee;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--brd);display:flex;justify-content:center;padding:6px 0 max(8px,env(safe-area-inset-bottom))}
+.nav-i{display:flex;gap:0;max-width:520px;width:100%}
+.nav button{flex:1;background:none;border:none;cursor:pointer;padding:4px 0;text-align:center;color:var(--dim);transition:color .2s}
+.nav button.on{color:var(--gold)}
+.nav .ic{font-size:15px;margin-bottom:1px}
+.nav .lb{font-size:7px;font-family:'Cinzel',serif;letter-spacing:1px;text-transform:uppercase}
+#stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 12px 100px}
+.section{margin-top:14px}
+.dot{color:var(--gold);font-size:8px;margin-right:6px}
+.wline{font-size:14px;padding:3px 0;display:flex;align-items:center}
+.hemi-bar{display:flex;justify-content:center;gap:8px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="app"></div>
+<nav class="nav"><div class="nav-i" id="nav"></div></nav>
+<script>
+// ═══ ENGINE ═══
+const D=Math.PI/180,PO=["Saturn","Jupiter","Mars","Sun","Venus","Mercury","Moon"],DR=["Sun","Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
+const ZS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
+const ZY=["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
+const EL=["Fire","Earth","Air","Water","Fire","Earth","Air","Water","Fire","Earth","Air","Water"];
+const EC={Fire:"#c44520",Earth:"#5a7a3a",Air:"#7a9ab0",Water:"#2a4a8a"};
+function doy(d){return Math.floor((d-new Date(d.getFullYear(),0,0))/864e5)}
+function sunT(dt,lat){const dc=-23.45*Math.cos(D*(360/365)*(doy(dt)+10)),ha=Math.acos(Math.max(-1,Math.min(1,-Math.tan(lat*D)*Math.tan(dc*D))))/D,ri=12-ha/15,se=12+ha/15,r=new Date(dt),s=new Date(dt);r.setHours(Math.floor(ri),Math.round((ri%1)*60),0,0);s.setHours(Math.floor(se),Math.round((se%1)*60),0,0);return{rise:r,set:s}}
+function pHours(dt,lat){const su=sunT(dt,lat),dl=(su.set-su.rise)/12,ns=sunT(new Date(dt.getTime()+864e5),lat),nl=(ns.rise-su.set)/12,si=PO.indexOf(DR[dt.getDay()]),h=[];for(let i=0;i<24;i++){const dy=i<12,st=dy?new Date(su.rise.getTime()+i*dl):new Date(su.set.getTime()+(i-12)*nl),en=dy?new Date(su.rise.getTime()+(i+1)*dl):new Date(su.set.getTime()+(i-11)*nl);h.push({start:st,end:en,ruler:PO[(si+i)%7],isDay:dy,index:i})}return{hours:h,dayRuler:DR[dt.getDay()],sunrise:su.rise,sunset:su.set}}
+function mPhase(dt){const p=(((dt-new Date(2024,0,11,11,57))/864e5)%29.53+29.53)%29.53,il=Math.round(((1-Math.cos((p/29.53)*2*Math.PI))/2)*100);let n,ic;if(p<1.85){n="New Moon";ic="🌑"}else if(p<7.38){n="Waxing Crescent";ic="🌒"}else if(p<9.23){n="First Quarter";ic="🌓"}else if(p<14.76){n="Waxing Gibbous";ic="🌔"}else if(p<16.61){n="Full Moon";ic="🌕"}else if(p<22.14){n="Waning Gibbous";ic="🌖"}else if(p<23.99){n="Last Quarter";ic="🌗"}else{n="Waning Crescent";ic="🌘"}return{phase:p,name:n,icon:ic,ill:il,day:p,wax:p<14.765}}
+function mIcon(mp,sh){if(!sh)return mp.icon;const f={"🌒":"🌘","🌓":"🌗","🌔":"🌖","🌖":"🌔","🌗":"🌓","🌘":"🌒"};return f[mp.icon]||mp.icon}
+function mSign(dt){const d=(dt-new Date(2000,0,1,12))/864e5;let l=((218.316+13.176396*d)+6.289*Math.sin((134.963+13.064993*d)*D))%360;l=(l+360)%360;const i=Math.floor(l/30);return{sign:ZS[i],sym:ZY[i],deg:Math.round(l%30),el:EL[i],lon:l}}
+function sSign(dt){const d=(dt-new Date(2000,0,1,12))/864e5;let l=(280.46+.9856474*d)%360;l+=1.9148*Math.sin((357.528+.9856003*d)*D);l=((l%360)+360)%360;const i=Math.floor(l/30);return{sign:ZS[i],sym:ZY[i],deg:Math.round(l%30),el:EL[i]}}
+
+const MN=[{n:1,nm:"Alnath",s:0,p:"Journeys & discord",g:["Travel","Destruction of enemies"],im:"Head of Aries",an:"Geniel"},{n:2,nm:"Albotain",s:12.86,p:"Finding treasure",g:["Finding lost things","Gaining favor"],im:"Crowned king",an:"Enediel"},{n:3,nm:"Athoray",s:25.71,p:"Hunting & alchemy",g:["Hunting","Alchemy","Safe return"],im:"Woman with raised hand",an:"Anixiel"},{n:4,nm:"Aldebaran",s:38.57,p:"Revenge & enmity",g:["Revenge","Separation"],im:"Soldier on horse",an:"Azariel"},{n:5,nm:"Albachay",s:51.43,p:"Schools & favor",g:["Education","Favor of the powerful"],im:"Head of a man",an:"Gabiel"},{n:6,nm:"Alhanna",s:64.29,p:"Love & friendship",g:["Love between partners","Hunting"],im:"A star figure",an:"Dirachiel"},{n:7,nm:"Aldimiach",s:77.14,p:"Gain & friendship",g:["Obtaining good things","Friendship"],im:"Man in robes",an:"Scheliel"},{n:8,nm:"Alnaza",s:90,p:"Victory & love",g:["Victory in war","Love spells"],im:"An eagle",an:"Amnediel"},{n:9,nm:"Archaam",s:102.86,p:"Causing fear",g:["Fear in enemies","Affliction"],im:"Man with dark face",an:"Barbiel"},{n:10,nm:"Algelioche",s:115.71,p:"Love & buildings",g:["Strengthening buildings","Love"],im:"Head of a lion",an:"Ardefiel"},{n:11,nm:"Azobra",s:128.57,p:"Gain in trade",g:["Trade","Harvest","Redemption"],im:"Man on a chair",an:"Neciel"},{n:12,nm:"Alzarpha",s:141.43,p:"Improving harvests",g:["Planting","Building","Sailors"],im:"A dragon",an:"Abdizuel"},{n:13,nm:"Alhaire",s:154.29,p:"Voyages & commerce",g:["Trade","Favor of kings"],im:"Man cutting",an:"Jazeriel"},{n:14,nm:"Azimeth",s:167.14,p:"Love & healing",g:["Love","Healing the sick"],im:"Dog biting tail",an:"Ergediel"},{n:15,nm:"Agrapha",s:180,p:"Extracting treasure",g:["Hidden treasure","Digging wells"],im:"Seated man",an:"Ataliel"},{n:16,nm:"Azubene",s:192.86,p:"Commerce & rain",g:["Buying & selling","Causing rain"],im:"Seated king",an:"Azeruel"},{n:17,nm:"Alchil",s:205.71,p:"Against theft",g:["Preventing theft","Lasting things"],im:"An ape",an:"Adriel"},{n:18,nm:"Alcab",s:218.57,p:"Against enemies",g:["Against plotters","Freeing prisoners"],im:"A serpent",an:"Egibiel"},{n:19,nm:"Allatha",s:231.43,p:"Birth & curing",g:["Facilitating labor","Curing diseases"],im:"Woman holding face",an:"Amutiel"},{n:20,nm:"Abnahaya",s:244.29,p:"Taming beasts",g:["Taming beasts","Strengthening prisons"],im:"Man with bow",an:"Kyriel"},{n:21,nm:"Abeda",s:257.14,p:"Destruction",g:["Destruction","Devastation","Discord"],im:"Man with two faces",an:"Bethnael"},{n:22,nm:"Zodeboluch",s:270,p:"Healing",g:["Healing","Peaceful resolution"],im:"Cat with dog head",an:"Geliel"},{n:23,nm:"Zabadola",s:282.86,p:"Curing & freedom",g:["Curing illness","Liberation"],im:"Bird with human face",an:"Zequiel"},{n:24,nm:"Sadabath",s:295.71,p:"Victory",g:["Victory","Goodwill of allies"],im:"Table and book",an:"Abrinael"},{n:25,nm:"Sadalbracha",s:308.57,p:"Protection",g:["Protection of crops","Preserving allies"],im:"Crowned man",an:"Aziel"},{n:26,nm:"Alpharg",s:321.43,p:"Love & union",g:["Love","Goodwill","Protection"],im:"Woman washing hair",an:"Tagriel"},{n:27,nm:"Alcharya",s:334.29,p:"Commerce & gain",g:["Trade","Harvest","Healing"],im:"Man with wings",an:"Atheniel"},{n:28,nm:"Albotham",s:347.14,p:"Augmenting harvests",g:["Harvests","Gaining","Binding spirits"],im:"Fish",an:"Amnixiel"}];
+function gMn(lon){for(let i=MN.length-1;i>=0;i--)if(lon>=MN[i].s)return MN[i];return MN[0]}
+
+const HA={Sun:"Michael",Moon:"Gabriel",Mars:"Samael",Mercury:"Raphael",Jupiter:"Sachiel",Venus:"Anael",Saturn:"Cassiel"};
+
+// ═══ PLANETARY DATA ═══
+const PD={
+Sun:{sym:"☉",c:"#D4A017",metal:"Gold",inc:"Frankincense, Cinnamon, Saffron",stone:"Chrysolite, Amber, Citrine",day:"Sunday",candle:"Gold or bright yellow beeswax",cloth:"Golden silk or yellow linen",obj:["Gold ring or disc","Frankincense resin","Amber or citrine","Sunflower heads","Bay laurel crown","Yellow beeswax candle","Cinnamon sticks","Lion figure","Hexagram","Honey offering","Gold chalice"],virt:["Authority","Vitality","Success","Illumination","Healing"],works:["Favor of princes","Dissolving enchantments","Obtaining gold","Health & vitality"],angel:"Michael",intel:"Nakhiel",spirit:"Sorath",num:6,sq:111,suf:"Saffron, Laurel, Cloves, Frankincense, Musk",animals:"Lion, Cock, Swan, Eagle",colors:"Gold, Amber, Yellow",plants:"Sunflower, Heliotrope, Laurel, Peony, Marigold",approach:"The Sun responds to sincerity and open-hearted petition. Face east at dawn or south at noon. Hold gold or amber. Speak with confidence — the Sun despises timidity. Burn frankincense or cinnamon. Offer honey or wine. No circle needed if you approach as a supplicant. Wear gold or yellow. Give something away before asking."},
+Moon:{sym:"☽",c:"#8FA4B8",metal:"Silver",inc:"Camphor, Jasmine, Aloes",stone:"Selenite, Moonstone, Pearl",day:"Monday",candle:"White or silver taper",cloth:"White silk or silver linen",obj:["Silver bowl of spring water","Moonstone sphere","White roses","Camphor blocks","Silver crescent pendant","White taper candles (9)","Jasmine flowers","Mirror for scrying","Pearl","Milk offering","Seashells"],virt:["Intuition","Dreams","Fertility","Travel","Psychism"],works:["Voyages","Dreams & visions","Fertility","Reconciliation","Divination"],angel:"Gabriel",intel:"Malkah be-Tarshisim",spirit:"Schad Barchemoth",num:9,sq:369,suf:"Camphor, White Poppy, Aloes, White Sandalwood, Jasmine",animals:"Cat, Hare, Crab, Owl, Moth",colors:"Silver, White, Pale Blue",plants:"Willow, Moonwort, Lotus, Jasmine, White Poppy",approach:"The Moon is the most approachable celestial power. Work at night under moonlight. Fill a silver bowl with water and gaze into it. Speak softly. Burn camphor or jasmine. Offer milk or white flowers. Sleep with moonstone under your pillow for visions. Approach with emotion and vulnerability."},
+Mars:{sym:"♂",c:"#8B1A1A",metal:"Iron",inc:"Dragon's Blood, Pepper, Sulfur",stone:"Bloodstone, Red Jasper, Garnet",day:"Tuesday",candle:"Red or deep crimson",cloth:"Red wool or leather",obj:["Iron nail or blade","Bloodstone","Red candles (5)","Dragon's blood resin","Garnet or red jasper","Thorny branches","Red wine offering","Iron filings","Nettle bundle","Sulfur powder","Wolf image"],virt:["Courage","Strength","Victory","Destruction","Binding"],works:["Military honor","Victory in war","Overthrowing enemies","Binding spirits"],angel:"Kamael",intel:"Graphiel",spirit:"Bartzabel",num:5,sq:65,suf:"Dragon's Blood, Gum Ammoniac, Hellebore, Tobacco, Pepper",animals:"Wolf, Horse, Scorpion, Vulture, Hawk",colors:"Crimson, Blood Red, Scarlet",plants:"Hellebore, Garlic, Thistle, Nettles, Wormwood, Tobacco",approach:"Mars respects directness and courage. Stand, do not sit. Face south. Hold iron — a nail, key, or tool. State your need as a demand, not a plea. Burn dragon's blood. Physical exertion before the working sharpens the connection. Offer red wine or your own sweat."},
+Mercury:{sym:"☿",c:"#7B6AAF",metal:"Quicksilver",inc:"Mastic, Storax, Lavender",stone:"Agate, Topaz, Opal, Fluorite",day:"Wednesday",candle:"Orange, violet, or mixed",cloth:"Orange or multicolored silk",obj:["Quicksilver in sealed vial","Agate or fluorite","Orange candles (8)","Mastic resin","Quill pen & fresh ink","Mercury dime","Lavender sprigs","Feather","Dice or cards","Book opened to meaningful page","Hazel wand"],virt:["Communication","Intellect","Commerce","Eloquence","Trickery"],works:["Eloquence & intelligence","Commerce & trade","Divination","Theft & trickery"],angel:"Raphael",intel:"Tiriel",spirit:"Taphthartharath",num:8,sq:260,suf:"Mastic, Storax, Cinnamon, Cinquefoil, Lavender",animals:"Dog, Ape, Ibis, Parrot, Fox, Magpie",colors:"Orange, Violet, Mixed",plants:"Cinquefoil, Marjoram, Hazel, Fennel, Lavender, Dill",approach:"Mercury is quicksilver — approach through wit and cleverness. Write your petition rather than speaking it. Use a crossroads if possible. Burn lavender or mastic. Mercury appreciates written word, clever riddles, or coins left at crossroads. Be specific — Mercury grants exactly what you ask."},
+Jupiter:{sym:"♃",c:"#2A4494",metal:"Tin",inc:"Cedar, Nutmeg, Saffron",stone:"Amethyst, Lapis Lazuli, Sapphire",day:"Thursday",candle:"Royal blue or deep purple",cloth:"Purple velvet or royal blue silk",obj:["Tin talisman","Amethyst or lapis lazuli","Blue/purple candles (4)","Cedar wood chips","Nutmeg","Oak leaves or acorns","Purple grapes offering","Sage bundle","Saffron threads","Eagle feather","Large coin"],virt:["Expansion","Wealth","Wisdom","Justice","Honor"],works:["Obtaining riches","Favor & health","Gaining friends","Dissolving enchantments"],angel:"Tzadkiel",intel:"Iophiel",spirit:"Hismael",num:4,sq:34,suf:"Nutmeg, Cedar, Storax, Saffron, Sage",animals:"Eagle, Stag, Dolphin, Peacock",colors:"Royal Blue, Purple, Indigo",plants:"Oak, Fig, Olive, Sage, Hyssop, Mint, Borage",approach:"Jupiter is the most benevolent planet. Approach with genuine gratitude — thank Jupiter for what you already have before asking. Burn cedar or sage. Blue or purple cloth. Hold amethyst. The tone should be regal but grateful. Offer rich food — grapes, figs, wine, bread. Give to charity before your working."},
+Venus:{sym:"♀",c:"#A85070",metal:"Copper",inc:"Rose, Sandalwood, Myrtle",stone:"Emerald, Rose Quartz, Jade",day:"Friday",candle:"Green or rose pink",cloth:"Green silk or rose velvet",obj:["Copper disc or penny","Rose quartz or emerald","Green/pink candles (7)","Rose petals (fresh)","Sandalwood chips","Myrtle branches","Honey and apple offering","Copper mirror","Dove feather","Red or pink wine","Vanilla bean","Seashell"],virt:["Love","Beauty","Pleasure","Art","Friendship"],works:["Love between persons","Kindling desire","Dissolving hate","Friendship"],angel:"Haniel",intel:"Hagiel",spirit:"Kedemel",num:7,sq:175,suf:"Rose petals, Musk, Sandalwood, Benzoin, Vanilla",animals:"Dove, Sparrow, Swan, Rabbit",colors:"Emerald Green, Rose Pink, Copper",plants:"Rose, Myrtle, Verbena, Violet, Apple, Strawberry, Vanilla",approach:"Venus responds to beauty and sensory richness. Bathe and anoint yourself with rose water. Create beauty — flowers, clean cloth, soft light. Burn rose or sandalwood. Hold copper or rose quartz. Speak from the heart. Offer sweet things — honey, fruit, wine, flowers. Sing if you can. Approach as a lover, not a commander."},
+Saturn:{sym:"♄",c:"#3A3A4A",metal:"Lead",inc:"Myrrh, Asafoetida, Patchouli",stone:"Onyx, Obsidian, Jet, Hematite",day:"Saturday",candle:"Black or dark indigo",cloth:"Black wool or dark cloth",obj:["Lead disc or weight","Black obsidian or onyx","Black candles (3)","Myrrh resin","Cypress branches","Bone or skull image","Hourglass or clock","Black mirror","Sea salt","Graveyard soil","Iron chain","Asafoetida powder"],virt:["Binding","Banishing","Discipline","Protection","Death"],works:["Summoning spirits","Communing with dead","Binding & banishing","Destroying enemies"],angel:"Tzaphkiel",intel:"Agiel",spirit:"Zazel",num:3,sq:15,suf:"Myrrh, Asafoetida, Sulfur, Black Poppy, Henbane, Cypress",animals:"Crow, Mole, Bat, Serpent, Raven, Goat",colors:"Black, Dark Grey, Indigo",plants:"Cypress, Yew, Hemlock, Nightshade, Comfrey, Patchouli",approach:"Saturn is the most demanding and dangerous planet to approach casually. Fasting before the working is strongly recommended. Work at night in a quiet dark place. Burn myrrh. Hold obsidian or lead. Speak formally with gravitas. Do not ask lightly — Saturn grants wishes but exacts a price. Offer salt, dark bread, or wine poured onto earth. Never approach Saturn frivolously."}
+};
+const pc=p=>PD[p]?PD[p].c:"#666";
+
+// ═══ 72 GOETIA ═══
+const G=[
+{n:1,nm:"Bael",rk:"King",pl:"Sun",si:"Aries",lg:66,pw:"Invisibility, wisdom, cunning",ds:"Cat, toad, and human head."},
+{n:2,nm:"Agares",rk:"Duke",pl:"Venus",si:"Aries",lg:31,pw:"Languages, earthquakes",ds:"Rides crocodile with hawk."},
+{n:3,nm:"Vassago",rk:"Prince",pl:"Jupiter",si:"Aries",lg:26,pw:"Divination, lost things",ds:"Good nature. Hidden treasures."},
+{n:4,nm:"Samigina",rk:"Marquis",pl:"Mercury",si:"Aries",lg:30,pw:"Sciences, necromancy",ds:"Appears as horse. Speaks with dead."},
+{n:5,nm:"Marbas",rk:"President",pl:"Mars",si:"Aries",lg:36,pw:"Disease, cure, mechanics",ds:"Lion. Causes and cures disease."},
+{n:6,nm:"Valefor",rk:"Duke",pl:"Venus",si:"Taurus",lg:10,pw:"Thievery, familiars",ds:"Donkey head. Good familiars."},
+{n:7,nm:"Amon",rk:"Marquis",pl:"Moon",si:"Taurus",lg:40,pw:"Discord, reconciliation",ds:"Wolf with serpent tail."},
+{n:8,nm:"Barbatos",rk:"Duke",pl:"Venus",si:"Taurus",lg:30,pw:"Animal speech, treasure",ds:"Understands birds and animals."},
+{n:9,nm:"Paimon",rk:"King",pl:"Sun",si:"Gemini",lg:200,pw:"Arts, sciences, dignity",ds:"Crowned king on camel."},
+{n:10,nm:"Buer",rk:"President",pl:"Jupiter",si:"Gemini",lg:50,pw:"Philosophy, herbs",ds:"Philosophy and herbal medicine."},
+{n:11,nm:"Gusion",rk:"Duke",pl:"Mercury",si:"Gemini",lg:40,pw:"Honor, divination",ds:"Past, present, future."},
+{n:12,nm:"Sitri",rk:"Prince",pl:"Venus",si:"Gemini",lg:60,pw:"Love, lust, secrets",ds:"Leopard with griffin wings."},
+{n:13,nm:"Beleth",rk:"King",pl:"Sun",si:"Cancer",lg:85,pw:"Love",ds:"Pale horse with music."},
+{n:14,nm:"Leraje",rk:"Marquis",pl:"Mars",si:"Cancer",lg:30,pw:"Battles, wounds",ds:"Archer in green."},
+{n:15,nm:"Eligos",rk:"Duke",pl:"Mars",si:"Cancer",lg:60,pw:"Wars, future",ds:"Knight on horseback."},
+{n:16,nm:"Zepar",rk:"Duke",pl:"Venus",si:"Cancer",lg:26,pw:"Love, fertility",ds:"Red armor. Fertility."},
+{n:17,nm:"Botis",rk:"President",pl:"Mars",si:"Leo",lg:60,pw:"Reconciliation, divination",ds:"Viper then human with sword."},
+{n:18,nm:"Bathin",rk:"Duke",pl:"Mercury",si:"Leo",lg:30,pw:"Herbs, stones",ds:"Man with serpent tail."},
+{n:19,nm:"Sallos",rk:"Duke",pl:"Venus",si:"Leo",lg:30,pw:"Love",ds:"Soldier on crocodile."},
+{n:20,nm:"Purson",rk:"King",pl:"Sun",si:"Leo",lg:22,pw:"Divination, treasure",ds:"Lion face. Familiars."},
+{n:21,nm:"Marax",rk:"President",pl:"Saturn",si:"Virgo",lg:30,pw:"Astronomy, sciences",ds:"Bull with human face."},
+{n:22,nm:"Ipos",rk:"Prince",pl:"Jupiter",si:"Virgo",lg:36,pw:"Wit, courage",ds:"Angel with lion head."},
+{n:23,nm:"Aim",rk:"Duke",pl:"Mars",si:"Virgo",lg:26,pw:"Setting fires, wit",ds:"Three heads."},
+{n:24,nm:"Naberius",rk:"Marquis",pl:"Mercury",si:"Virgo",lg:19,pw:"Rhetoric",ds:"A crow. Rhetoric."},
+{n:25,nm:"Glasya-Labolas",rk:"President",pl:"Mars",si:"Libra",lg:36,pw:"Sciences, bloodshed",ds:"Dog with griffin wings."},
+{n:26,nm:"Bune",rk:"Duke",pl:"Saturn",si:"Libra",lg:30,pw:"Wealth, eloquence",ds:"Dragon, three heads."},
+{n:27,nm:"Ronove",rk:"Marquis",pl:"Mercury",si:"Libra",lg:19,pw:"Languages, favor",ds:"Rhetoric and languages."},
+{n:28,nm:"Berith",rk:"Duke",pl:"Mars",si:"Libra",lg:26,pw:"Alchemy",ds:"Soldier in red. Metals to gold."},
+{n:29,nm:"Astaroth",rk:"Duke",pl:"Venus",si:"Scorpio",lg:40,pw:"Sciences, divination",ds:"Angel on infernal dragon."},
+{n:30,nm:"Forneus",rk:"Marquis",pl:"Mercury",si:"Scorpio",lg:29,pw:"Rhetoric, favor",ds:"Sea monster."},
+{n:31,nm:"Foras",rk:"President",pl:"Saturn",si:"Scorpio",lg:29,pw:"Logic, longevity",ds:"Strong man."},
+{n:32,nm:"Asmoday",rk:"King",pl:"Sun",si:"Scorpio",lg:72,pw:"Math, astronomy",ds:"Three heads."},
+{n:33,nm:"Gaap",rk:"President",pl:"Saturn",si:"Sagittarius",lg:66,pw:"Philosophy",ds:"Philosophy."},
+{n:34,nm:"Furfur",rk:"Earl",pl:"Mars",si:"Sagittarius",lg:26,pw:"Love, storms",ds:"Hart with fiery tail."},
+{n:35,nm:"Marchosias",rk:"Marquis",pl:"Mars",si:"Sagittarius",lg:30,pw:"Fighting",ds:"Wolf with wings."},
+{n:36,nm:"Stolas",rk:"Prince",pl:"Jupiter",si:"Sagittarius",lg:26,pw:"Astronomy, herbs",ds:"Raven then man."},
+{n:37,nm:"Phenex",rk:"Marquis",pl:"Sun",si:"Capricorn",lg:20,pw:"Sciences, poetry",ds:"Phoenix bird."},
+{n:38,nm:"Halphas",rk:"Earl",pl:"Mars",si:"Capricorn",lg:26,pw:"Building, war",ds:"Stock dove."},
+{n:39,nm:"Malphas",rk:"President",pl:"Mars",si:"Capricorn",lg:40,pw:"Building, familiars",ds:"Crow then man."},
+{n:40,nm:"Raum",rk:"Earl",pl:"Mercury",si:"Capricorn",lg:30,pw:"Theft, destruction",ds:"Crow."},
+{n:41,nm:"Focalor",rk:"Duke",pl:"Saturn",si:"Aquarius",lg:30,pw:"Wind, drowning",ds:"Man with griffin wings."},
+{n:42,nm:"Vepar",rk:"Duke",pl:"Saturn",si:"Aquarius",lg:29,pw:"Waters, ships",ds:"Mermaid."},
+{n:43,nm:"Sabnock",rk:"Marquis",pl:"Mars",si:"Aquarius",lg:50,pw:"Fortifications",ds:"Soldier, lion head."},
+{n:44,nm:"Shax",rk:"Marquis",pl:"Mercury",si:"Aquarius",lg:30,pw:"Sight, theft",ds:"Stock dove."},
+{n:45,nm:"Vine",rk:"King",pl:"Sun",si:"Pisces",lg:36,pw:"Storms, witchcraft",ds:"Lion on black horse."},
+{n:46,nm:"Bifrons",rk:"Earl",pl:"Saturn",si:"Pisces",lg:60,pw:"Astrology, herbs",ds:"Monster then man."},
+{n:47,nm:"Uvall",rk:"Duke",pl:"Venus",si:"Pisces",lg:37,pw:"Love, languages",ds:"Great camel."},
+{n:48,nm:"Haagenti",rk:"President",pl:"Mercury",si:"Pisces",lg:33,pw:"Transmutation",ds:"Bull with wings."},
+{n:49,nm:"Crocell",rk:"Duke",pl:"Moon",si:"Aries",lg:48,pw:"Geometry, waters",ds:"An angel."},
+{n:50,nm:"Furcas",rk:"Knight",pl:"Saturn",si:"Aries",lg:20,pw:"Philosophy, palmistry",ds:"Cruel old man."},
+{n:51,nm:"Balam",rk:"King",pl:"Sun",si:"Taurus",lg:40,pw:"Invisibility, divination",ds:"Three heads on bear."},
+{n:52,nm:"Alloces",rk:"Duke",pl:"Mars",si:"Taurus",lg:36,pw:"Astronomy",ds:"Soldier on horse."},
+{n:53,nm:"Camio",rk:"President",pl:"Moon",si:"Gemini",lg:30,pw:"Divination",ds:"Thrush then man."},
+{n:54,nm:"Murmur",rk:"Duke",pl:"Saturn",si:"Gemini",lg:30,pw:"Necromancy",ds:"Warrior on griffin."},
+{n:55,nm:"Orobas",rk:"Prince",pl:"Jupiter",si:"Cancer",lg:20,pw:"Divination, favor",ds:"Horse then man. Good nature."},
+{n:56,nm:"Gremory",rk:"Duke",pl:"Venus",si:"Cancer",lg:26,pw:"Treasure, love",ds:"Beautiful woman on camel."},
+{n:57,nm:"Ose",rk:"President",pl:"Mercury",si:"Leo",lg:30,pw:"Sciences, shapeshifting",ds:"Leopard then man."},
+{n:58,nm:"Amy",rk:"President",pl:"Saturn",si:"Leo",lg:36,pw:"Astrology",ds:"Flaming fire then man."},
+{n:59,nm:"Oriax",rk:"Marquis",pl:"Moon",si:"Virgo",lg:30,pw:"Astrology",ds:"Lion on horse."},
+{n:60,nm:"Vapula",rk:"Duke",pl:"Mercury",si:"Virgo",lg:36,pw:"Crafts, philosophy",ds:"Lion, griffin wings."},
+{n:61,nm:"Zagan",rk:"King",pl:"Sun",si:"Libra",lg:33,pw:"Transmutation",ds:"Bull with wings."},
+{n:62,nm:"Valac",rk:"President",pl:"Mercury",si:"Libra",lg:38,pw:"Treasure, serpents",ds:"Boy with angel wings."},
+{n:63,nm:"Andras",rk:"Marquis",pl:"Mars",si:"Scorpio",lg:30,pw:"Discord",ds:"Raven-headed angel. DANGEROUS."},
+{n:64,nm:"Haures",rk:"Duke",pl:"Mars",si:"Scorpio",lg:36,pw:"Destruction, divination",ds:"Leopard then fierce man."},
+{n:65,nm:"Andrealphus",rk:"Marquis",pl:"Moon",si:"Sagittarius",lg:30,pw:"Geometry",ds:"Peacock."},
+{n:66,nm:"Cimejes",rk:"Marquis",pl:"Mars",si:"Sagittarius",lg:20,pw:"Grammar, logic",ds:"Warrior on black horse."},
+{n:67,nm:"Amdusias",rk:"Duke",pl:"Jupiter",si:"Capricorn",lg:29,pw:"Music",ds:"Unicorn then man."},
+{n:68,nm:"Belial",rk:"King",pl:"Sun",si:"Capricorn",lg:80,pw:"Dignities, favor",ds:"Two angels in chariot of fire."},
+{n:69,nm:"Decarabia",rk:"Marquis",pl:"Moon",si:"Aquarius",lg:30,pw:"Herbs, stones",ds:"Star in pentacle."},
+{n:70,nm:"Seere",rk:"Prince",pl:"Jupiter",si:"Aquarius",lg:26,pw:"Speed, transport",ds:"Man on winged horse."},
+{n:71,nm:"Dantalion",rk:"Duke",pl:"Mercury",si:"Pisces",lg:36,pw:"Mind reading, love",ds:"Man with many faces."},
+{n:72,nm:"Andromalius",rk:"Earl",pl:"Saturn",si:"Pisces",lg:36,pw:"Returning stolen goods",ds:"Man with serpent."}
+];
+const GAPPROACH="Without a circle, approach only spirits described as 'good nature' (Vassago, Orobas, Barbatos). Burn the incense of their ruling planet, speak their name three times, state your request clearly, and make a planetary offering. For dangerous spirits (Andras, Glasya-Labolas, Beleth), formal protections are essential. Without a circle, petition by writing the spirit's name and seal on parchment with its planetary intelligence's seal above it — the intelligence mediates.";
+
+// ═══ OLYMPIC SPIRITS ═══
+const OL=[
+{nm:"Aratron",pl:"Saturn",ru:"49 provinces",gov:"Transmutation, agriculture, longevity",ds:"Converts anything to stone, turns lead to gold. Rules 49 provinces.",ap:"Old man with long beard riding a dragon",dy:"Saturday",hr:"1st hour of Saturn",obj:["Lead talisman","Black candle","Myrrh","Obsidian","Cypress branch","Hourglass","Black cloth"],inf:"Fast for a full day before approaching. On Saturday during Saturn's first hour, burn myrrh over charcoal. Sit in darkness with a lead object. Speak his name slowly. Aratron responds to those who have demonstrated patience.",pw:["Transmutation of metals","Making barren land fruitful","Granting invisibility","Conferring long life","Teaching alchemy","Providing familiars"]},
+{nm:"Bethor",pl:"Jupiter",ru:"42 provinces",gov:"Wealth, honor, healing",ds:"Opens treasures, grants dignities, prolongs life to 700 years.",ap:"Man in rich robes of blue and purple",dy:"Thursday",hr:"1st hour of Jupiter",obj:["Tin talisman","Blue/purple candle","Cedar","Amethyst","Oak leaves","Saffron","Purple cloth"],inf:"Approach on Thursday with gifts already given to others. Burn cedar. Wear blue or purple. Hold amethyst. Ask with confidence but not arrogance.",pw:["Opening treasure","Granting honors","Healing diseases","Prolonging life","Providing familiars","Conferring wealth"]},
+{nm:"Phaleg",pl:"Mars",ru:"35 provinces",gov:"Warfare, valor, military honors",ds:"Prince of Mars. Grants military honor through warfare.",ap:"Armed warrior, fierce of countenance",dy:"Tuesday",hr:"1st hour of Mars",obj:["Iron blade","Red candle","Dragon's blood","Garnet","Thorn branches","Red wine","Red cloth"],inf:"Physical preparation before the working — exercise or hard labor. On Tuesday, burn dragon's blood. Hold iron. State what victory you require. Phaleg despises cowardice.",pw:["Granting military honor","Victory in conflict","Courage & valor","Commanding war spirits","Destroying enemies"]},
+{nm:"Och",pl:"Sun",ru:"28 provinces",gov:"Gold, wisdom, medicine, illumination",ds:"Grants 600 years of life. Bestows wisdom. Converts anything to gold.",ap:"Figure of brilliant light, crowned with solar rays",dy:"Sunday",hr:"1st hour of Sun",obj:["Gold ring","Golden candle","Frankincense","Amber","Bay laurel","Honey","Yellow cloth"],inf:"At dawn on Sunday, face the rising sun. Burn frankincense. Hold gold or amber. Och is generous to healers and teachers. Offer honey.",pw:["Granting perfect health","Converting things to gold","Teaching medicine","Bestowing wisdom","Granting familiars"]},
+{nm:"Hagith",pl:"Venus",ru:"21 provinces",gov:"Love, beauty, art",ds:"Makes one adorned and beautiful. Causes love.",ap:"Beautiful figure adorned with flowers and jewels",dy:"Friday",hr:"1st hour of Venus",obj:["Copper disc","Green/pink candle","Rose incense","Rose quartz","Fresh roses","Honey","Green silk"],inf:"Beautify yourself and your space before calling. On Friday evening, burn rose incense. Scatter rose petals. Hold copper or rose quartz. Sing or speak poetically.",pw:["Making one beautiful","Causing love","Transmuting copper to gold","Granting artistic talent","Protecting lovers"]},
+{nm:"Ophiel",pl:"Mercury",ru:"14 provinces",gov:"Learning, commerce, communication",ds:"Teaches all arts instantly. Grants understanding of tongues.",ap:"Youth with caduceus, moving swiftly",dy:"Wednesday",hr:"1st hour of Mercury",obj:["Mercury dime","Orange/violet candle","Lavender","Agate","Quill and ink","Book","Hazel wand"],inf:"The most accessible Olympic spirit. Write your question on paper rather than speaking it. Burn lavender. Hold agate. Leave a coin at a crossroads afterward.",pw:["Teaching all arts instantly","Providing familiars","Understanding all languages","Eloquence","Success in commerce"]},
+{nm:"Phul",pl:"Moon",ru:"7 provinces",gov:"Silver, water, dreams, sea travel",ds:"Converts metals to silver. Heals. Most approachable Olympic spirit.",ap:"Pale figure in flowing robes of silver and white",dy:"Monday",hr:"1st hour of Moon",obj:["Silver coin or bowl","White candle","Camphor","Moonstone","Jasmine","Water bowl","White cloth"],inf:"On Monday night under the moon, fill a silver bowl with water. Burn camphor or jasmine. Gaze into the water and speak Phul's name softly. Offer milk poured on the ground.",pw:["Converting metals to silver","Healing diseases","Giving water spirits","Safe voyages","Prophetic dreams","Governing tides"]}
+];
+
+// ═══ ELEMENTALS ═══
+const ELS=[
+{nm:"Salamanders",el:"Fire",ruler:"Djinn",c:"#c44520",ds:"Beings of living flame. Volatile and dangerous but immensely powerful.",obj:["Red candles","Brazier or fire pit","Sulfur","Dragon's blood","Iron blade","Garlic","Chili peppers","Volcanic stone","Red cloth","Flint and steel"],inf:"Light a fire — even a candle. Stare into the flame until your eyes water. Speak to the flame as though alive. Offer dried herbs or paper with your desire burned in the flame. Never approach water or show fear. Dance around the fire or fast until you feel burning hunger.",ops:["Purification","Transmutation","Destroying obstacles","Igniting passion","Pyromancy"],cor:"South, noon, Summer, red, brass & iron, lion & serpent"},
+{nm:"Sylphs",el:"Air",ruler:"Paralda",c:"#7a9ab0",ds:"Creatures of wind and thought. Swift, intellectual, changeable.",obj:["Yellow candles","Feathers","Frankincense or sage","Wind chimes or bells","Fan","Lavender","Hazel wand","Wind instrument","Parchment and ink","Clear quartz"],inf:"Go to a high place on a windy day. Burn sage and watch the smoke — patterns are how Sylphs communicate. Speak questions aloud and listen. Hang wind chimes or ring a bell. Write your request on paper and release it to the wind. Singing or playing a wind instrument attracts them.",ops:["Intellectual inspiration","Long-distance communication","Travel","Aeromancy","Carrying messages","Prophecy"],cor:"East, dawn, Spring, yellow, mercury & tin, eagle & hawk"},
+{nm:"Undines",el:"Water",ruler:"Nicksa",c:"#2a4a8a",ds:"Spirits of water. Deeply emotional and empathic, drawn to human feeling.",obj:["Blue candles","Silver bowl of water","Seashells","Coral","Pearls","Camphor","Moonstone","Chalice","Blue cloth","Rain water"],inf:"Go to natural water. If unavailable, fill a bowl with rain or spring water and add sea salt. Gaze into the water as a mirror. Speak softly. Tears are the most powerful offering. Pour milk or honey into the water. Singing near water attracts Undines. Never approach with anger.",ops:["Love & emotional healing","Purification","Dreams & visions","Fertility","Hydromancy","Safe voyages"],cor:"West, twilight, Autumn, blue, silver & copper, dolphin & fish"},
+{nm:"Gnomes",el:"Earth",ruler:"Ghob",c:"#5a7a3a",ds:"Spirits of earth. Slow but immensely powerful. Guard treasures.",obj:["Green or brown candles","Sea salt","Stones and crystals","Soil or clay","Oak wood","Patchouli","Cypress","Bread offering","Coins","Seeds","Roots","Bone"],inf:"Place hands on bare earth. Sit on the ground. Sit in silence for a long time before speaking. Bury a coin or seed as offering. Burn patchouli. Hold a stone you found yourself. Speak slowly and plainly. Leave bread on the ground. Gnomes are slowest to respond but most lasting.",ops:["Finding treasure","Prosperity","Herb & stone healing","Protection","Building","Geomancy"],cor:"North, midnight, Winter, green/brown, lead & stone, bull & stag"}
+];
+
+// ═══ CARDINAL KINGS ═══
+const CK=[
+{nm:"Oriens",dir:"East",el:"Air",c:"#7a9ab0",ds:"King of the East. Commands aerial spirits. Dawn and beginnings.",obj:["Yellow candle","Frankincense","Feather","Agate","Bell"],inf:"Face East at dawn. Burn frankincense. Ring a bell three times. Appeal through logic and clear purpose. Offer incense smoke and clear intent.",pw:["Commanding aerial spirits","Knowledge of beginnings","Opening new paths","Intellectual clarity"]},
+{nm:"Paymon",dir:"South",el:"Fire",c:"#c44520",ds:"King of the South. Immensely powerful. Teaches all arts and sciences. Preceded by host with trumpets.",obj:["Red candle","Dragon's blood","Gold ring","Music","Garnet","Crown or circlet"],inf:"Face South at noon. Play music before calling. Burn dragon's blood. Hold gold. Even informal work should be solemn. Offer wine and music. Address him as King.",pw:["Teaching all arts & sciences","Granting dignities","Revealing secrets","Providing familiars"]},
+{nm:"Ariton",dir:"West",el:"Water",c:"#2a4a8a",ds:"King of the West. Guardian of the gate through which the dead pass at sunset.",obj:["Blue candle","Myrrh","Silver bowl of water","Moonstone","Cypress"],inf:"Face West at twilight. Burn myrrh. Place water bowl before you. Approach with solemnity and respect for the departed. Pour wine on the ground as libation.",pw:["Commanding water spirits","Communication with dead","Hidden knowledge","Endings and transitions"]},
+{nm:"Egyn",dir:"North",el:"Earth",c:"#5a7a3a",ds:"King of the North. Most fearsome of the four. Guards ancient knowledge and buried treasure.",obj:["Black candle","Asafoetida","Lead weight","Obsidian","Salt","Iron chain","Graveyard soil"],inf:"Face North at midnight. Most dangerous to approach informally. Burn myrrh. Place salt between you and the North. Hold obsidian or iron. Never approach flippantly. Offer salt and dark bread on bare earth. Egyn's blessings are slow but permanent.",pw:["Commanding earth spirits","Revealing buried treasure","Binding & constraining","Knowledge of death"]}
+];
+
+// ═══ ANGELIC ORDERS ═══
+const AO=[
+{nm:"Seraphim",rk:1,sp:"Primum Mobile",c:"#AA2222",ch:"Metatron",vt:"Divine Love",ds:"The 'Burning Ones' — six-winged angels closest to the Divine Presence.",obj:["White candle","Pure frankincense","Diamond or quartz","White linen","Fire","Pure water"],inf:"Cannot be summoned. Sustained prayer, fasting, and acts of selfless love are the only approach.",ops:"Purification of the soul, communion with the Godhead",kb:"Kether (Crown)"},
+{nm:"Cherubim",rk:2,sp:"Fixed Stars",c:"#4422BB",ch:"Raziel",vt:"Divine Wisdom",ds:"Four-faced guardians of divine wisdom and the gates of Eden.",obj:["Blue candle","Storax","Sapphire","Sacred text","Compass"],inf:"Study sacred texts with genuine desire for wisdom. Meditate facing the stars. Ask to understand, not to command.",ops:"Illumination, cosmic law comprehension",kb:"Chokmah (Wisdom)"},
+{nm:"Thrones",rk:3,sp:"Saturn",c:"#555570",ch:"Tzaphkiel",vt:"Divine Justice",ds:"Living wheels of God's chariot covered with eyes. Divine justice.",obj:["Indigo candle","Myrrh","Onyx","Scales image","Lead"],inf:"Accept the justice of your current situation fully before requesting change. Meditate on Saturday on the nature of justice.",ops:"Karmic justice, cosmic order",kb:"Binah (Understanding)"},
+{nm:"Dominations",rk:4,sp:"Jupiter",c:"#3355AA",ch:"Tzadkiel",vt:"Divine Authority",ds:"Lords who regulate angelic duties. Carry orbs and scepters.",obj:["Purple candle","Cedar","Amethyst","Scepter or staff","Crown"],inf:"Demonstrate wise stewardship of authority you already have. On Thursday, burn cedar and petition for guidance.",ops:"Establishing order, wise governance",kb:"Chesed (Mercy)"},
+{nm:"Virtues",rk:5,sp:"Mars",c:"#BB2233",ch:"Kamael",vt:"Miracles & Courage",ds:"The 'Brilliant Ones' through whom miracles flow.",obj:["Red candle","Dragon's blood","Ruby or garnet","Sword image","Shield"],inf:"Take a courageous action before petitioning. On Tuesday, burn dragon's blood and ask for courage or miracles.",ops:"Working miracles, bestowing courage",kb:"Geburah (Severity)"},
+{nm:"Powers",rk:6,sp:"Sun",c:"#CC9900",ch:"Raphael",vt:"Balance & Protection",ds:"Warrior angels guarding the border between material and spiritual worlds.",obj:["Gold candle","Frankincense","Amber","Angelic seal","Protective amulet"],inf:"Call when under spiritual attack or when balance between light and dark is disrupted. Burn frankincense on Sunday.",ops:"Exorcism, banishing evil, spiritual warfare",kb:"Tiphareth (Beauty)"},
+{nm:"Principalities",rk:7,sp:"Venus",c:"#AA4488",ch:"Haniel",vt:"Civilization & Art",ds:"Guardians of nations. Inspire art, science, and civilization.",obj:["Green candle","Rose incense","Emerald","Community symbol","Art supplies"],inf:"Create something beautiful before petitioning. On Friday, burn rose incense and ask for inspiration or guidance for a group.",ops:"Blessing communities, inspiring art",kb:"Netzach (Victory)"},
+{nm:"Archangels",rk:8,sp:"Mercury",c:"#7755BB",ch:"Michael",vt:"Communication",ds:"Great messengers. Generals of the angelic host.",obj:["Orange candle","Mastic","Agate","Written prayer","Caduceus image"],inf:"The most responsive higher order. Simply call their name with sincere need. They respond to clarity and willingness to act.",ops:"Divine messages, healing, teaching",kb:"Hod (Splendor)"},
+{nm:"Angels",rk:9,sp:"Moon",c:"#8899AA",ch:"Gabriel",vt:"Guardianship",ds:"Personal guardians closest to humanity. Every person has one.",obj:["White candle","Camphor","Moonstone","Personal object","Water bowl"],inf:"Your guardian angel is always present. Light a white candle and sit quietly. Listen for the quiet inner voice. Dreams are the primary channel.",ops:"Personal protection, dreams, comfort",kb:"Yesod (Foundation)"}
+];
+
+// ═══ PLANETARY ANGELS ═══
+const PA={
+Michael:{pl:"Sun",ord:"Archangels",dir:"South",el:"Fire",ds:"Prince of Light. Courage, leadership, protection against evil.",obj:["Gold candle","Frankincense","Amber","Sunstone","Lion image","Sword image"],inf:"Stand facing south. Hold gold or amber. Speak clearly and boldly. Burn frankincense. Michael IS the circle — no protection needed for sincere petition."},
+Gabriel:{pl:"Moon",ord:"Archangels",dir:"West",el:"Water",ds:"Angel of revelation, dreams, prophecy. Messenger of divine mysteries.",obj:["Silver/white candle","Camphor","Moonstone","Water bowl","Lily","White cloth"],inf:"Place moonstone and water by your bed. Whisper your question before sleep. For waking contact, face west at twilight. Burn camphor."},
+Samael:{pl:"Mars",ord:"Powers",dir:"North",el:"Fire",ds:"Angel of severity and strength. Both destroyer and protector.",obj:["Red candle","Dragon's blood","Iron nail","Bloodstone","Thorn branch","Red wine"],inf:"Face north, hold iron. Burn dragon's blood. State exactly what obstacle needs destroying. Samael responds to those who've exhausted their own strength. Approach with controlled anger."},
+Raphael:{pl:"Mercury",ord:"Virtues",dir:"East",el:"Air",ds:"Divine physician. Healing, communication, and guidance for travelers.",obj:["Orange/violet candle","Lavender","Agate","Feather","Book","Mastic resin"],inf:"Face east at dawn. Burn lavender. The friendliest archangel. Tell him specifically what needs healing. Walking while praying to Raphael is traditional and effective."},
+Sachiel:{pl:"Jupiter",ord:"Dominations",dir:"South-East",el:"Water",ds:"Angel of abundance and mercy. Wealth, justice, benevolence.",obj:["Blue/purple candle","Cedar","Amethyst","Oak leaves","Saffron","Tin vessel"],inf:"Give something away before asking. Burn cedar. Hold amethyst. Face south-east on Thursday. Ask with gratitude for what you already possess."},
+Anael:{pl:"Venus",ord:"Principalities",dir:"South-West",el:"Earth",ds:"Angel of love, beauty, and earthly pleasures.",obj:["Green/pink candle","Rose oil","Rose quartz","Copper","Apple","Myrtle"],inf:"Make yourself beautiful before approaching. Face south-west Friday evening. Burn rose incense. Approach as you would a lover — with openness and genuine desire."},
+Cassiel:{pl:"Saturn",ord:"Thrones",dir:"North-West",el:"Earth",ds:"Angel of solitude, patience, and karmic justice. The silent watcher.",obj:["Black candle","Myrrh","Obsidian","Lead","Cypress","Hourglass","Salt"],inf:"Fast before approaching. Face north-west Saturday night. Burn myrrh. Hold obsidian. Sit in silence after your petition and wait. Do not ask for anything you're not willing to wait and suffer for."}
+};
+
+// ═══ ELECTIONS ═══
+const ECATS=[
+{id:"love",l:"Love",i:"♥",pl:["Venus"],ms:["Taurus","Libra","Pisces","Cancer"],mn:[6,8,12,14,26],wx:true},
+{id:"wealth",l:"Wealth",i:"◈",pl:["Jupiter","Sun"],ms:["Taurus","Leo","Sagittarius","Capricorn"],mn:[2,7,11,13,27],wx:true},
+{id:"protection",l:"Protection",i:"⛨",pl:["Saturn","Mars"],ms:["Scorpio","Capricorn","Aries"],mn:[17,18,20,25],wx:false},
+{id:"knowledge",l:"Knowledge",i:"✧",pl:["Mercury","Moon"],ms:["Gemini","Virgo","Aquarius","Pisces"],mn:[3,5,15,24],wx:null},
+{id:"healing",l:"Healing",i:"✦",pl:["Sun","Jupiter"],ms:["Cancer","Virgo","Pisces"],mn:[14,19,22,23],wx:true},
+{id:"destruction",l:"Destruction",i:"☠",pl:["Saturn","Mars"],ms:["Scorpio","Aries","Capricorn"],mn:[4,9,21],wx:false},
+{id:"spirit",l:"Spirit Work",i:"◎",pl:["Saturn","Moon"],ms:["Scorpio","Pisces","Cancer","Aquarius"],mn:[15,28,22],wx:null},
+{id:"necromancy",l:"Necromancy",i:"☽",pl:["Saturn"],ms:["Scorpio","Pisces","Cancer"],mn:[9,15,21],wx:false}
+];
+function findEl(cat,lat,now){const r=[];for(let d=0;d<7;d++){const dt=new Date(now.getTime()+d*864e5),{hours}=pHours(dt,lat),ms_=mSign(dt),mp_=mPhase(dt),mn_=gMn(ms_.lon),wx=mp_.wax;for(const h of hours){if(!cat.pl.includes(h.ruler))continue;let sc=40;const re=[h.ruler+" hr"];if(cat.ms.includes(ms_.sign)){sc+=25;re.push("☽ "+ms_.sign)}if(cat.mn.includes(mn_.n)){sc+=20;re.push("Mansion "+mn_.n)}if(cat.wx===null||cat.wx===wx){sc+=15;re.push(wx?"Waxing":"Waning")}if(DR[dt.getDay()]===h.ruler){sc+=10;re.push("Day of "+h.ruler)}r.push({dt,h,sc,re,mp:mp_.name,ms:ms_.sign})}}return r.sort((a,b)=>b.sc-a.sc).slice(0,20)}
+
+// ═══ STATE & RENDER ═══
+let S={tab:"now",southern:false,lat:40.7,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:""};
+const fmt=d=>d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+const fmtD=d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+
+function tag(t,c="#b89a42"){return`<span class="tag" style="background:${c}14;color:${c};border:1px solid ${c}22">${t}</span>`}
+function title(t,c="#b89a42"){return`<div class="title" style="color:${c}">${t}</div>`}
+function label(t){return`<div class="label">${t}</div>`}
+function dot(c="#b89a42"){return`<span class="dot" style="color:${c}">◆</span>`}
+
+function renderStars(){const c=document.getElementById('stars');let h='';for(let i=0;i<50;i++)h+=`<div style="position:absolute;left:${(i*17.3)%100}%;top:${(i*31.7)%100}%;width:${Math.random()*2+1}px;height:${Math.random()*2+1}px;background:#b89a42;border-radius:50%;opacity:${Math.random()*.35+.1};animation:pulse ${2+Math.random()*4}s ease-in-out infinite;animation-delay:${i*.2}s"></div>`;c.innerHTML=h}
+
+function renderNav(){const n=document.getElementById('nav');
+const tabs=[{id:"now",l:"Now",i:"◉"},{id:"hours",l:"Hours",i:"⏣"},{id:"moon",l:"Moon",i:"☽"},{id:"beings",l:"Beings",i:"⛧"},{id:"elect",l:"Elect",i:"⊕"},{id:"project",l:"Future",i:"⟐"},{id:"ref",l:"Ref",i:"◈"}];
+n.innerHTML=tabs.map(t=>`<button class="${S.tab===t.id?'on':''}" onclick="S.tab='${t.id}';S.detail=null;S.mansion=null;render()"><div class="ic">${t.i}</div><div class="lb">${t.l}</div></button>`).join('')}
+
+function render(){
+const app=document.getElementById('app'),now=new Date();
+const lat=S.lat,pd=pHours(now,lat),mp=mPhase(now),ms=mSign(now),mn=gMn(ms.lon),ss=sSign(now);
+const ch=pd.hours.find(h=>now>=h.start&&now<h.end)||pd.hours[0];
+renderNav();
+let html=`<div style="text-align:center;padding:22px 0 12px">
+<div style="font-size:9px;letter-spacing:7px;color:#7a6830" class="cin">LIBER TEMPORIS</div>
+<div class="cin" style="font-size:20px;color:#b89a42;font-weight:700;letter-spacing:2px;background:linear-gradient(90deg,#7a6830,#b89a42,#7a6830);background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s linear infinite">☉ Fourth Book Grimoire ☽</div>
+<div style="font-size:11px;color:#606078;margin-top:2px">${fmtD(now)} · ${fmt(now)} · ${S.southern?'Southern':'Northern'} Hemisphere</div></div>`;
+
+if(S.tab==='now') html+=renderNow(now,pd,mp,ms,mn,ss,ch);
+else if(S.tab==='hours') html+=renderHours(now,pd);
+else if(S.tab==='moon') html+=renderMoon(mp,ms,mn);
+else if(S.tab==='beings') html+=renderBeings(ch);
+else if(S.tab==='elect') html+=renderElect(now);
+else if(S.tab==='project') html+=renderProject(now);
+else if(S.tab==='ref') html+=renderRef();
+app.innerHTML=html;
+}
+
+function renderNow(now,pd,mp,ms,mn,ss,ch){
+const p=PD[ch.ruler],col=p.c;
+return`<div class="fu">
+<div class="hemi-bar">${[{v:false,l:"Northern ☉"},{v:true,l:"Southern ☽"}].map(h=>`<button class="pill ${S.southern===h.v?'on':''}" onclick="S.southern=${h.v};S.lat=${h.v?-33.9:40.7};render()">${h.l}</button>`).join('')}</div>
+<div class="card" style="border-radius:16px;padding:22px;text-align:center;border-color:${col}44;background:linear-gradient(135deg,#151520,#0e0e18);box-shadow:0 0 24px ${col}10">
+${label('Current Planetary Hour')}
+<div style="font-size:44px;margin:4px 0;color:${col}">${p.sym}</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:600">${ch.ruler}</div>
+<div style="font-size:13px;color:#606078">${fmt(ch.start)} – ${fmt(ch.end)} · ${ch.isDay?'Diurnal':'Nocturnal'}</div>
+<div style="font-size:12px;color:#8a96a8;margin-top:3px">Angel: ${HA[ch.ruler]} · Candle: <span style="color:${col}">${p.candle}</span></div>
+<div style="margin-top:8px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px">${p.virt.map(v=>tag(v,col)).join('')}</div>
+</div>
+<div class="grid2">
+<div class="card">${label('Day Ruler')}<div style="font-size:24px;color:${pc(pd.dayRuler)};margin-top:3px">${PD[pd.dayRuler].sym}</div><div class="cin" style="font-size:14px">${pd.dayRuler}</div></div>
+<div class="card">${label('Moon Phase')}<div style="font-size:24px;margin-top:3px">${mIcon(mp,S.southern)}</div><div class="cin" style="font-size:12px">${mp.name}</div><div style="font-size:11px;color:#606078">${mp.ill}%</div></div>
+<div class="card">${label('Moon Sign')}<div style="font-size:24px;color:${EC[ms.el]};margin-top:3px">${ms.sym}</div><div class="cin" style="font-size:12px">${ms.sign} ${ms.deg}°</div></div>
+<div class="card">${label('Sun Sign')}<div style="font-size:24px;color:${EC[ss.el]};margin-top:3px">${ss.sym}</div><div class="cin" style="font-size:12px">${ss.sign} ${ss.deg}°</div></div>
+<div class="card">${label('Mansion '+mn.n)}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${mn.nm}</div><div style="font-size:11px;color:#606078">${mn.p}</div></div>
+<div class="card">${label('Cycle')}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${mp.wax?'Waxing (growth)':'Waning (release)'}</div><div style="font-size:11px;color:#606078">Day ${Math.round(mp.day)} of 29.5</div></div>
+</div>
+<div class="card">${title('Ritual Materials — '+ch.ruler+' Hour',col)}
+<div style="font-size:13px;color:#606078;margin-bottom:6px">Candle: <span style="color:${col}">${p.candle}</span> · Cloth: ${p.cloth}</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px">${p.obj.slice(0,6).map(o=>tag(o,col)).join('')}</div></div>
+<div class="card">${title('Favorable Works',col)}${p.works.map(w=>`<div class="wline">${dot(col)}${w}</div>`).join('')}</div>
+</div>`}
+
+function renderHours(now,pd){
+return`<div class="fu"><div style="text-align:center;margin-bottom:10px;font-size:13px;color:#b89a42;letter-spacing:2px" class="cin">☉ ${fmt(pd.sunrise)} · ☽ ${fmt(pd.sunset)}</div>
+${pd.hours.map((h,i)=>{const cur=now>=h.start&&now<h.end,col=pc(h.ruler);
+return`<div style="background:${cur?`linear-gradient(90deg,${col}10,#151520)`:'#151520'};border:1px solid ${cur?col+'44':'#242438'};border-radius:10px;padding:8px 12px;margin-bottom:4px;display:flex;align-items:center;gap:10px;opacity:${now>h.end?.3:1};${cur?'animation:glow 3s ease-in-out infinite':''}">
+<div style="font-size:18px;width:28px;text-align:center;color:${col}">${PD[h.ruler].sym}</div>
+<div style="flex:1"><div class="cin" style="font-size:13px;color:${cur?col:'#ccccd8'};font-weight:${cur?600:400}">${h.ruler}${cur?` <span style="font-size:8px;background:${col}28;padding:1px 6px;border-radius:10px;margin-left:6px">NOW</span>`:''}</div>
+<div style="font-size:11px;color:#606078">${fmt(h.start)}–${fmt(h.end)} · ${HA[h.ruler]}</div></div>
+<div style="font-size:10px;color:#606078;text-align:right">${h.isDay?'☀':'☾'} Hr ${h.isDay?h.index+1:h.index-11}</div></div>`}).join('')}</div>`}
+
+function renderMoon(mp,ms,mn){
+if(S.mansion){const m=S.mansion;return`<div class="fu"><button class="back" onclick="S.mansion=null;render()">← Back</button>
+<div class="card" style="padding:20px;border-radius:16px;border-color:#b89a4230">
+<div style="text-align:center"><div class="cin" style="font-size:38px;color:#b89a42">${m.n}</div><div class="cin" style="font-size:20px;color:#b89a42">${m.nm}</div><div style="font-size:13px;color:#606078;font-style:italic">"${m.p}"</div></div>
+<div style="margin-top:14px;font-size:13px;color:#8a96a8"><div style="border-bottom:1px solid #24243818;padding:6px 0"><span style="color:#606078">Start:</span> ${m.s.toFixed(1)}°</div><div style="border-bottom:1px solid #24243818;padding:6px 0"><span style="color:#606078">Image:</span> ${m.im}</div><div style="padding:6px 0"><span style="color:#606078">Angel:</span> ${m.an}</div></div>
+<div class="section">${title('Favorable For')}${m.g.map(g=>`<div class="wline">${dot()}${g}</div>`).join('')}</div></div></div>`}
+return`<div class="fu">
+<div class="card" style="text-align:center;padding:20px;border-radius:16px">
+<div style="font-size:52px">${mIcon(mp,S.southern)}</div>
+<div class="cin" style="font-size:18px;color:#b89a42;margin-top:4px">${mp.name}</div>
+<div style="font-size:13px;color:#606078">${mp.ill}% · Day ${Math.round(mp.day)}${S.southern?' · Southern Hemisphere':''}</div>
+<div style="width:100%;height:3px;background:#242438;border-radius:2px;margin-top:10px;overflow:hidden"><div style="width:${(mp.day/29.53)*100}%;height:100%;background:linear-gradient(90deg,#b89a42,#8a96a8)"></div></div>
+${S.southern?'<div style="font-size:11px;color:#606078;margin-top:6px;font-style:italic">Moon appears inverted from Southern Hemisphere</div>':''}
+</div>
+<div class="grid2">
+<div class="card">${label('Moon In')}<div style="font-size:26px;color:${EC[ms.el]};margin-top:3px">${ms.sym}</div><div class="cin" style="font-size:14px">${ms.sign} ${ms.deg}°</div></div>
+<div class="card">${label('Mansion')}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${mn.n}. ${mn.nm}</div><div style="font-size:11px;color:#606078">${mn.an}</div></div></div>
+${title('All 28 Mansions')}
+${MN.map(m=>`<div class="row" onclick="S.mansion=MN[${m.n-1}];render()" style="background:${m.n===mn.n?'#b89a4208':'#151520'};border-color:${m.n===mn.n?'#b89a4233':'#242438'}">
+<div class="cin" style="font-size:14px;color:${m.n===mn.n?'#b89a42':'#606078'};width:22px;text-align:center">${m.n}</div>
+<div style="flex:1"><div class="cin" style="font-size:12px">${m.nm}</div><div style="font-size:10px;color:#606078">${m.p}</div></div>
+${m.n===mn.n?'<span style="font-size:8px;padding:1px 5px;border-radius:6px;background:#b89a4228;color:#b89a42">NOW</span>':''}
+</div>`).join('')}</div>`}
+
+function renderBeings(ch){
+if(S.detail) return renderDetail();
+const cats=[{id:"goetia",l:"Goetia",n:72},{id:"olympic",l:"Olympic",n:7},{id:"angels",l:"Angels",n:7},{id:"elemental",l:"Elemental",n:4},{id:"kings",l:"Cardinal",n:4},{id:"orders",l:"Orders",n:9}];
+let h=`<div class="fu"><div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:10px">`;
+cats.forEach(c=>{h+=`<button class="pill ${S.detailType===c.id?'on':''}" onclick="S.detailType='${c.id}';S.filter='';S.planetF='All';render()">${c.l} (${c.n})</button>`});
+h+='</div>';
+const dt=S.detailType||'goetia';
+if(dt==='goetia'){
+h+=`<input type="text" placeholder="Search name or power..." value="${S.filter}" oninput="S.filter=this.value;render()">`;
+h+=`<div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:8px">`;
+["All",...Object.keys(PD)].forEach(p=>{const on=S.planetF===p,col=p==="All"?"#b89a42":pc(p);h+=`<button class="pill ${on?'on':''}" style="${on?`border-color:${col}40;color:${col};background:${col}18`:''}" onclick="S.planetF='${p}';render()">${p==="All"?"All":PD[p].sym}</button>`});
+h+='</div>';
+const q=S.filter.toLowerCase();
+G.filter(s=>(!q||s.nm.toLowerCase().includes(q)||s.pw.toLowerCase().includes(q))&&(S.planetF==="All"||s.pl===S.planetF)).forEach(s=>{
+h+=`<div class="row" onclick="S.detail=${s.n};S.detailType='goetia';render()"><div class="cin" style="font-size:15px;color:${pc(s.pl)};width:26px;text-align:center">${s.n}</div><div style="flex:1"><div class="cin" style="font-size:13px">${s.nm} <span style="font-size:10px;color:#606078">· ${s.rk}</span></div><div style="font-size:11px;color:#606078">${s.pw}</div></div><div style="text-align:right"><div style="font-size:14px;color:${pc(s.pl)}">${PD[s.pl].sym}</div><div style="font-size:10px;color:#606078">${s.lg}L</div></div></div>`});
+}else if(dt==='olympic'){
+OL.forEach(s=>{h+=`<div class="row" onclick="S.detail='${s.nm}';S.detailType='olympic';render()"><div style="font-size:20px;color:${pc(s.pl)};width:30px;text-align:center">${PD[s.pl].sym}</div><div style="flex:1"><div class="cin" style="font-size:14px;color:${pc(s.pl)}">${s.nm}</div><div style="font-size:11px;color:#606078">${s.gov}</div></div><div style="font-size:10px;color:#606078">${s.ru}</div></div>`});
+}else if(dt==='angels'){
+Object.entries(PA).forEach(([nm,a])=>{h+=`<div class="row" onclick="S.detail='${nm}';S.detailType='angels';render()"><div style="font-size:20px;color:${pc(a.pl)};width:30px;text-align:center">${PD[a.pl].sym}</div><div style="flex:1"><div class="cin" style="font-size:14px;color:${pc(a.pl)}">${nm}</div><div style="font-size:11px;color:#606078">${a.ord} · ${a.dir}</div></div></div>`});
+}else if(dt==='elemental'){
+ELS.forEach(s=>{const ei=s.el==="Fire"?"🔥":s.el==="Air"?"💨":s.el==="Water"?"🌊":"🌿";
+h+=`<div class="row" onclick="S.detail='${s.nm}';S.detailType='elemental';render()"><div style="font-size:20px;width:30px;text-align:center">${ei}</div><div style="flex:1"><div class="cin" style="font-size:14px;color:${s.c}">${s.nm}</div><div style="font-size:11px;color:#606078">${s.el} · Ruler: ${s.ruler}</div></div></div>`});
+}else if(dt==='kings'){
+CK.forEach(s=>{const ar=s.dir==="East"?"→":s.dir==="South"?"↓":s.dir==="West"?"←":"↑";
+h+=`<div class="row" onclick="S.detail='${s.nm}';S.detailType='kings';render()"><div style="font-size:18px;color:${s.c};width:30px;text-align:center">${ar}</div><div style="flex:1"><div class="cin" style="font-size:14px;color:${s.c}">${s.nm}</div><div style="font-size:11px;color:#606078">${s.dir} · ${s.el}</div></div></div>`});
+}else if(dt==='orders'){
+AO.forEach(s=>{h+=`<div class="row" onclick="S.detail='${s.nm}';S.detailType='orders';render()"><div class="cin" style="font-size:16px;color:${s.c};width:26px;text-align:center">${s.rk}</div><div style="flex:1"><div class="cin" style="font-size:14px;color:${s.c}">${s.nm}</div><div style="font-size:11px;color:#606078">${s.vt}</div></div></div>`});
+}
+h+='</div>';return h}
+
+function renderDetail(){
+let s,col,h=`<div class="fu"><button class="back" onclick="S.detail=null;render()">← Back</button>`;
+const dt=S.detailType;
+if(dt==='goetia'){s=G.find(x=>x.n===S.detail);col=pc(s.pl);
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div style="font-size:36px;color:${col}">${PD[s.pl].sym}</div>
+<div class="cin" style="font-size:12px;color:#606078">#${s.n} · ${s.rk}</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${s.nm}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px;flex-wrap:wrap">${tag(s.pl,col)}${tag(s.si,'#8a96a8')}${tag(s.lg+' legions','#8a96a8')}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;text-align:center;font-style:italic">${s.ds}</div>
+<div class="section">${title('Powers',col)}<div style="font-size:14px">${s.pw}</div></div>
+<div class="section">${title('Ritual Objects',col)}<div style="font-size:13px;color:#606078;margin-bottom:4px">Candle: <span style="color:${col}">${PD[s.pl].candle}</span> · Cloth: ${PD[s.pl].cloth}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${PD[s.pl].obj.slice(0,8).map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Circle',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${GAPPROACH}</div></div>
+<div style="margin-top:10px;padding:12px;background:#07070c66;border-radius:10px">${title('Timing',col)}<div style="font-size:13px;color:#8a96a8">Day: <span style="color:${col}">${PD[s.pl].day}</span> · Hour: <span style="color:${col}">${s.pl}</span> · Moon: ${s.si}</div><div style="font-size:12px;color:#606078;margin-top:2px">Incense: ${PD[s.pl].inc} · Metal: ${PD[s.pl].metal}</div></div></div>`}
+else if(dt==='olympic'){s=OL.find(x=>x.nm===S.detail);col=pc(s.pl);
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div style="font-size:36px;color:${col}">${PD[s.pl].sym}</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${s.nm}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px;flex-wrap:wrap">${tag(s.pl,col)}${tag(s.ru,'#8a96a8')}${tag(s.dy,'#8a96a8')}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;line-height:1.7">${s.ds}</div>
+<div class="section">${title('Appearance',col)}<div style="font-size:14px;color:#606078;font-style:italic">${s.ap}</div></div>
+<div class="section">${title('Powers',col)}${s.pw.map(p=>`<div class="wline">${dot(col)}${p}</div>`).join('')}</div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:4px">${s.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Circle',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${s.inf}</div></div>
+<div style="margin-top:10px;padding:12px;background:#07070c66;border-radius:10px">${title('Timing',col)}<div style="font-size:13px;color:#8a96a8">Day: <span style="color:${col}">${s.dy}</span> · Hour: <span style="color:${col}">${s.hr}</span></div><div style="font-size:12px;color:#606078;margin-top:2px">Incense: ${PD[s.pl].inc} · Metal: ${PD[s.pl].metal}</div></div></div>`}
+else if(dt==='angels'){const a=PA[S.detail];s=a;col=pc(a.pl);
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div style="font-size:36px;color:${col}">${PD[a.pl].sym}</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${S.detail}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px;flex-wrap:wrap">${tag(a.pl,col)}${tag(a.ord,'#8a96a8')}${tag(a.el,EC[a.el])}${tag(a.dir,'#8a96a8')}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;line-height:1.7">${a.ds}</div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:4px">${a.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Circle',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${a.inf}</div></div></div>`}
+else if(dt==='elemental'){s=ELS.find(x=>x.nm===S.detail);col=s.c;
+const ei=s.el==="Fire"?"🔥":s.el==="Air"?"💨":s.el==="Water"?"🌊":"🌿";
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div style="font-size:36px">${ei}</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${s.nm}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px">${tag(s.el,col)}${tag('Ruler: '+s.ruler,'#8a96a8')}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;line-height:1.7">${s.ds}</div>
+<div class="section">${title('Operations',col)}${s.ops.map(o=>`<div class="wline">${dot(col)}${o}</div>`).join('')}</div>
+<div class="section">${title('Correspondences',col)}<div style="font-size:13px;color:#606078">${s.cor}</div></div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:4px">${s.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Preparation',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${s.inf}</div></div></div>`}
+else if(dt==='kings'){s=CK.find(x=>x.nm===S.detail);col=s.c;
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${s.nm}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px">${tag(s.dir,col)}${tag(s.el,EC[s.el])}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;line-height:1.7">${s.ds}</div>
+<div class="section">${title('Powers',col)}${s.pw.map(p=>`<div class="wline">${dot(col)}${p}</div>`).join('')}</div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:4px">${s.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Circle',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${s.inf}</div></div></div>`}
+else if(dt==='orders'){s=AO.find(x=>x.nm===S.detail);col=s.c;
+h+=`<div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)"><div style="text-align:center">
+<div class="cin" style="font-size:12px;color:#606078">Order ${s.rk} of 9</div>
+<div class="cin" style="font-size:24px;color:${col};font-weight:700">${s.nm}</div>
+<div style="display:flex;justify-content:center;gap:5px;margin-top:6px;flex-wrap:wrap">${tag(s.sp,col)}${tag(s.vt,'#8a96a8')}</div></div>
+<div style="margin-top:14px;font-size:14px;color:#8a96a8;line-height:1.7">${s.ds}</div>
+<div style="margin-top:10px;font-size:13px;color:#8a96a8"><div style="border-bottom:1px solid #24243818;padding:5px 0">Chief: ${s.ch}</div><div style="border-bottom:1px solid #24243818;padding:5px 0">${s.kb}</div><div style="padding:5px 0">Operations: ${s.ops}</div></div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:4px">${s.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div style="margin-top:14px;padding:14px;background:#07070c88;border-radius:10px;border:1px solid ${col}18">${title('Approaching Without Preparation',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${s.inf}</div></div></div>`}
+h+='</div>';return h}
+
+function renderElect(now){
+let h=`<div class="fu">${title('Choose Working')}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">`;
+ECATS.forEach(c=>{const on=S.elCat&&S.elCat.id===c.id;
+h+=`<div onclick="S.elCat=ECATS.find(x=>x.id==='${c.id}');render()" style="background:${on?'#b89a4210':'#151520'};border:1px solid ${on?'#b89a4244':'#242438'};border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center">
+<div style="font-size:20px">${c.i}</div><div class="cin" style="font-size:11px;color:${on?'#b89a42':'#ccccd8'};margin-top:2px">${c.l}</div></div>`});
+h+='</div>';
+if(S.elCat){const els=findEl(S.elCat,S.lat,now);
+if(els.length){h+=title('Best Times — 7 Days');
+els.forEach(e=>{h+=`<div class="card" style="padding:8px 12px"><div style="display:flex;justify-content:space-between;align-items:center"><div><div class="cin" style="font-size:12px">${fmtD(e.dt)} · ${fmt(e.h.start)}</div><div style="font-size:11px;color:#606078">${e.mp} · ${e.ms}</div></div><div class="cin" style="font-size:16px;font-weight:700;color:${e.sc>=80?'#4ade80':e.sc>=60?'#b89a42':'#606078'}">${e.sc}</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:4px">${e.re.map(r=>`<span style="font-size:9px;padding:1px 5px;border-radius:5px;background:#b89a420c;color:#7a6830">${r}</span>`).join('')}</div></div>`})}}
+h+='</div>';return h}
+
+function renderProject(now){
+let h=`<div class="fu">${title('Future Astrological Conditions')}
+<div class="card"><div style="font-size:13px;color:#606078;margin-bottom:8px">Select a date to project planetary hours, moon phase, sign, mansion, and sun sign. Calculations use ${S.southern?'Southern':'Northern'} Hemisphere.</div>
+<input type="date" value="${S.projDate}" onchange="S.projDate=this.value;render()"></div>`;
+if(S.projDate){const d=new Date(S.projDate+'T12:00:00');if(!isNaN(d)){
+const pH=pHours(d,S.lat),pM=mPhase(d),pMs=mSign(d),pMn=gMn(pMs.lon),pSs=sSign(d);
+h+=`<div class="card" style="text-align:center;border-color:#b89a4230"><div class="cin" style="font-size:16px;color:#b89a42">${fmtD(d)}</div><div style="font-size:13px;color:#606078">Day of ${pH.dayRuler} · ${PD[pH.dayRuler].sym}</div></div>
+<div class="grid2">
+<div class="card">${label('Moon Phase')}<div style="font-size:28px;margin-top:3px">${mIcon(pM,S.southern)}</div><div class="cin" style="font-size:12px">${pM.name}</div><div style="font-size:11px;color:#606078">${pM.ill}% · ${pM.wax?'Waxing':'Waning'}</div></div>
+<div class="card">${label('Moon Sign')}<div style="font-size:28px;color:${EC[pMs.el]};margin-top:3px">${pMs.sym}</div><div class="cin" style="font-size:12px">${pMs.sign} ${pMs.deg}°</div></div>
+<div class="card">${label('Sun Sign')}<div style="font-size:28px;color:${EC[pSs.el]};margin-top:3px">${pSs.sym}</div><div class="cin" style="font-size:12px">${pSs.sign} ${pSs.deg}°</div></div>
+<div class="card">${label('Mansion')}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${pMn.n}. ${pMn.nm}</div><div style="font-size:11px;color:#606078">${pMn.p}</div></div></div>`;
+h+=`<div class="card">${title('Planetary Hours')}
+<div style="font-size:12px;color:#606078;margin-bottom:6px">☉ ${fmt(pH.sunrise)} · ☽ ${fmt(pH.sunset)}</div>
+${pH.hours.map(hr=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #24243814">
+<div style="font-size:14px;color:${pc(hr.ruler)};width:22px;text-align:center">${PD[hr.ruler].sym}</div>
+<div style="flex:1;font-size:12px"><span class="cin" style="color:${pc(hr.ruler)}">${hr.ruler}</span> <span style="color:#606078">· ${HA[hr.ruler]}</span></div>
+<div style="font-size:11px;color:#606078">${fmt(hr.start)}–${fmt(hr.end)}</div>
+<div style="font-size:10px;color:#606078">${hr.isDay?'☀':'☾'}</div></div>`).join('')}</div>`;
+h+=`<div class="card">${title('Favorable Workings')}
+<div style="font-size:13px;color:#606078;margin-bottom:6px">Day of ${pH.dayRuler} · Moon in ${pMs.sign} · Mansion ${pMn.n}</div>
+${PD[pH.dayRuler].works.map(w=>`<div class="wline">${dot(pc(pH.dayRuler))}${w}</div>`).join('')}
+<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px">${pMn.g.map(g=>tag(g)).join('')}</div></div>`;
+h+=title('7-Day Overview');
+for(let i=0;i<7;i++){const dd=new Date(d.getTime()+i*864e5),dM=mPhase(dd),dMs=mSign(dd),dMn=gMn(dMs.lon),dR=DR[dd.getDay()];
+h+=`<div class="row" style="cursor:default"><div style="font-size:12px;width:22px;text-align:center">${mIcon(dM,S.southern)}</div><div style="flex:1"><div class="cin" style="font-size:12px">${fmtD(dd)} · <span style="color:${pc(dR)}">${dR}</span></div><div style="font-size:10px;color:#606078">${dMs.sym} ${dMs.sign} · Mansion ${dMn.n} · ${dM.name}</div></div></div>`}
+}}
+h+='</div>';return h}
+
+function renderRef(){
+const p=PD[S.refP],col=p.c;
+let h=`<div class="fu"><div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:10px">`;
+Object.keys(PD).forEach(pl=>{const on=S.refP===pl;h+=`<button class="pill ${on?'on':''}" style="${on?`border-color:${pc(pl)}44;color:${pc(pl)};background:${pc(pl)}16`:''}" onclick="S.refP='${pl}';render()">${PD[pl].sym}</button>`});
+h+=`</div><div class="card" style="padding:20px;border-radius:16px;border-color:${col}30;background:linear-gradient(135deg,#151520,${col}06)">
+<div style="text-align:center"><div style="font-size:44px;color:${col}">${p.sym}</div><div class="cin" style="font-size:24px;color:${col};font-weight:700">${S.refP}</div></div>
+<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:5px">`;
+[["Day",p.day],["Metal",p.metal],["Candle",p.candle],["Cloth",p.cloth],["Stone",p.stone],["Colors",p.colors],["Angel",p.angel],["Intelligence",p.intel],["Spirit",p.spirit],["Number",p.num],["Square",p.sq]].forEach(([k,v])=>{
+h+=`<div style="padding:4px 0;border-bottom:1px solid #24243818"><div style="font-size:9px;color:#606078;text-transform:uppercase;letter-spacing:1px">${k}</div><div style="font-size:12px;margin-top:1px">${v}</div></div>`});
+h+=`</div>
+<div class="section">${title('Suffumigation',col)}<div style="font-size:13px;color:#606078">${p.suf}</div></div>
+<div class="section">${title('Animals',col)}<div style="font-size:13px;color:#606078">${p.animals}</div></div>
+<div class="section">${title('Plants',col)}<div style="font-size:13px;color:#606078">${p.plants}</div></div>
+<div class="section">${title('Ritual Objects',col)}<div style="display:flex;flex-wrap:wrap;gap:3px">${p.obj.map(o=>tag(o,col)).join('')}</div></div>
+<div class="section">${title('Works',col)}${p.works.map(w=>`<div class="wline">${dot(col)}${w}</div>`).join('')}</div>
+<div style="margin-top:14px;padding:12px;background:#07070c66;border-radius:10px;border:1px solid ${col}14">${title('Informal Approach',col)}<div style="font-size:13px;color:#8a96a8;line-height:1.7">${p.approach}</div></div></div></div>`;
+return h}
+
+// ═══ INIT ═══
+renderStars();
+S.detailType='goetia';
+render();
+setInterval(render,30000);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+</body>
+</html>
