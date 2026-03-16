@@ -1,22 +1,26 @@
 {
-  "name": "Syncretic Semiotics: Australian Omens",
-  "short_name": "Omens",
-  "description": "Divination through 60 animals, cryptids & archetypes. Draw an omen from the stone.",
+  "name": "Liber Temporis — Christian Kabbalist Ritual Timing",
+  "short_name": "Liber Temporis",
+  "description": "Planetary hours, 72 Names, Goetia defense, gematria, stellar observatory, and dual-lens Kabbalistic architecture.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0A0F0A",
-  "theme_color": "#1A3A12",
   "orientation": "portrait",
-  "scope": "./",
-  "categories": ["books", "lifestyle"],
+  "background_color": "#07070c",
+  "theme_color": "#07070c",
   "icons": [
-    { "src": "./icons/icon-72.png", "sizes": "72x72", "type": "image/png" },
-    { "src": "./icons/icon-96.png", "sizes": "96x96", "type": "image/png" },
-    { "src": "./icons/icon-128.png", "sizes": "128x128", "type": "image/png" },
-    { "src": "./icons/icon-144.png", "sizes": "144x144", "type": "image/png" },
-    { "src": "./icons/icon-152.png", "sizes": "152x152", "type": "image/png" },
-    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "./icons/icon-384.png", "sizes": "384x384", "type": "image/png" },
-    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
-  ]
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "lifestyle"],
+  "lang": "en"
 }
