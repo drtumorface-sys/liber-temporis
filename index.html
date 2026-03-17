@@ -2353,49 +2353,103 @@ checkNotifications(now);
 
 function renderNow(now,pd,mp,ms,mn,ss,ch){
 const p=PD[ch.ruler],col=p.c;
+const ni=pd.hours.indexOf(ch);const nx=pd.hours[ni+1]||null;
+const voc=vocMoon(now);
+const vocCol=voc.isVOC?'#c03030':'#22aa44';
+const nearStars=nearbyStars(ms.lon,5);
+const shemA=getShemAngel(ms.lon);
+const activeBeings=scanActiveBeings(now);
+const rec=getNowRecommendation(ch,mp,ms,mn,voc,nearStars);
+const sephN=PLANET_SEPH[ch.ruler]||6;const sephData=SEPH_NUM[sephN];
+
 return`<div class="fu">
 
-<div class="card" style="border-radius:16px;padding:22px;text-align:center;border-color:${col}44;background:linear-gradient(135deg,#151520,#0e0e18);box-shadow:0 0 24px ${col}10">
-${label('Current Planetary Hour')}
-<div style="font-size:44px;margin:4px 0;color:${col}">${p.sym}</div>
-<div class="cin" style="font-size:24px;color:${col};font-weight:600">${ch.ruler}</div>
-<div style="font-size:13px;color:#606078">${fmt(ch.start)} – ${fmt(ch.end)} · ${ch.isDay?'Diurnal':'Nocturnal'}</div>
-<div style="font-size:12px;color:#8a96a8;margin-top:3px">Angel: ${HA[ch.ruler]} · Candle: <span style="color:${col}">${p.candle}</span></div>
-<div style="margin-top:8px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px">${p.virt.map(v=>tag(v,col)).join('')}</div>
+<div style="padding:16px;border-radius:16px;background:linear-gradient(135deg,#0e0e18,${col}08);border:1px solid ${col}33;margin-bottom:8px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+<div style="font-size:48px;color:${col};text-shadow:0 0 20px ${col}33">${p.sym}</div>
+<div style="flex:1">
+<div style="font-size:9px;letter-spacing:3px;color:#606078" class="cin">${ch.isDay?'DIURNAL':'NOCTURNAL'} HOUR</div>
+<div class="cin" style="font-size:22px;color:${col};font-weight:700">${ch.ruler}</div>
+<div style="font-size:11px;color:#8a96a8">${HA[ch.ruler]} · ${sephData.s} · ${fmt(ch.start)}–${fmt(ch.end)}</div>
 </div>
+<div style="text-align:center;flex-shrink:0">
+<div style="font-size:9px;color:#606078;letter-spacing:1px" class="cin">NEXT</div>
+<div id="hr-countdown" class="cin" style="font-size:20px;color:${nx?pc(nx.ruler):'#606078'};font-weight:700">—</div>
+<div style="font-size:9px;color:${nx?pc(nx.ruler):'#606078'}">${nx?'→ '+nx.ruler:''}</div>
+</div>
+</div>
+<div style="height:3px;background:#242438;border-radius:2px;overflow:hidden;margin-bottom:10px"><div id="hr-bar" style="height:100%;background:linear-gradient(90deg,${col},${col}88);border-radius:2px;transition:width 1s linear;width:0%"></div></div>
+
+<div style="padding:10px 12px;background:#07070c66;border-radius:10px;border:1px solid ${voc.isVOC?'#c0303033':'#b89a4218'};margin-bottom:8px">
+<div style="font-size:11px;color:#ccccd8;line-height:1.7">${rec}</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">
+<div class="card" style="padding:8px;text-align:center">
+<div style="font-size:8px;color:#606078;letter-spacing:1px" class="cin">MOON</div>
+<div style="font-size:22px;margin:2px 0">${mIcon(mp,S.southern)}</div>
+<div style="font-size:10px;color:${EC[ms.el]}">${ms.sym} ${ms.sign} ${ms.deg}°</div>
+<div style="font-size:9px;color:#606078">${mp.name} · ${mp.ill}%</div>
+${voc.isVOC?'<div style="font-size:8px;color:#c03030;margin-top:2px;font-weight:600">⚠ VOC</div>':''}
+</div>
+<div class="card" style="padding:8px;text-align:center">
+<div style="font-size:8px;color:#606078;letter-spacing:1px" class="cin">MANSION</div>
+<div style="font-size:14px;color:#b89a42;margin:4px 0" class="cin">${mn.n}</div>
+<div style="font-size:10px;color:#b89a42">${mn.nm}</div>
+<div style="font-size:9px;color:#606078">${mn.p}</div>
+</div>
+<div onclick="S.tab='shem';S.shemTriad=${shemA.n-1};render()" class="card" style="padding:8px;text-align:center;cursor:pointer">
+<div style="font-size:8px;color:#606078;letter-spacing:1px" class="cin">SHEM #${shemA.n}</div>
+<div style="direction:rtl;font-size:18px;color:#9B7BDB;margin:2px 0;font-family:'EB Garamond',serif">${shemA.heb}</div>
+<div style="font-size:10px;color:#9B7BDB">${shemA.nm}</div>
+<div style="font-size:9px;color:#606078">${shemA.domain.split(',')[0]}</div>
+</div>
+</div>
+
 <div class="grid2">
-<div class="card">${label('Day Ruler')}<div style="font-size:24px;color:${pc(pd.dayRuler)};margin-top:3px">${PD[pd.dayRuler].sym}</div><div class="cin" style="font-size:14px">${pd.dayRuler}</div></div>
-<div class="card">${label('Moon Phase')}<div style="font-size:24px;margin-top:3px">${mIcon(mp,S.southern)}</div><div class="cin" style="font-size:12px">${mp.name}</div><div style="font-size:11px;color:#606078">${mp.ill}%</div></div>
-<div class="card">${label('Moon Sign')}<div style="font-size:24px;color:${EC[ms.el]};margin-top:3px">${ms.sym}</div><div class="cin" style="font-size:12px">${ms.sign} ${ms.deg}°</div></div>
-<div class="card">${label('Sun Sign')}<div style="font-size:24px;color:${EC[ss.el]};margin-top:3px">${ss.sym}</div><div class="cin" style="font-size:12px">${ss.sign} ${ss.deg}°</div></div>
-<div class="card">${label('Mansion '+mn.n)}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${mn.nm}</div><div style="font-size:11px;color:#606078">${mn.p}</div></div>
-<div class="card">${label('Cycle')}<div class="cin" style="font-size:14px;color:#b89a42;margin-top:3px">${mp.wax?'Waxing (growth)':'Waning (release)'}</div><div style="font-size:11px;color:#606078">Day ${Math.round(mp.day)} of 29.5</div></div>
+<div class="card" style="padding:8px;text-align:center">${label('Day')}<div style="font-size:20px;color:${pc(pd.dayRuler)};margin-top:2px">${PD[pd.dayRuler].sym}</div><div class="cin" style="font-size:11px">${pd.dayRuler}</div></div>
+<div class="card" style="padding:8px;text-align:center">${label('Sun')}<div style="font-size:18px;color:${EC[ss.el]};margin-top:2px">${ss.sym}</div><div class="cin" style="font-size:11px">${ss.sign} ${ss.deg}°</div></div>
 </div>
-<div class="card">${title('Ritual Materials — '+ch.ruler+' Hour',col)}
-<div style="font-size:13px;color:#606078;margin-bottom:6px">Candle: <span style="color:${col}">${p.candle}</span> · Cloth: ${p.cloth}</div>
-<div style="display:flex;flex-wrap:wrap;gap:4px">${p.obj.slice(0,6).map(o=>tag(o,col)).join('')}</div></div>
-<div class="card">${title('Favorable Works',col)}${p.works.map(w=>`<div class="wline">${dot(col)}${w}</div>`).join('')}</div>
+
+${nearStars.length&&nearStars[0].dist<=5?`<div style="padding:8px 12px;background:${nearStars[0].col}08;border:1px solid ${nearStars[0].col}28;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+<div style="width:8px;height:8px;border-radius:50%;background:${nearStars[0].col};box-shadow:0 0 8px ${nearStars[0].col}88;flex-shrink:0${nearStars[0].dist<=2?';animation:pulse 2s ease-in-out infinite':''}"></div>
+<div style="font-size:10px;color:${nearStars[0].col}">★ <b>${nearStars[0].nm}</b> ${nearStars[0].dist.toFixed(1)}° from Moon</div>
+<div style="font-size:9px;color:#606078;margin-left:auto">${nearStars[0].nat}</div>
+</div>`:''}
+
+${activeBeings.length?`<div class="card" style="border-radius:12px;padding:12px">
+<div style="font-size:9px;letter-spacing:3px;color:#b89a42;margin-bottom:8px" class="cin">ACTIVE & ALIGNED BEINGS</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px">
+${activeBeings.map(b=>{
+const badge=b.sc>=5?{bg:'#4ade8020',col:'#4ade80',brd:'#4ade8040',lbl:'Active'}:{bg:'#b89a4220',col:'#b89a42',brd:'#b89a4240',lbl:'Aligned'};
+return`<div onclick="nowAct(${b.ai})" style="cursor:pointer;padding:4px 10px;border-radius:7px;background:${badge.bg};border:1px solid ${badge.brd};display:flex;align-items:center;gap:4px">
+<div style="width:5px;height:5px;border-radius:50%;background:${badge.col}"></div>
+<span style="font-size:10px;color:${badge.col};font-family:'Cinzel',serif">${b.nm}</span>
+<span style="font-size:8px;color:#606078">${b.type==='shem'?'#'+b.n:b.type}</span>
+</div>`;}).join('')}
+</div>
+</div>`:''}
+
+<div class="card" style="border-radius:12px">${title('Ritual Materials — '+ch.ruler+' Hour',col)}
+<div style="font-size:12px;color:#606078;margin-bottom:6px">Candle: <span style="color:${col}">${p.candle}</span> · Cloth: ${p.cloth} · Incense: ${p.inc}</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px">${p.obj.slice(0,6).map(o=>tag(o,col)).join('')}</div>
+<div style="margin-top:6px;font-size:11px;color:#8a96a8;line-height:1.5">${p.works.map(w=>'◆ '+w).join(' · ')}</div></div>
 ${renderCorrespondenceWeb(pd,ms,getShemAngel(ms.lon))}
 ${S.christianLens?(()=>{
-const sephN=PLANET_SEPH[ch.ruler]||6;
-const sephData=SEPH_NUM[sephN];
 const ckabEntry=CKAB_TRINITY.find(ct=>ct.n===sephN);
 const ckdDeep=CKAB_SEPH_DEEP[sephN-1];
-const trinNote=ckabEntry?`<div style="margin-top:8px;padding:8px 10px;background:#07070c66;border-radius:8px;border:1px solid ${col}18"><div style="font-size:9px;color:${col};font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:3px">CHRISTIAN KABBALISTIC RESONANCE</div><div style="font-size:11px;color:#8a96a8;line-height:1.6"><b style="color:${sephData.c==='#FFFFFF'?'#e8e8e8':sephData.c}">${sephData.s}</b> — ${ckabEntry.person} · ${ckabEntry.lat}</div><div style="font-size:11px;color:#606078;line-height:1.5;margin-top:3px;font-style:italic">${ckabEntry.script.substring(0,100)}...</div><button onclick="S.tab='ckab';S.ckabSection='trinity';render()" style="margin-top:6px;padding:3px 10px;border-radius:6px;background:${col}15;border:1px solid ${col}30;color:${col};cursor:pointer;font-size:10px;font-family:'Cinzel',serif">Explore Trinity →</button></div>`:'';
+const trinNote=ckabEntry?`<div style="margin-top:8px;padding:8px 10px;background:#07070c66;border-radius:8px;border:1px solid ${col}18"><div style="font-size:9px;color:${col};font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:3px">CHRISTIAN KABBALISTIC RESONANCE</div><div style="font-size:11px;color:#8a96a8;line-height:1.6"><b style="color:${sephData.c==='#FFFFFF'?'#e8e8e8':sephData.c}">${sephData.s}</b> — ${ckabEntry.person} · ${ckabEntry.lat}</div><div style="font-size:11px;color:#606078;line-height:1.5;margin-top:3px;font-style:italic">${ckabEntry.script.substring(0,100)}...</div></div>`:'';
 return`<div class="card" style="border-color:#b89a4228;background:linear-gradient(135deg,#151520,#b89a4205)">
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
 <div style="font-size:16px;color:#b89a42">✝</div>
 ${title('Christian Kabbalistic Now','#b89a42')}
 </div>
-<div style="font-size:12px;color:#8a96a8;line-height:1.7;margin-bottom:8px">This moment is governed by <b style="color:${col}">${ch.ruler}</b>, the planetary ruler of <b style="color:${sephData.c==='#FFFFFF'?'#e8e8e8':sephData.c}">${sephData.s}</b> (✝ <b style="color:#b89a42">${ckdDeep?ckdDeep.cName:''}</b>). The divine Name operating here is <b style="color:${col}">${sephData.p}</b>.</div>
+<div style="font-size:12px;color:#8a96a8;line-height:1.7;margin-bottom:8px">This moment is governed by <b style="color:${col}">${ch.ruler}</b>, the planetary ruler of <b style="color:${sephData.c==='#FFFFFF'?'#e8e8e8':sephData.c}">${sephData.s}</b> (✝ <b style="color:#b89a42">${ckdDeep?ckdDeep.cName:''}</b>).</div>
 ${trinNote}
 ${ckdDeep?`<div style="margin-top:8px;padding:10px;background:${col}08;border-radius:8px;border:1px solid ${col}18">
 <div style="font-size:9px;color:${col};font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px">DEVOTIONAL PRACTICE — THIS HOUR</div>
 <div style="font-size:11px;color:#8a96a8;line-height:1.6">${ckdDeep.devotion.split('.').slice(0,2).join('.')}.</div>
-</div>
-<div style="margin-top:6px;padding:10px;background:#07070c66;border-radius:8px;border:1px solid #b89a4218">
-<div style="font-size:9px;color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1px;margin-bottom:4px">BODY OF CHRIST</div>
-<div style="font-size:11px;color:#606078;line-height:1.6;font-style:italic">${ckdDeep.bodyChrist.split('.')[0]}.</div>
 </div>`:''}
 <div style="margin-top:8px;display:flex;gap:4px;flex-wrap:wrap">
 <button onclick="S.tab='study';S.studySub='numbers';S.studySeph=${sephN-1};render()" style="padding:4px 12px;border-radius:7px;background:#b89a4212;border:1px solid #b89a4230;color:#b89a42;cursor:pointer;font-size:10px;font-family:'Cinzel',serif">✝ Full Sephirah →</button>
@@ -2409,10 +2463,11 @@ function vocMoon(dt){
   const ms=mSign(dt);
   const degInSign=ms.lon%30;
   const degsLeft=30-degInSign;
+  const hoursToIngress=Math.round((degsLeft/0.5)*10)/10;
   const ingress=new Date(dt.getTime()+(degsLeft/0.5)*3600000);
   const isVOC=degsLeft<=2;
   const nextSign=ZS[(ZS.indexOf(ms.sign)+1)%12];
-  return{isVOC,degsLeft:degsLeft.toFixed(1),ingress,nextSign,curSign:ms.sign};
+  return{isVOC,degsLeft:degsLeft.toFixed(1),ingress,nextSign,curSign:ms.sign,hoursToIngress:hoursToIngress.toFixed(1)};
 }
 function renderHours(now,pd){
 const SR=pd.sunrise,SS=pd.sunset;
@@ -5304,6 +5359,34 @@ renderStars();
 S.detailType='goetia';
 render();
 applyCFG();setInterval(()=>{render();checkNotifications(new Date());},30000);
+// 1-second countdown ticker
+setInterval(()=>{const el=document.getElementById('hr-countdown');if(!el)return;const now=new Date(),pd=pHours(now,CFG.lat),ch=pd.hours.find(h=>now>=h.start&&now<h.end)||pd.hours[0],ni=pd.hours.indexOf(ch),nx=pd.hours[ni+1]||null;if(!nx){el.textContent='—';return;}const ms=nx.start-now,m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);el.textContent=`${m}m ${s<10?'0':''}${s}s`;const bar=document.getElementById('hr-bar');if(bar){const total=ch.end-ch.start;const elapsed=now-ch.start;bar.style.width=Math.min(100,(elapsed/total)*100).toFixed(1)+'%';}},1000);
+// Active beings scanner
+var _nowActions=[];
+function scanActiveBeings(now){
+const pd=pHours(now,CFG.lat),ms=mSign(now),ch=pd.hours.find(h=>now>=h.start&&now<h.end)||pd.hours[0];
+const results=[];_nowActions=[];
+G.forEach(s=>{const sc=accessScore(s.pl,s.si);if(sc>=3)results.push({type:'goetia',nm:s.nm,n:s.n,pl:s.pl,sc,col:pc(s.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.n;S.detailType='goetia';S.planView=false;render();})-1});});
+OL.forEach(s=>{const sc=accessScore(s.pl,'');if(sc>=3)results.push({type:'olympic',nm:s.nm,n:0,pl:s.pl,sc,col:pc(s.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='olympic';S.planView=false;render();})-1});});
+Object.entries(PA).forEach(([nm,a])=>{const sc=accessScore(a.pl,'');if(sc>=3)results.push({type:'angel',nm,n:0,pl:a.pl,sc,col:pc(a.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=nm;S.detailType='angels';S.planView=false;render();})-1});});
+const shA=getShemAngel(ms.lon);
+results.push({type:'shem',nm:shA.nm,n:shA.n,pl:'',sc:6,col:'#9B7BDB',ai:_nowActions.push(()=>{S.tab='shem';S.shemTriad=shA.n-1;render();})-1});
+return results.sort((a,b)=>b.sc-a.sc).slice(0,8);
+}
+function nowAct(i){if(_nowActions[i])_nowActions[i]();}
+// Recommendation engine
+function getNowRecommendation(ch,mp,ms,mn,voc,nearStars){
+const pl=ch.ruler;const el=ms.el;
+let rec='';
+if(voc.isVOC){rec=`Moon void of course — pause new operations. Use this window for contemplation, journaling, and completion of existing work. VOC clears in ~${voc.degsLeft}° (${voc.nextSign}).`;return rec;}
+const strength={Sun:['healing','authority','illumination','solar devotion'],Moon:['dreams','divination','psychic work','Marian devotion'],Mars:['protection','binding','courage','confrontation'],Mercury:['study','communication','gematria','writing'],Jupiter:['prosperity','expansion','generosity','mercy workings'],Venus:['love','beauty','art','reconciliation'],Saturn:['banishing','structure','patience','contemplation']}[pl]||[];
+const moonNote={Fire:'intuitive clarity',Water:'deep receptivity',Air:'intellectual precision',Earth:'material grounding'}[el]||'';
+rec=`<b style="color:${pc(pl)}">${pl}</b> hour with <b style="color:${EC[el]}">${el}</b> Moon (${ms.sign}) — strong for ${strength.slice(0,2).join(' and ')}. ${moonNote?'Lunar element adds '+moonNote+'.':''}`;
+if(mp.wax&&mp.phase>3&&mp.phase<14)rec+=` Waxing Moon favours growth and acquisition.`;
+else if(!mp.wax&&mp.phase>16)rec+=` Waning Moon favours release and banishing.`;
+if(nearStars.length&&nearStars[0].dist<=5)rec+=` <span style="color:${nearStars[0].col}">★ ${nearStars[0].nm}</span> nearby (${nearStars[0].dist.toFixed(1)}°) — ${nearStars[0].op.split(',')[0]}.`;
+return rec;
+}
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
