@@ -1,7 +1,7 @@
 {
   "name": "Liber Temporis",
   "short_name": "Liber",
-  "description": "A Christian Kabbalist ritual timing application. Planetary hours, lunar positions, Sephirothic resonances, the 72 Names of God, and 360° Sabatons in real time.",
+  "description": "A Christian Kabbalist ritual timing application — planetary hours, gematria, the 72 Names, Sephirothic resonances, and the Living Firmament.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -1,5 +1,5 @@
-// Liber Temporis Service Worker v5.5.1
-const CACHE_NAME = 'liber-temporis-v5.5.1';
+// Liber Temporis Service Worker v5.5.2
+const CACHE_NAME = 'liber-temporis-v5.5.2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,16 +24,14 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch — cache-first for app shell, network-first for everything else
+// Fetch — stale-while-revalidate
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  // Only handle same-origin requests
   if (url.origin !== location.origin) return;
   
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) {
-        // Return cache, but update in background
         fetch(event.request).then(response => {
           if (response && response.status === 200) {
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, response));
@@ -48,7 +46,6 @@ self.addEventListener('fetch', event => {
         }
         return response;
       }).catch(() => {
-        // Offline fallback
         if (event.request.destination === 'document') {
           return caches.match('./index.html');
         }
@@ -57,24 +54,22 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Notification click — open the app
+// Notification click — open or focus the app
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      // Focus existing window if available
       for (const client of clients) {
         if (client.url.includes('index.html') || client.url.endsWith('/')) {
           return client.focus();
         }
       }
-      // Otherwise open a new window
       return self.clients.openWindow('./');
     })
   );
 });
 
-// Push event — future-proofing for server-sent push
+// Push — future-proofing for server-sent notifications
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   const title = data.title || 'Liber Temporis';
@@ -89,7 +84,7 @@ self.addEventListener('push', event => {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Periodic background sync — keep the app alive for notification scheduling
+// Periodic background sync — keep notification scheduling alive
 self.addEventListener('periodicsync', event => {
   if (event.tag === 'lt-check') {
     event.waitUntil(
