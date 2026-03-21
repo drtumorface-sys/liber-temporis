@@ -1,12 +1,14 @@
 {
-  "name": "Liber Temporis — Christian Kabbalist Ritual Timing",
-  "short_name": "Liber Temporis",
-  "description": "Planetary hours, 72 Names, Goetia defense, gematria, stellar observatory, and dual-lens Kabbalistic architecture.",
+  "name": "Liber Temporis",
+  "short_name": "Liber",
+  "description": "A Christian Kabbalist ritual timing application. Planetary hours, lunar positions, Sephirothic resonances, the 72 Names of God, and 360° Sabatons in real time.",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#07070c",
   "theme_color": "#07070c",
+  "categories": ["education", "lifestyle"],
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,7 +22,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["education", "lifestyle"],
-  "lang": "en"
+  ]
 }
