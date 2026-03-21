@@ -1,7 +1,7 @@
 {
   "name": "Liber Temporis",
   "short_name": "Liber",
-  "description": "A Christian Kabbalist ritual timing application — planetary hours, gematria, the 72 Names, Sephirothic resonances, and the Living Firmament.",
+  "description": "A Christian Kabbalist ritual timing application — planetary hours, Sabian Symbols, gematria, the 72 Names, the celestial sphere, and the Living Firmament.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

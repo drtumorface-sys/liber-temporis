@@ -32,8 +32,10 @@ body{background:var(--bg);color:var(--text);font-family:'EB Garamond',Georgia,se
 .tag{font-size:calc(11px * var(--fs));padding:2px 8px;border-radius:10px;display:inline-block;margin:2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
 .back{background:none;border:1px solid var(--goldD);color:var(--goldD);padding:5px 12px;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:calc(12px * var(--fs));margin-bottom:12px;letter-spacing:1px}
-input[type=text],input[type=date],select{width:100%;padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--brd);color:var(--text);font-size:calc(14px * var(--fs));font-family:'EB Garamond',serif;outline:none;margin-bottom:8px}
-input[type=text]:focus,input[type=date]:focus,select:focus{border-color:var(--goldD)}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--brd);color:var(--text);font-size:calc(14px * var(--fs));font-family:'EB Garamond',serif;outline:none;margin-bottom:8px}
+input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,select:focus{border-color:var(--goldD)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
 .pill{padding:3px 9px;border-radius:8px;font-size:calc(11px * var(--fs));cursor:pointer;font-family:'Cinzel',serif;border:1px solid var(--brd);background:var(--card);color:var(--dim);display:inline-block;margin:2px;transition:border-color .2s,color .2s}
 .pill.on{border-color:var(--gold);color:var(--gold);background:linear-gradient(135deg,#b89a4210,#b89a4218)}
 .row{background:var(--card);border:1px solid var(--brd);border-radius:12px;padding:9px 12px;margin-bottom:5px;display:flex;align-items:center;gap:10px;cursor:pointer;border-top:1px solid #ffffff06;transition:border-color .15s}
@@ -304,7 +306,7 @@ function gemReduce(n){while(n>10&&n!==11&&n!==22&&n!==33){let s=0;const d=String
 const ATBASH_MAP={'א':'ת','ב':'ש','ג':'ר','ד':'ק','ה':'צ','ו':'פ','ז':'ע','ח':'ס','ט':'נ','י':'מ','כ':'ל','ל':'כ','מ':'י','נ':'ט','ס':'ח','ע':'ז','פ':'ו','צ':'ה','ק':'ד','ר':'ג','ש':'ב','ת':'א','ך':'ל','ם':'י','ן':'ט','ף':'ו','ץ':'ה'};
 function gemAtbash(s){let out='';for(const c of s)out+=ATBASH_MAP[c]||c;return out;}
 function gemFindMatches(val,sys){return GEM_NOTABLE.filter(g=>g.v===val&&(sys==='all'||g.s===sys))}
-const SEPH_NUM={1:{s:"Kether",p:"Unity, the Godhead, the First Cause",c:"#FFFFFF"},2:{s:"Chokmah",p:"Duality, wisdom, the Father principle",c:"#AAAAFF"},3:{s:"Binah",p:"Form, understanding, the Mother principle",c:"#333355"},4:{s:"Chesed",p:"Order, mercy, stability, Jupiter",c:"#4A7BF7"},5:{s:"Geburah",p:"Severity, strength, Mars, destruction of the old",c:"#DC3545"},6:{s:"Tiphareth",p:"Beauty, harmony, the Sun, the Christ-center",c:"#FFD700"},7:{s:"Netzach",p:"Victory, desire, Venus, the arts",c:"#E87BA8"},8:{s:"Hod",p:"Splendor, intellect, Mercury, magic",c:"#9B7BDB"},9:{s:"Yesod",p:"Foundation, the Moon, dreams, astral plane",c:"#B8C6D4"},10:{s:"Malkuth",p:"Kingdom, the material world, manifestation",c:"#8B6D3F"}};
+const SEPH_NUM={1:{s:"Kether",p:"Unity, the Godhead, the First Cause",c:"#FFFFFF",ps:91},2:{s:"Chokmah",p:"Duality, wisdom, the Father principle",c:"#AAAAFF",ps:8},3:{s:"Binah",p:"Form, understanding, the Mother principle",c:"#333355",ps:107},4:{s:"Chesed",p:"Order, mercy, stability, Jupiter",c:"#4A7BF7",ps:103},5:{s:"Geburah",p:"Severity, strength, Mars, destruction of the old",c:"#DC3545",ps:120},6:{s:"Tiphareth",p:"Beauty, harmony, the Sun, the Christ-center",c:"#FFD700",ps:19},7:{s:"Netzach",p:"Victory, desire, Venus, the arts",c:"#E87BA8",ps:45},8:{s:"Hod",p:"Splendor, intellect, Mercury, magic",c:"#9B7BDB",ps:29},9:{s:"Yesod",p:"Foundation, the Moon, dreams, astral plane",c:"#B8C6D4",ps:48},10:{s:"Malkuth",p:"Kingdom, the material world, manifestation",c:"#8B6D3F",ps:24}};
 const GEM_NOTABLE=[
 // ─── HEBREW: DIVINE NAMES ───
 {w:"אהיה",t:"Eheieh (I Am) — Name of Kether",v:21,c:"divine",s:"hebrew"},
@@ -542,6 +544,7 @@ if(_gemCompendium.length>200)_gemCompendium.pop();
 saveCompendium();
 }
 function removeFromCompendium(idx){_gemCompendium.splice(idx,1);saveCompendium();}
+function annotateCompendium(idx,note){if(_gemCompendium[idx]){_gemCompendium[idx].note=note;saveCompendium();}}
 function clearCompendium(){if(confirm('Clear entire compendium? This cannot be undone.')){_gemCompendium=[];saveCompendium();render();}}
 function renderCompendiumCard(){
 if(!_gemCompendium.length)return'';
@@ -552,11 +555,19 @@ let h=`<div class="card" style="border-radius:12px;border-color:#b89a4220">
 _gemCompendium.slice(0,20).forEach((e,i)=>{const c=cc[e.s]||'#606078';
 const _age=e.ts?((Date.now()-e.ts)/3600000):0;
 const _redStyle=CFG.firmament?reddeningFilter(_age):'';
-h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #24243810;${_redStyle}">
+const _noteId='gem-note-'+i;
+h+=`<div style="padding:6px 0;border-bottom:1px solid #24243810;${_redStyle}">
+<div style="display:flex;align-items:center;gap:8px">
 <div style="direction:rtl;${sz(14)};color:${c};min-width:44px;text-align:center;cursor:pointer" onclick="S.gemInput='${e.w.replace(/'/g,"\\'")}';S.gemMode='calc';S.gemSys='${e.s}';render()">${e.w}</div>
-<div class="f1" style="cursor:pointer" onclick="S.gemInput='${e.w.replace(/'/g,"\\'")}';S.gemMode='calc';S.gemSys='${e.s}';render()"><div style="${sz(12)};color:#ccccd8">${e.v} <span style="${sz(9)};color:${c};padding:1px 5px;border-radius:3px;background:${c}15;border:1px solid ${c}25">${e.s}</span>${e.hits>1?` <span style="${sz(9)};color:#606078">\u00d7${e.hits}</span>`:''}</div>
-${e.note?`<div style="${sz(10)};color:#606078">${e.note}</div>`:''}</div>
+<div class="f1" style="cursor:pointer" onclick="S.gemInput='${e.w.replace(/'/g,"\\'")}';S.gemMode='calc';S.gemSys='${e.s}';render()"><div style="${sz(12)};color:#ccccd8">${e.v} <span style="${sz(9)};color:${c};padding:1px 5px;border-radius:3px;background:${c}15;border:1px solid ${c}25">${e.s}</span>${e.hits>1?` <span style="${sz(9)};color:#606078">\u00d7${e.hits}</span>`:''}</div></div>
+<button onclick="const el=document.getElementById('${_noteId}');el.style.display=el.style.display==='none'?'flex':'none'" style="background:none;border:none;color:${e.note?'#b89a42':'#60607844'};cursor:pointer;${sz(12)};padding:4px" title="Annotate">\u270e</button>
 <button onclick="removeFromCompendium(${i});render()" style="background:none;border:none;color:#60607844;cursor:pointer;${sz(14)};padding:4px">\u2715</button>
+</div>
+${e.note?`<div style="${sz(10)};color:#8a96a8;padding:2px 0 0 52px;font-style:italic;line-height:1.5">${e.note}</div>`:''}
+<div id="${_noteId}" style="display:none;align-items:center;gap:4px;padding:4px 0 0 52px">
+<input type="text" value="${(e.note||'').replace(/"/g,'&quot;')}" placeholder="Add a note..." style="flex:1;padding:4px 8px;border-radius:6px;background:#07070c;border:1px solid #242438;color:#ccccd8;${sz(11)};font-family:'EB Garamond',serif" onkeydown="if(event.key==='Enter'){annotateCompendium(${i},this.value);render();}">
+<button onclick="annotateCompendium(${i},document.getElementById('${_noteId}').querySelector('input').value);render()" style="${sz(9)};padding:3px 8px;border-radius:5px;background:#b89a4218;border:1px solid #b89a4233;color:#b89a42;cursor:pointer;font-family:'Cinzel',serif">Save</button>
+</div>
 </div>`;});
 h+=`</div>`;return h;
 }
@@ -801,7 +812,10 @@ const CKAB_LETTERS={
 };
 // ═══ BIBLE — EMBEDDED WORKING CANON ═══
 let BIBLE_LOADED=null;
-const BIBLE_BOOKS={Ps:'Psalms',Gen:'Genesis',Ex:'Exodus',Job:'Job',Prov:'Proverbs',Isa:'Isaiah',Jn:'John',Mt:'Matthew',Rev:'Revelation',Acts:'Acts',Rom:'Romans',Lk:'Luke'};
+const BIBLE_BOOKS={Ps:'Psalms',Gen:'Genesis',Ex:'Exodus',Job:'Job',Prov:'Proverbs',Eccl:'Ecclesiastes',Song:'Song of Solomon',Isa:'Isaiah',Ezek:'Ezekiel',Dan:'Daniel',Jn:'John',Mt:'Matthew',Rev:'Revelation','1Cor':'1 Corinthians',Col:'Colossians',Acts:'Acts',Rom:'Romans',Lk:'Luke'};
+
+// ═══ EXPANDED SCRIPTURE CANON ═══
+const _G1=['In the beginning God created the heaven and the earth.','And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.','And God said, Let there be light: and there was light.','And God saw the light, that it was good: and God divided the light from the darkness.','And God called the light Day, and the darkness he called Night. And the evening and the morning were the first day.','And God said, Let there be a firmament in the midst of the waters, and let it divide the waters from the waters.','And God made the firmament, and divided the waters which were under the firmament from the waters which were above the firmament: and it was so.','And God called the firmament Heaven. And the evening and the morning were the second day.','And God said, Let the waters under the heaven be gathered together unto one place, and let the dry land appear: and it was so.','And God called the dry land Earth; and the gathering together of the waters called he Seas: and God saw that it was good.','And God said, Let the earth bring forth grass, the herb yielding seed, and the fruit tree yielding fruit after his kind, whose seed is in itself, upon the earth: and it was so.','And the earth brought forth grass, and herb yielding seed after his kind, and the tree yielding fruit, whose seed was in itself, after his kind: and God saw that it was good.','And the evening and the morning were the third day.','And God said, Let there be lights in the firmament of the heaven to divide the day from the night; and let them be for signs, and for seasons, and for days, and years:','And let them be for lights in the firmament of the heaven to give light upon the earth: and it was so.','And God made two great lights; the greater light to rule the day, and the lesser light to rule the night: he made the stars also.','And God set them in the firmament of the heaven to give light upon the earth,','And to rule over the day and over the night, and to divide the light from the darkness: and God saw that it was good.','And the evening and the morning were the fourth day.','And God said, Let the waters bring forth abundantly the moving creature that hath life, and fowl that may fly above the earth in the open firmament of heaven.','And God created great whales, and every living creature that moveth, which the waters brought forth abundantly, after their kind, and every winged fowl after his kind: and God saw that it was good.','And God blessed them, saying, Be fruitful, and multiply, and fill the waters in the seas, and let fowl multiply in the earth.','And the evening and the morning were the fifth day.','And God said, Let the earth bring forth the living creature after his kind, cattle, and creeping thing, and beast of the earth after his kind: and it was so.','And God made the beast of the earth after his kind, and cattle after their kind, and every thing that creepeth upon the earth after his kind: and God saw that it was good.','And God said, Let us make man in our image, after our likeness: and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.','So God created man in his own image, in the image of God created he him; male and female created he them.','And God blessed them, and God said unto them, Be fruitful, and multiply, and replenish the earth, and subdue it.','And God said, Behold, I have given you every herb bearing seed, which is upon the face of all the earth, and every tree, in the which is the fruit of a tree yielding seed; to you it shall be for meat.','And to every beast of the earth, and to every fowl of the air, and to every thing that creepeth upon the earth, wherein there is life, I have given every green herb for meat: and it was so.','And God saw every thing that he had made, and, behold, it was very good. And the evening and the morning were the sixth day.'];
 const BIBLE={Ps:{
 8:["O LORD our Lord, how excellent is thy name in all the earth! who hast set thy glory above the heavens.","Out of the mouth of babes and sucklings hast thou ordained strength because of thine enemies, that thou mightest still the enemy and the avenger.","When I consider thy heavens, the work of thy fingers, the moon and the stars, which thou hast ordained;","What is man, that thou art mindful of him? and the son of man, that thou visitest him?","For thou hast made him a little lower than the angels, and hast crowned him with glory and honour.","Thou madest him to have dominion over the works of thy hands; thou hast put all things under his feet:","All sheep and oxen, yea, and the beasts of the field;","The fowl of the air, and the fish of the sea, and whatsoever passeth through the paths of the seas.","O LORD our Lord, how excellent is thy name in all the earth!"],
 19:["The heavens declare the glory of God; and the firmament sheweth his handywork.","Day unto day uttereth speech, and night unto night sheweth knowledge.","There is no speech nor language, where their voice is not heard.","Their line is gone out through all the earth, and their words to the end of the world. In them hath he set a tabernacle for the sun,","Which is as a bridegroom coming out of his chamber, and rejoiceth as a strong man to run a race.","His going forth is from the end of the heaven, and his circuit unto the ends of it: and there is nothing hid from the heat thereof.","The law of the LORD is perfect, converting the soul: the testimony of the LORD is sure, making wise the simple.","The statutes of the LORD are right, rejoicing the heart: the commandment of the LORD is pure, enlightening the eyes.","The fear of the LORD is clean, enduring for ever: the judgments of the LORD are true and righteous altogether.","More to be desired are they than gold, yea, than much fine gold: sweeter also than honey and the honeycomb.","Moreover by them is thy servant warned: and in keeping of them there is great reward.","Who can understand his errors? cleanse thou me from secret faults.","Keep back thy servant also from presumptuous sins; let them not have dominion over me: then shall I be upright, and I shall be innocent from the great transgression.","Let the words of my mouth, and the meditation of my heart, be acceptable in thy sight, O LORD, my strength, and my redeemer."],
@@ -814,12 +828,113 @@ const BIBLE={Ps:{
 116:["I love the LORD, because he hath heard my voice and my supplications.","Because he hath inclined his ear unto me, therefore will I call upon him as long as I live.","The sorrows of death compassed me, and the pains of hell gat hold upon me: I found trouble and sorrow.","Then called I upon the name of the LORD; O LORD, I beseech thee, deliver my soul.","Gracious is the LORD, and righteous; yea, our God is merciful.","The LORD preserveth the simple: I was brought low, and he helped me.","Return unto thy rest, O my soul; for the LORD hath dealt bountifully with thee.","For thou hast delivered my soul from death, mine eyes from tears, and my feet from falling.","I will walk before the LORD in the land of the living.","I believed, therefore have I spoken: I was greatly afflicted:","I said in my haste, All men are liars.","What shall I render unto the LORD for all his benefits toward me?","I will take the cup of salvation, and call upon the name of the LORD.","I will pay my vows unto the LORD now in the presence of all his people.","Precious in the sight of the LORD is the death of his saints.","O LORD, truly I am thy servant; I am thy servant, and the son of thine handmaid: thou hast loosed my bonds.","I will offer to thee the sacrifice of thanksgiving, and will call upon the name of the LORD.","I will pay my vows unto the LORD now in the presence of all his people,","In the courts of the LORD's house, in the midst of thee, O Jerusalem. Praise ye the LORD."],
 139:["O LORD, thou hast searched me, and known me.","Thou knowest my downsitting and mine uprising, thou understandest my thought afar off.","Thou compassest my path and my lying down, and art acquainted with all my ways.","For there is not a word in my tongue, but, lo, O LORD, thou knowest it altogether.","Thou hast beset me behind and before, and laid thine hand upon me.","Such knowledge is too wonderful for me; it is high, I cannot attain unto it.","Whither shall I go from thy spirit? or whither shall I flee from thy presence?","If I ascend up into heaven, thou art there: if I make my bed in hell, behold, thou art there.","If I take the wings of the morning, and dwell in the uttermost parts of the sea;","Even there shall thy hand lead me, and thy right hand shall hold me.","If I say, Surely the darkness shall cover me; even the night shall be light about me.","Yea, the darkness hideth not from thee; but the night shineth as the day: the darkness and the light are both alike to thee.","For thou hast possessed my reins: thou hast covered me in my mother's womb.","I will praise thee; for I am fearfully and wonderfully made: marvellous are thy works; and that my soul knoweth right well.","My substance was not hid from thee, when I was made in secret, and curiously wrought in the lowest parts of the earth.","Thine eyes did see my substance, yet being unperfect; and in thy book all my members were written, which in continuance were fashioned, when as yet there was none of them.","How precious also are thy thoughts unto me, O God! how great is the sum of them!","If I should count them, they are more in number than the sand: when I awake, I am still with thee.","Surely thou wilt slay the wicked, O God: depart from me therefore, ye bloody men.","For they speak against thee wickedly, and thine enemies take thy name in vain.","Do not I hate them, O LORD, that hate thee? and am not I grieved with those that rise up against thee?","I hate them with perfect hatred: I count them mine enemies.","Search me, O God, and know my heart: try me, and know my thoughts:","And see if there be any wicked way in me, and lead me in the way everlasting."],
 150:["Praise ye the LORD. Praise God in his sanctuary: praise him in the firmament of his power.","Praise him for his mighty acts: praise him according to his excellent greatness.","Praise him with the sound of the trumpet: praise him with the psaltery and harp.","Praise him with the timbrel and dance: praise him with stringed instruments and organs.","Praise him upon the loud cymbals: praise him upon the high sounding cymbals.","Let every thing that hath breath praise the LORD. Praise ye the LORD."]
-},Gen:{
+,
+17:["Hear the right, O LORD, attend unto my cry, give ear unto my prayer, that goeth not out of feigned lips.","Let my sentence come forth from thy presence; let thine eyes behold the things that are equal.","Thou hast proved mine heart; thou hast visited me in the night; thou hast tried me, and shalt find nothing; I am purposed that my mouth shall not transgress.","Concerning the works of men, by the word of thy lips I have kept me from the paths of the destroyer.","Hold up my goings in thy paths, that my footsteps slip not.","I have called upon thee, for thou wilt hear me, O God: incline thine ear unto me, and hear my speech.","Shew thy marvellous lovingkindness, O thou that savest by thy right hand them which put their trust in thee from those that rise up against them.","Keep me as the apple of the eye, hide me under the shadow of thy wings,","From the wicked that oppress me, from my deadly enemies, who compass me about.","As for me, I will behold thy face in righteousness: I shall be satisfied, when I awake, with thy likeness."],
+29:["Give unto the LORD, O ye mighty, give unto the LORD glory and strength.","Give unto the LORD the glory due unto his name; worship the LORD in the beauty of holiness.","The voice of the LORD is upon the waters: the God of glory thundereth: the LORD is upon many waters.","The voice of the LORD is powerful; the voice of the LORD is full of majesty.","The voice of the LORD breaketh the cedars; yea, the LORD breaketh the cedars of Lebanon.","He maketh them also to skip like a calf; Lebanon and Sirion like a young unicorn.","The voice of the LORD divideth the flames of fire.","The voice of the LORD shaketh the wilderness; the LORD shaketh the wilderness of Kadesh.","The voice of the LORD maketh the hinds to calve, and discovereth the forests: and in his temple doth every one speak of his glory.","The LORD sitteth upon the flood; yea, the LORD sitteth King for ever.","The LORD will give strength unto his people; the LORD will bless his people with peace."],
+46:["God is our refuge and strength, a very present help in trouble.","Therefore will not we fear, though the earth be removed, and though the mountains be carried into the midst of the sea;","Though the waters thereof roar and be troubled, though the mountains shake with the swelling thereof. Selah.","There is a river, the streams whereof shall make glad the city of God, the holy place of the tabernacles of the most High.","God is in the midst of her; she shall not be moved: God shall help her, and that right early.","The heathen raged, the kingdoms were moved: he uttered his voice, the earth melted.","The LORD of hosts is with us; the God of Jacob is our refuge. Selah.","Come, behold the works of the LORD, what desolations he hath made in the earth.","He maketh wars to cease unto the end of the earth; he breaketh the bow, and cutteth the spear in sunder; he burneth the chariot in the fire.","Be still, and know that I am God: I will be exalted among the heathen, I will be exalted in the earth.","The LORD of hosts is with us; the God of Jacob is our refuge. Selah."],
+48:["Great is the LORD, and greatly to be praised in the city of our God, in the mountain of his holiness.","Beautiful for situation, the joy of the whole earth, is mount Zion, on the sides of the north, the city of the great King.","God is known in her palaces for a refuge.","For, lo, the kings were assembled, they passed by together.","They saw it, and so they marvelled; they were troubled, and hasted away.","Fear took hold upon them there, and pain, as of a woman in travail.","As we have heard, so have we seen in the city of the LORD of hosts, in the city of our God: God will establish it for ever. Selah.","We have thought of thy lovingkindness, O God, in the midst of thy temple.","For this God is our God for ever and ever: he will be our guide even unto death."],
+85:["LORD, thou hast been favourable unto thy land: thou hast brought back the captivity of Jacob.","Thou hast forgiven the iniquity of thy people, thou hast covered all their sin. Selah.","Thou hast taken away all thy wrath: thou hast turned thyself from the fierceness of thine anger.","Turn us, O God of our salvation, and cause thine anger toward us to cease.","Wilt thou not revive us again: that thy people may rejoice in thee?","Shew us thy mercy, O LORD, and grant us thy salvation.","I will hear what God the LORD will speak: for he will speak peace unto his people, and to his saints.","Surely his salvation is nigh them that fear him; that glory may dwell in our land.","Mercy and truth are met together; righteousness and peace have kissed each other.","Truth shall spring out of the earth; and righteousness shall look down from heaven.","The LORD shall give that which is good; and our land shall yield her increase.","Righteousness shall go before him; and shall set us in the way of his steps."],
+90:["Lord, thou hast been our dwelling place in all generations.","Before the mountains were brought forth, or ever thou hadst formed the earth and the world, even from everlasting to everlasting, thou art God.","Thou turnest man to destruction; and sayest, Return, ye children of men.","For a thousand years in thy sight are but as yesterday when it is past, and as a watch in the night.","Thou carriest them away as with a flood; they are as a sleep: in the morning they are like grass which groweth up.","In the morning it flourisheth, and groweth up; in the evening it is cut down, and withereth.","For we are consumed by thine anger, and by thy wrath are we troubled.","The days of our years are threescore years and ten; and if by reason of strength they be fourscore years, yet is their strength labour and sorrow; for it is soon cut off, and we fly away.","So teach us to number our days, that we may apply our hearts unto wisdom.","Return, O LORD, how long? and let it repent thee concerning thy servants.","O satisfy us early with thy mercy; that we may rejoice and be glad all our days.","Let thy work appear unto thy servants, and thy glory unto their children.","And let the beauty of the LORD our God be upon us: and establish thou the work of our hands upon us; yea, the work of our hands establish thou it."],
+107:["O give thanks unto the LORD, for he is good: for his mercy endureth for ever.","Let the redeemed of the LORD say so, whom he hath redeemed from the hand of the enemy;","And gathered them out of the lands, from the east, and from the west, from the north, and from the south.","They wandered in the wilderness in a solitary way; they found no city to dwell in.","Hungry and thirsty, their soul fainted in them.","Then they cried unto the LORD in their trouble, and he delivered them out of their distresses.","And he led them forth by the right way, that they might go to a city of habitation.","Oh that men would praise the LORD for his goodness, and for his wonderful works to the children of men!","For he satisfieth the longing soul, and filleth the hungry soul with goodness."],
+112:["Praise ye the LORD. Blessed is the man that feareth the LORD, that delighteth greatly in his commandments.","His seed shall be mighty upon earth: the generation of the upright shall be blessed.","Wealth and riches shall be in his house: and his righteousness endureth for ever.","Unto the upright there ariseth light in the darkness: he is gracious, and full of compassion, and righteous.","A good man sheweth favour, and lendeth: he will guide his affairs with discretion.","Surely he shall not be moved for ever: the righteous shall be in everlasting remembrance.","He shall not be afraid of evil tidings: his heart is fixed, trusting in the LORD.","The wicked shall see it, and be grieved; he shall gnash with his teeth, and melt away: the desire of the wicked shall perish."],
+120:["In my distress I cried unto the LORD, and he heard me.","Deliver my soul, O LORD, from lying lips, and from a deceitful tongue.","What shall be given unto thee? or what shall be done unto thee, thou false tongue?","Sharp arrows of the mighty, with coals of juniper.","Woe is me, that I sojourn in Mesech, that I dwell in the tents of Kedar!","My soul hath long dwelt with him that hateth peace.","I am for peace: but when I speak, they are for war."],
+121:["I will lift up mine eyes unto the hills, from whence cometh my help.","My help cometh from the LORD, which made heaven and earth.","He will not suffer thy foot to be moved: he that keepeth thee will not slumber.","Behold, he that keepeth Israel shall neither slumber nor sleep.","The LORD is thy keeper: the LORD is thy shade upon thy right hand.","The sun shall not smite thee by day, nor the moon by night.","The LORD shall preserve thee from all evil: he shall preserve thy soul.","The LORD shall preserve thy going out and thy coming in from this time forth, and even for evermore."],
+130:["Out of the depths have I cried unto thee, O LORD.","Lord, hear my voice: let thine ears be attentive to the voice of my supplications.","If thou, LORD, shouldest mark iniquities, O Lord, who shall stand?","But there is forgiveness with thee, that thou mayest be feared.","I wait for the LORD, my soul doth wait, and in his word do I hope.","My soul waiteth for the Lord more than they that watch for the morning: I say, more than they that watch for the morning.","Let Israel hope in the LORD: for with the LORD there is mercy, and with him is plenteous redemption.","And he shall redeem Israel from all his iniquities."],
+147:["Praise ye the LORD: for it is good to sing praises unto our God; for it is pleasant; and praise is comely.","The LORD doth build up Jerusalem: he gathereth together the outcasts of Israel.","He healeth the broken in heart, and bindeth up their wounds.","He telleth the number of the stars; he calleth them all by their names.","Great is our Lord, and of great power: his understanding is infinite.","The LORD lifteth up the meek: he casteth the wicked down to the ground.","Sing unto the LORD with thanksgiving; sing praise upon the harp unto our God:","Who covereth the heaven with clouds, who prepareth rain for the earth, who maketh grass to grow upon the mountains.","He delighteth not in the strength of the horse: he taketh not pleasure in the legs of a man.","The LORD taketh pleasure in them that fear him, in those that hope in his mercy.","Praise the LORD, O Jerusalem; praise thy God, O Zion.","He sendeth forth his commandment upon earth: his word runneth very swiftly.","He sheweth his word unto Jacob, his statutes and his judgments unto Israel.","He hath not dealt so with any nation: Praise ye the LORD."],
+3:["LORD, how are they increased that trouble me! many are they that rise up against me.","Many there be which say of my soul, There is no help for him in God. Selah.","But thou, O LORD, art a shield for me; my glory, and the lifter up of mine head.","I cried unto the LORD with my voice, and he heard me out of his holy hill. Selah.","I laid me down and slept; I awaked; for the LORD sustained me.","I will not be afraid of ten thousands of people, that have set themselves against me round about.","Arise, O LORD; save me, O my God: for thou hast smitten all mine enemies upon the cheek bone; thou hast broken the teeth of the ungodly.","Salvation belongeth unto the LORD: thy blessing is upon thy people. Selah."],
+6:["O LORD, rebuke me not in thine anger, neither chasten me in thy hot displeasure.","Have mercy upon me, O LORD; for I am weak: O LORD, heal me; for my bones are vexed.","My soul is also sore vexed: but thou, O LORD, how long?","Return, O LORD, deliver my soul: oh save me for thy mercies' sake."],
+7:["O LORD my God, in thee do I put my trust: save me from all them that persecute me, and deliver me."],
+9:["I will praise thee, O LORD, with my whole heart; I will shew forth all thy marvellous works.","I will be glad and rejoice in thee: I will sing praise to thy name, O thou most High."],
+10:["Why standest thou afar off, O LORD? why hidest thou thyself in times of trouble?"],
+16:["Preserve me, O God: for in thee do I put my trust.","O my soul, thou hast said unto the LORD, Thou art my Lord: my goodness extendeth not to thee.","The LORD is the portion of mine inheritance and of my cup: thou maintainest my lot.","The lines are fallen unto me in pleasant places; yea, I have a goodly heritage.","I have set the LORD always before me: because he is at my right hand, I shall not be moved."],
+18:["I will love thee, O LORD, my strength.","The LORD is my rock, and my fortress, and my deliverer; my God, my strength, in whom I will trust."],
+22:["My God, my God, why hast thou forsaken me? why art thou so far from helping me, and from the words of my roaring?","But thou art holy, O thou that inhabitest the praises of Israel.","Our fathers trusted in thee: they trusted, and thou didst deliver them."],
+25:["Unto thee, O LORD, do I lift up my soul.","O my God, I trust in thee: let me not be ashamed, let not mine enemies triumph over me.","Shew me thy ways, O LORD; teach me thy paths.","Lead me in thy truth, and teach me: for thou art the God of my salvation; on thee do I wait all the day.","Remember, O LORD, thy tender mercies and thy lovingkindnesses; for they have been ever of old."],
+26:["Judge me, O LORD; for I have walked in mine integrity: I have trusted also in the LORD; therefore I shall not slide."],
+30:["I will extol thee, O LORD; for thou hast lifted me up, and hast not made my foes to rejoice over me.","O LORD my God, I cried unto thee, and thou hast healed me."],
+31:["In thee, O LORD, do I put my trust; let me never be ashamed: deliver me in thy righteousness.","Into thine hand I commit my spirit: thou hast redeemed me, O LORD God of truth."],
+32:["Blessed is he whose transgression is forgiven, whose sin is covered.","Blessed is the man unto whom the LORD imputeth not iniquity, and in whose spirit there is no guile."],
+34:["I will bless the LORD at all times: his praise shall continually be in my mouth.","My soul shall make her boast in the LORD: the humble shall hear thereof, and be glad.","O magnify the LORD with me, and let us exalt his name together.","I sought the LORD, and he heard me, and delivered me from all my fears.","The angel of the LORD encampeth round about them that fear him, and delivereth them.","O taste and see that the LORD is good: blessed is the man that trusteth in him."],
+35:["Plead my cause, O LORD, with them that strive with me: fight against them that fight against me."],
+37:["Fret not thyself because of evildoers, neither be thou envious against the workers of iniquity.","Trust in the LORD, and do good; so shalt thou dwell in the land, and verily thou shalt be fed.","Delight thyself also in the LORD; and he shall give thee the desires of thine heart.","Commit thy way unto the LORD; trust also in him; and he shall bring it to pass."],
+38:["O LORD, rebuke me not in thy wrath: neither chasten me in thy hot displeasure."],
+40:["I waited patiently for the LORD; and he inclined unto me, and heard my cry.","He brought me up also out of an horrible pit, out of the miry clay, and set my feet upon a rock, and established my goings."],
+54:["Save me, O God, by thy name, and judge me by thy strength.","Hear my prayer, O God; give ear to the words of my mouth."],
+55:["Give ear to my prayer, O God; and hide not thyself from my supplication."],
+56:["Be merciful unto me, O God: for man would swallow me up; he fighting daily oppresseth me.","What time I am afraid, I will trust in thee.","In God I will praise his word, in God I have put my trust; I will not fear what flesh can do unto me."],
+62:["Truly my soul waiteth upon God: from him cometh my salvation.","He only is my rock and my salvation; he is my defence; I shall not be greatly moved.","My soul, wait thou only upon God; for my expectation is from him."],
+63:["O God, thou art my God; early will I seek thee: my soul thirsteth for thee, my flesh longeth for thee in a dry and thirsty land, where no water is."],
+67:["God be merciful unto us, and bless us; and cause his face to shine upon us; Selah.","That thy way may be known upon earth, thy saving health among all nations.","Let the people praise thee, O God; let all the people praise thee."],
+71:["In thee, O LORD, do I put my trust: let me never be put to confusion."],
+72:["Give the king thy judgments, O God, and thy righteousness unto the king's son.","He shall judge thy people with righteousness, and thy poor with judgment."],
+77:["I cried unto God with my voice, even unto God with my voice; and he gave ear unto me."],
+80:["Give ear, O Shepherd of Israel, thou that leadest Joseph like a flock; thou that dwellest between the cherubims, shine forth."],
+84:["How amiable are thy tabernacles, O LORD of hosts!","My soul longeth, yea, even fainteth for the courts of the LORD: my heart and my flesh crieth out for the living God.","Blessed are they that dwell in thy house: they will be still praising thee. Selah."],
+86:["Bow down thine ear, O LORD, hear me: for I am poor and needy.","Preserve my soul; for I am holy: O thou my God, save thy servant that trusteth in thee.","Be merciful unto me, O Lord: for I cry unto thee daily."],
+88:["O LORD God of my salvation, I have cried day and night before thee."],
+92:["It is a good thing to give thanks unto the LORD, and to sing praises unto thy name, O most High:","To shew forth thy lovingkindness in the morning, and thy faithfulness every night."],
+94:["O LORD God, to whom vengeance belongeth; O God, to whom vengeance belongeth, shew thyself."],
+95:["O come, let us sing unto the LORD: let us make a joyful noise to the rock of our salvation.","Let us come before his presence with thanksgiving, and make a joyful noise unto him with psalms.","For the LORD is a great God, and a great King above all gods."],
+97:["The LORD reigneth; let the earth rejoice; let the multitude of isles be glad thereof."],
+98:["O sing unto the LORD a new song; for he hath done marvellous things: his right hand, and his holy arm, hath gotten him the victory."],
+100:["Make a joyful noise unto the LORD, all ye lands.","Serve the LORD with gladness: come before his presence with singing.","Know ye that the LORD he is God: it is he that hath made us, and not we ourselves; we are his people, and the sheep of his pasture.","Enter into his gates with thanksgiving, and into his courts with praise: be thankful unto him, and bless his name.","For the LORD is good; his mercy is everlasting; and his truth endureth to all generations."],
+102:["Hear my prayer, O LORD, and let my cry come unto thee.","Hide not thy face from me in the day when I am in trouble; incline thine ear unto me: in the day when I call answer me speedily."],
+104:["Bless the LORD, O my soul. O LORD my God, thou art very great; thou art clothed with honour and majesty.","Who coverest thyself with light as with a garment: who stretchest out the heavens like a curtain."],
+106:["Praise ye the LORD. O give thanks unto the LORD; for he is good: for his mercy endureth for ever."],
+109:["Hold not thy peace, O God of my praise."],
+110:["The LORD said unto my Lord, Sit thou at my right hand, until I make thine enemies thy footstool.","The LORD shall send the rod of thy strength out of Zion: rule thou in the midst of thine enemies.","The LORD hath sworn, and will not repent, Thou art a priest for ever after the order of Melchizedek."],
+113:["Praise ye the LORD. Praise, O ye servants of the LORD, praise the name of the LORD.","Blessed be the name of the LORD from this time forth and for evermore."],
+115:["Not unto us, O LORD, not unto us, but unto thy name give glory, for thy mercy, and for thy truth's sake."],
+119:["Blessed are the undefiled in the way, who walk in the law of the LORD.","Blessed are they that keep his testimonies, and that seek him with the whole heart.","Thy word is a lamp unto my feet, and a light unto my path."],
+127:["Except the LORD build the house, they labour in vain that build it: except the LORD keep the city, the watchman waketh but in vain."],
+128:["Blessed is every one that feareth the LORD; that walketh in his ways.","For thou shalt eat the labour of thine hands: happy shalt thou be, and it shall be well with thee."],
+131:["LORD, my heart is not haughty, nor mine eyes lofty: neither do I exercise myself in great matters, or in things too high for me.","Surely I have behaved and quieted myself, as a child that is weaned of his mother: my soul is even as a weaned child."],
+140:["Deliver me, O LORD, from the evil man: preserve me from the violent man."],
+145:["I will extol thee, my God, O king; and I will bless thy name for ever and ever.","Every day will I bless thee; and I will praise thy name for ever and ever.","Great is the LORD, and greatly to be praised; and his greatness is unsearchable."]},Gen:{
+1:["In the beginning God created the heaven and the earth.","And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.","And God said, Let there be light: and there was light.","And God saw the light, that it was good: and God divided the light from the darkness.","And God called the light Day, and the darkness he called Night. And the evening and the morning were the first day.","And God said, Let there be a firmament in the midst of the waters, and let it divide the waters from the waters.","And God made the firmament, and divided the waters which were under the firmament from the waters which were above the firmament: and it was so.","And God called the firmament Heaven. And the evening and the morning were the second day.","And God said, Let the waters under the heaven be gathered together unto one place, and let the dry land appear: and it was so.","And God said, Let the earth bring forth grass, the herb yielding seed, and the fruit tree yielding fruit after his kind: and it was so.","And the evening and the morning were the third day.","And God said, Let there be lights in the firmament of the heaven to divide the day from the night; and let them be for signs, and for seasons, and for days, and years:","And God made two great lights; the greater light to rule the day, and the lesser light to rule the night: he made the stars also.","And the evening and the morning were the fourth day.","And God said, Let the waters bring forth abundantly the moving creature that hath life, and fowl that may fly above the earth in the open firmament of heaven.","And the evening and the morning were the fifth day.","And God said, Let us make man in our image, after our likeness.","So God created man in his own image, in the image of God created he him; male and female created he them.","And God saw every thing that he had made, and, behold, it was very good. And the evening and the morning were the sixth day."],
+28:["And Jacob went out from Beersheba, and went toward Haran.","And he lighted upon a certain place, and tarried there all night, because the sun was set; and he took of the stones of that place, and put them for his pillows, and lay down in that place to sleep.","And he dreamed, and behold a ladder set up on the earth, and the top of it reached to heaven: and behold the angels of God ascending and descending on it.","And, behold, the LORD stood above it, and said, I am the LORD God of Abraham thy father, and the God of Isaac.","And thy seed shall be as the dust of the earth; and in thee and in thy seed shall all the families of the earth be blessed.","And, behold, I am with thee, and will keep thee in all places whither thou goest.","And Jacob awaked out of his sleep, and he said, Surely the LORD is in this place; and I knew it not.","And he was afraid, and said, How dreadful is this place! this is none other but the house of God, and this is the gate of heaven.","And he called the name of that place Bethel."],
 49:["And Jacob called unto his sons, and said, Gather yourselves together, that I may tell you that which shall befall you in the last days.","Gather yourselves together, and hear, ye sons of Jacob; and hearken unto Israel your father.","Reuben, thou art my firstborn, my might, and the beginning of my strength, the excellency of dignity, and the excellency of power:","Unstable as water, thou shalt not excel; because thou wentest up to thy father's bed; then defiledst thou it: he went up to my couch.","Simeon and Levi are brethren; instruments of cruelty are in their habitations.","O my soul, come not thou into their secret; unto their assembly, mine honour, be not thou united: for in their anger they slew a man, and in their selfwill they digged down a wall.","Cursed be their anger, for it was fierce; and their wrath, for it was cruel: I will divide them in Jacob, and scatter them in Israel.","Judah, thou art he whom thy brethren shall praise: thy hand shall be in the neck of thine enemies; thy father's children shall bow down before thee.","Judah is a lion's whelp: from the prey, my son, thou art gone up: he stooped down, he couched as a lion, and as an old lion; who shall rouse him up?","The sceptre shall not depart from Judah, nor a lawgiver from between his feet, until Shiloh come; and unto him shall the gathering of the people be.","Binding his foal unto the vine, and his ass's colt unto the choice vine; he washed his garments in wine, and his clothes in the blood of grapes:","His eyes shall be red with wine, and his teeth white with milk.","Zebulun shall dwell at the haven of the sea; and he shall be for an haven of ships; and his border shall be unto Zidon.","Issachar is a strong ass couching down between two burdens:","And he saw that rest was good, and the land that it was pleasant; and bowed his shoulder to bear, and became a servant unto tribute.","Dan shall judge his people, as one of the tribes of Israel.","Dan shall be a serpent by the way, an adder in the path, that biteth the horse heels, so that his rider shall fall backward.","I have waited for thy salvation, O LORD.","Gad, a troop shall overcome him: but he shall overcome at the last.","Out of Asher his bread shall be fat, and he shall yield royal dainties.","Naphtali is a hind let loose: he giveth goodly words.","Joseph is a fruitful bough, even a fruitful bough by a well; whose branches run over the wall:","The archers have sorely grieved him, and shot at him, and hated him:","But his bow abode in strength, and the arms of his hands were made strong by the hands of the mighty God of Jacob; (from thence is the shepherd, the stone of Israel:)","Even by the God of thy father, who shall help thee; and by the Almighty, who shall bless thee with blessings of heaven above, blessings of the deep that lieth under, blessings of the breasts, and of the womb:","The blessings of thy father have prevailed above the blessings of my progenitors unto the utmost bound of the everlasting hills: they shall be on the head of Joseph, and on the crown of the head of him that was separate from his brethren.","Benjamin shall ravin as a wolf: in the morning he shall devour the prey, and at night he shall divide the spoil.","All these are the twelve tribes of Israel: and this is it that their father spake unto them, and blessed them; every one according to his blessing he blessed them."]
+},Ex:{
+3:["Now Moses kept the flock of Jethro his father in law, the priest of Midian: and he led the flock to the backside of the desert, and came to the mountain of God, even to Horeb.","And the angel of the LORD appeared unto him in a flame of fire out of the midst of a bush: and he looked, and, behold, the bush burned with fire, and the bush was not consumed.","And Moses said, I will now turn aside, and see this great sight, why the bush is not burnt.","And when the LORD saw that he turned aside to see, God called unto him out of the midst of the bush, and said, Moses, Moses. And he said, Here am I.","And he said, Draw not nigh hither: put off thy shoes from off thy feet, for the place whereon thou standest is holy ground.","Moreover he said, I am the God of thy father, the God of Abraham, the God of Isaac, and the God of Jacob. And Moses hid his face; for he was afraid to look upon God.","And the LORD said, I have surely seen the affliction of my people which are in Egypt, and have heard their cry by reason of their taskmasters; for I know their sorrows;","And I am come down to deliver them out of the hand of the Egyptians, and to bring them up out of that land unto a good land and a large, unto a land flowing with milk and honey.","Come now therefore, and I will send thee unto Pharaoh, that thou mayest bring forth my people the children of Israel out of Egypt.","And Moses said unto God, Who am I, that I should go unto Pharaoh, and that I should bring forth the children of Israel out of Egypt?","And he said, Certainly I will be with thee; and this shall be a token unto thee, that I have sent thee: When thou hast brought forth the people out of Egypt, ye shall serve God upon this mountain.","And Moses said unto God, Behold, when I come unto the children of Israel, and shall say unto them, The God of your fathers hath sent me unto you; and they shall say to me, What is his name? what shall I say unto them?","And God said unto Moses, I AM THAT I AM: and he said, Thus shalt thou say unto the children of Israel, I AM hath sent me unto you.","And God said moreover unto Moses, Thus shalt thou say unto the children of Israel, The LORD God of your fathers, the God of Abraham, the God of Isaac, and the God of Jacob, hath sent me unto you: this is my name for ever, and this is my memorial unto all generations."]
 },Job:{
 38:["Then the LORD answered Job out of the whirlwind, and said,","Who is this that darkeneth counsel by words without knowledge?","Gird up now thy loins like a man; for I will demand of thee, and answer thou me.","Where wast thou when I laid the foundations of the earth? declare, if thou hast understanding.","Who hath laid the measures thereof, if thou knowest? or who hath stretched the line upon it?","Whereupon are the foundations thereof fastened? or who laid the corner stone thereof;","When the morning stars sang together, and all the sons of God shouted for joy?","Or who shut up the sea with doors, when it brake forth, as if it had issued out of the womb?","When I made the cloud the garment thereof, and thick darkness a swaddlingband for it,","And brake up for it my decreed place, and set bars and doors,","And said, Hitherto shalt thou come, but no further: and here shall thy proud waves be stayed?","Hast thou commanded the morning since thy days; and caused the dayspring to know his place;","That it might take hold of the ends of the earth, that the wicked might be shaken out of it?","It is turned as clay to the seal; and they stand as a garment.","And from the wicked their light is withholden, and the high arm shall be broken.","Hast thou entered into the springs of the sea? or hast thou walked in the search of the depth?","Have the gates of death been opened unto thee? or hast thou seen the doors of the shadow of death?","Hast thou perceived the breadth of the earth? declare if thou knowest it all.","Where is the way where light dwelleth? and as for darkness, where is the place thereof,","That thou shouldest take it to the bound thereof, and that thou shouldest know the paths to the house thereof?","Knowest thou it, because thou wast then born? or because the number of thy days is great?","Hast thou entered into the treasures of the snow? or hast thou seen the treasures of the hail,","Which I have reserved against the time of trouble, against the day of battle and war?","By what way is the light parted, which scattereth the east wind upon the earth?","Who hath divided a watercourse for the overflowing of waters, or a way for the lightning of thunder;","To cause it to rain on the earth, where no man is; on the wilderness, wherein there is no man;","To satisfy the desolate and waste ground; and to cause the bud of the tender herb to spring forth?","Hath the rain a father? or who hath begotten the drops of dew?","Out of whose womb came the ice? and the hoary frost of heaven, who hath gendered it?","The waters are hid as with a stone, and the face of the deep is frozen.","Canst thou bind the sweet influences of Pleiades, or loose the bands of Orion?","Canst thou bring forth Mazzaroth in his season? or canst thou guide Arcturus with his sons?","Knowest thou the ordinances of heaven? canst thou set the dominion thereof in the earth?"]
 },Jn:{
+15:["I am the true vine, and my Father is the husbandman.","Every branch in me that beareth not fruit he taketh away: and every branch that beareth fruit, he purgeth it, that it may bring forth more fruit.","Now ye are clean through the word which I have spoken unto you.","Abide in me, and I in you. As the branch cannot bear fruit of itself, except it abide in the vine; no more can ye, except ye abide in me.","I am the vine, ye are the branches: He that abideth in me, and I in him, the same bringeth forth much fruit: for without me ye can do nothing.","If a man abide not in me, he is cast forth as a branch, and is withered; and men gather them, and cast them into the fire, and they are burned.","If ye abide in me, and my words abide in you, ye shall ask what ye will, and it shall be done unto you.","Herein is my Father glorified, that ye bear much fruit; so shall ye be my disciples.","As the Father hath loved me, so have I loved you: continue ye in my love.","If ye keep my commandments, ye shall abide in my love; even as I have kept my Father's commandments, and abide in his love.","These things have I spoken unto you, that my joy might remain in you, and that your joy might be full.","This is my commandment, That ye love one another, as I have loved you.","Greater love hath no man than this, that a man lay down his life for his friends.","Ye are my friends, if ye do whatsoever I command you.","Henceforth I call you not servants; for the servant knoweth not what his lord doeth: but I have called you friends; for all things that I have heard of my Father I have made known unto you.","Ye have not chosen me, but I have chosen you, and ordained you, that ye should go and bring forth fruit, and that your fruit should remain.","These things I command you, that ye love one another."],
 1:["In the beginning was the Word, and the Word was with God, and the Word was God.","The same was in the beginning with God.","All things were made by him; and without him was not any thing made that was made.","In him was life; and the life was the light of men.","And the light shineth in darkness; and the darkness comprehended it not.","There was a man sent from God, whose name was John.","The same came for a witness, to bear witness of the Light, that all men through him might believe.","He was not that Light, but was sent to bear witness of that Light.","That was the true Light, which lighteth every man that cometh into the world.","He was in the world, and the world was made by him, and the world knew him not.","He came unto his own, and his own received him not.","But as many as received him, to them gave he power to become the sons of God, even to them that believe on his name:","Which were born, not of blood, nor of the will of the flesh, nor of the will of man, but of God.","And the Word was made flesh, and dwelt among us, (and we beheld his glory, the glory as of the only begotten of the Father,) full of grace and truth.","John bare witness of him, and cried, saying, This was he of whom I spake, He that cometh after me is preferred before me: for he was before me.","And of his fulness have all we received, and grace for grace.","For the law was given by Moses, but grace and truth came by Jesus Christ.","No man hath seen God at any time; the only begotten Son, which is in the bosom of the Father, he hath declared him."]
+,Ex:{
+3:["Now Moses kept the flock of Jethro his father in law, the priest of Midian: and he led the flock to the backside of the desert, and came to the mountain of God, even to Horeb.","And the angel of the LORD appeared unto him in a flame of fire out of the midst of a bush: and he looked, and, behold, the bush burned with fire, and the bush was not consumed.","And Moses said, I will now turn aside, and see this great sight, why the bush is not burnt.","And when the LORD saw that he turned aside to see, God called unto him out of the midst of the bush, and said, Moses, Moses. And he said, Here am I.","And he said, Draw not nigh hither: put off thy shoes from off thy feet, for the place whereon thou standest is holy ground.","Moreover he said, I am the God of thy father, the God of Abraham, the God of Isaac, and the God of Jacob. And Moses hid his face; for he was afraid to look upon God.","And Moses said unto God, Who am I, that I should go unto Pharaoh?","And God said unto Moses, I AM THAT I AM: and he said, Thus shalt thou say unto the children of Israel, I AM hath sent me unto you.","This is my name for ever, and this is my memorial unto all generations."],
+14:["And the LORD said unto Moses, Wherefore criest thou unto me? speak unto the children of Israel, that they go forward.","But lift thou up thy rod, and stretch out thine hand over the sea, and divide it.","And the angel of God, which went before the camp of Israel, removed and went behind them; and the pillar of the cloud went from before their face, and stood behind them:","And it came between the camp of the Egyptians and the camp of Israel; and it was a cloud and darkness to them, but it gave light by night to these.","And Moses stretched out his hand over the sea; and the LORD caused the sea to go back by a strong east wind all that night, and made the sea dry land, and the waters were divided.","And the children of Israel went into the midst of the sea upon the dry ground: and the waters were a wall unto them on their right hand, and on their left."]
+},Prov:{
+8:["Doth not wisdom cry? and understanding put forth her voice?","She standeth in the top of high places, by the way in the places of the paths.","Unto you, O men, I do call; and my voice is to the sons of man.","Hear; for I will speak of excellent things.","The LORD possessed me in the beginning of his way, before his works of old.","I was set up from everlasting, from the beginning, or ever the earth was.","When there were no depths, I was brought forth; when there were no fountains abounding with water.","Before the mountains were settled, before the hills was I brought forth.","When he prepared the heavens, I was there: when he set a compass upon the face of the depth.","Then I was by him, as one brought up with him: and I was daily his delight, rejoicing always before him;","Rejoicing in the habitable part of his earth; and my delights were with the sons of men.","Now therefore hearken unto me, O ye children: for blessed are they that keep my ways."]
+},Isa:{
+6:["In the year that king Uzziah died I saw also the Lord sitting upon a throne, high and lifted up, and his train filled the temple.","Above it stood the seraphims: each one had six wings; with twain he covered his face, and with twain he covered his feet, and with twain he did fly.","And one cried unto another, and said, Holy, holy, holy, is the LORD of hosts: the whole earth is full of his glory.","And the posts of the door moved at the voice of him that cried, and the house was filled with smoke.","Then said I, Woe is me! for I am undone; because I am a man of unclean lips: for mine eyes have seen the King, the LORD of hosts.","Then flew one of the seraphims unto me, having a live coal in his hand, which he had taken with the tongs from off the altar:","And he laid it upon my mouth, and said, Lo, this hath touched thy lips; and thine iniquity is taken away, and thy sin purged.","Also I heard the voice of the Lord, saying, Whom shall I send, and who will go for us? Then said I, Here am I; send me."]
+},Mt:{
+6:["Our Father which art in heaven, Hallowed be thy name.","Thy kingdom come. Thy will be done in earth, as it is in heaven.","Give us this day our daily bread.","And forgive us our debts, as we forgive our debtors.","And lead us not into temptation, but deliver us from evil: For thine is the kingdom, and the power, and the glory, for ever. Amen.","But seek ye first the kingdom of God, and his righteousness; and all these things shall be added unto you."]
+},Rev:{
+4:["After this I looked, and, behold, a door was opened in heaven: and the first voice which I heard was as it were of a trumpet talking with me; which said, Come up hither.","And immediately I was in the spirit: and, behold, a throne was set in heaven, and one sat on the throne.","And he that sat was to look upon like a jasper and a sardine stone: and there was a rainbow round about the throne, in sight like unto an emerald.","And round about the throne were four and twenty seats: and upon the seats I saw four and twenty elders sitting, clothed in white raiment; and they had on their heads crowns of gold.","And out of the throne proceeded lightnings and thunderings and voices: and there were seven lamps of fire burning before the throne, which are the seven Spirits of God.","And before the throne there was a sea of glass like unto crystal: and in the midst of the throne, and round about the throne, were four beasts full of eyes before and behind.","And the first beast was like a lion, and the second beast like a calf, and the third beast had a face as a man, and the fourth beast was like a flying eagle.","And the four beasts had each of them six wings about him; and they were full of eyes within: and they rest not day and night, saying, Holy, holy, holy, Lord God Almighty, which was, and is, and is to come."],
+21:["And I saw a new heaven and a new earth: for the first heaven and the first earth were passed away; and there was no more sea.","And I John saw the holy city, new Jerusalem, coming down from God out of heaven, prepared as a bride adorned for her husband.","And I heard a great voice out of heaven saying, Behold, the tabernacle of God is with men, and he will dwell with them, and they shall be his people, and God himself shall be with them, and be their God.","And God shall wipe away all tears from their eyes; and there shall be no more death, neither sorrow, nor crying, neither shall there be any more pain: for the former things are passed away.","And he that sat upon the throne said, Behold, I make all things new."]
+},Rom:{
+8:["There is therefore now no condemnation to them which are in Christ Jesus, who walk not after the flesh, but after the Spirit.","For the law of the Spirit of life in Christ Jesus hath made me free from the law of sin and death.","The Spirit itself beareth witness with our spirit, that we are the children of God.","And we know that all things work together for good to them that love God.","What shall we then say to these things? If God be for us, who can be against us?","He that spared not his own Son, but delivered him up for us all, how shall he not with him also freely give us all things?","Who shall separate us from the love of Christ?","Nay, in all these things we are more than conquerors through him that loved us.","For I am persuaded, that neither death, nor life, nor angels, nor principalities, nor powers, nor things present, nor things to come,","Nor height, nor depth, nor any other creature, shall be able to separate us from the love of God, which is in Christ Jesus our Lord."]
+},Prov:{
+8:["Doth not wisdom cry? and understanding put forth her voice?","She standeth in the top of high places, by the way in the places of the paths.","She crieth at the gates, at the entry of the city, at the coming in at the doors.","Unto you, O men, I call; and my voice is to the sons of man.","O ye simple, understand wisdom: and, ye fools, be ye of an understanding heart.","Hear; for I will speak of excellent things; and the opening of my lips shall be right things.","For my mouth shall speak truth; and wickedness is an abomination to my lips.","All the words of my mouth are in righteousness; there is nothing froward or perverse in them.","They are all plain to him that understandeth, and right to them that find knowledge.","Receive my instruction, and not silver; and knowledge rather than choice gold.","For wisdom is better than rubies; and all the things that may be desired are not to be compared to it.","I wisdom dwell with prudence, and find out knowledge of witty inventions.","The fear of the LORD is to hate evil: pride, and arrogancy, and the evil way, and the froward mouth, do I hate.","Counsel is mine, and sound wisdom: I am understanding; I have strength.","By me kings reign, and princes decree justice.","By me princes rule, and nobles, even all the judges of the earth.","I love them that love me; and those that seek me early shall find me.","Riches and honour are with me; yea, durable riches and righteousness.","My fruit is better than gold, yea, than fine gold; and my revenue than choice silver.","I lead in the way of righteousness, in the midst of the paths of judgment:","That I may cause those that love me to inherit substance; and I will fill their treasures.","The LORD possessed me in the beginning of his way, before his works of old.","I was set up from everlasting, from the beginning, or ever the earth was.","When there were no depths, I was brought forth; when there were no fountains abounding with water.","Before the mountains were settled, before the hills was I brought forth:","While as yet he had not made the earth, nor the fields, nor the highest part of the dust of the world.","When he prepared the heavens, I was there: when he set a compass upon the face of the depth:","When he established the clouds above: when he strengthened the fountains of the deep:","When he gave to the sea his decree, that the waters should not pass his commandment: when he appointed the foundations of the earth:","Then I was by him, as one brought up with him: and I was daily his delight, rejoicing always before him;","Rejoicing in the habitable part of his earth; and my delights were with the sons of men.","Now therefore hearken unto me, O ye children: for blessed are they that keep my ways.","Hear instruction, and be wise, and refuse it not.","Blessed is the man that heareth me, watching daily at my gates, waiting at the posts of my doors.","For whoso findeth me findeth life, and shall obtain favour of the LORD.","But he that sinneth against me wrongeth his own soul: all they that hate me love death."]
+},Eccl:{
+3:["To every thing there is a season, and a time to every purpose under the heaven:","A time to be born, and a time to die; a time to plant, and a time to pluck up that which is planted;","A time to kill, and a time to heal; a time to break down, and a time to build up;","A time to weep, and a time to laugh; a time to mourn, and a time to dance;","A time to cast away stones, and a time to gather stones together; a time to embrace, and a time to refrain from embracing;","A time to get, and a time to lose; a time to keep, and a time to cast away;","A time to rend, and a time to sew; a time to keep silence, and a time to speak;","A time to love, and a time to hate; a time of war, and a time of peace.","He hath made every thing beautiful in his time: also he hath set the world in their heart, so that no man can find out the work that God maketh from the beginning to the end.","I know that, whatsoever God doeth, it shall be for ever: nothing can be put to it, nor any thing taken from it: and God doeth it, that men should fear before him.","That which hath been is now; and that which is to be hath already been; and God requireth that which is past."]
+},Song:{
+2:["I am the rose of Sharon, and the lily of the valleys.","As the lily among thorns, so is my love among the daughters.","As the apple tree among the trees of the wood, so is my beloved among the sons. I sat down under his shadow with great delight, and his fruit was sweet to my taste.","He brought me to the banqueting house, and his banner over me was love.","Stay me with flagons, comfort me with apples: for I am sick of love.","His left hand is under my head, and his right hand doth embrace me.","I charge you, O ye daughters of Jerusalem, by the roes, and by the hinds of the field, that ye stir not up, nor awake my love, till he please.","The voice of my beloved! behold, he cometh leaping upon the mountains, skipping upon the hills.","My beloved is like a roe or a young hart: behold, he standeth behind our wall, he looketh forth at the windows, shewing himself through the lattice.","My beloved spake, and said unto me, Rise up, my love, my fair one, and come away.","For, lo, the winter is past, the rain is over and gone;","The flowers appear on the earth; the time of the singing of birds is come, and the voice of the turtle is heard in our land;","The fig tree putteth forth her green figs, and the vines with the tender grape give a good smell. Arise, my love, my fair one, and come away.","My beloved is mine, and I am his: he feedeth among the lilies.","Until the day break, and the shadows flee away, turn, my beloved, and be thou like a roe or a young hart upon the mountains of Bether."]
+},Isa:{
+6:["In the year that king Uzziah died I saw also the Lord sitting upon a throne, high and lifted up, and his train filled the temple.","Above it stood the seraphims: each one had six wings; with twain he covered his face, and with twain he covered his feet, and with twain he did fly.","And one cried unto another, and said, Holy, holy, holy, is the LORD of hosts: the whole earth is full of his glory.","And the posts of the door moved at the voice of him that cried, and the house was filled with smoke.","Then said I, Woe is me! for I am undone; because I am a man of unclean lips, and I dwell in the midst of a people of unclean lips: for mine eyes have seen the King, the LORD of hosts.","Then flew one of the seraphims unto me, having a live coal in his hand, which he had taken with the tongs from off the altar:","And he laid it upon my mouth, and said, Lo, this hath touched thy lips; and thine iniquity is taken away, and thy sin purged.","Also I heard the voice of the Lord, saying, Whom shall I send, and who will go for us? Then said I, Here am I; send me."]
+},Ezek:{
+1:["Now it came to pass in the thirtieth year, in the fourth month, in the fifth day of the month, as I was among the captives by the river of Chebar, that the heavens were opened, and I saw visions of God.","The word of the LORD came expressly unto Ezekiel the priest, the son of Buzi, in the land of the Chaldeans by the river Chebar; and the hand of the LORD was there upon him.","And I looked, and, behold, a whirlwind came out of the north, a great cloud, and a fire infolding itself, and a brightness was about it, and out of the midst thereof as the colour of amber, out of the midst of the fire.","Also out of the midst thereof came the likeness of four living creatures. And this was their appearance; they had the likeness of a man.","And every one had four faces, and every one had four wings.","And their feet were straight feet; and the sole of their feet was like the sole of a calf's foot: and they sparkled like the colour of burnished brass.","And they had the hands of a man under their wings on their four sides; and they four had their faces and their wings.","Their wings were joined one to another; they turned not when they went; they went every one straight forward.","As for the likeness of their faces, they four had the face of a man, and the face of a lion, on the right side: and they four had the face of an ox on the left side; they four also had the face of an eagle.","And the living creatures ran and returned as the appearance of a flash of lightning.","Now as I beheld the living creatures, behold one wheel upon the earth by the living creatures, with his four faces.","The appearance of the wheels and their work was like unto the colour of a beryl: and they four had one likeness: and their appearance and their work was as it were a wheel in the middle of a wheel.","As for their rings, they were so high that they were dreadful; and their rings were full of eyes round about them four.","And when the living creatures went, the wheels went by them: and when the living creatures were lifted up from the earth, the wheels were lifted up.","And the likeness of the firmament upon the heads of the living creature was as the colour of the terrible crystal, stretched forth over their heads above.","And above the firmament that was over their heads was the likeness of a throne, as the appearance of a sapphire stone: and upon the likeness of the throne was the likeness as the appearance of a man above upon it.","And I saw as the colour of amber, as the appearance of fire round about within it, from the appearance of his loins even upward, and from the appearance of his loins even downward, I saw as it were the appearance of fire, and it had brightness round about.","As the appearance of the bow that is in the cloud in the day of rain, so was the appearance of the brightness round about. This was the appearance of the likeness of the glory of the LORD."]
+},Dan:{
+7:["Daniel spake and said, I saw in my vision by night, and, behold, the four winds of the heaven strove upon the great sea.","And four great beasts came up from the sea, diverse one from another.","I beheld till the thrones were cast down, and the Ancient of days did sit, whose garment was white as snow, and the hair of his head like the pure wool: his throne was like the fiery flame, and his wheels as burning fire.","A fiery stream issued and came forth from before him: thousand thousands ministered unto him, and ten thousand times ten thousand stood before him: the judgment was set, and the books were opened.","I saw in the night visions, and, behold, one like the Son of man came with the clouds of heaven, and came to the Ancient of days, and they brought him near before him.","And there was given him dominion, and glory, and a kingdom, that all people, nations, and languages, should serve him: his dominion is an everlasting dominion, which shall not pass away, and his kingdom that which shall not be destroyed."]
+},'1Cor':{
+13:["Though I speak with the tongues of men and of angels, and have not charity, I am become as sounding brass, or a tinkling cymbal.","And though I have the gift of prophecy, and understand all mysteries, and all knowledge; and though I have all faith, so that I could remove mountains, and have not charity, I am nothing.","And though I bestow all my goods to feed the poor, and though I give my body to be burned, and have not charity, it profiteth me nothing.","Charity suffereth long, and is kind; charity envieth not; charity vaunteth not itself, is not puffed up,","Doth not behave itself unseemly, seeketh not her own, is not easily provoked, thinketh no evil;","Rejoiceth not in iniquity, but rejoiceth in the truth;","Beareth all things, believeth all things, hopeth all things, endureth all things.","Charity never faileth: but whether there be prophecies, they shall fail; whether there be tongues, they shall cease; whether there be knowledge, it shall vanish away.","For we know in part, and we prophesy in part.","But when that which is perfect is come, then that which is in part shall be done away.","When I was a child, I spake as a child, I understood as a child, I thought as a child: but when I became a man, I put away childish things.","For now we see through a glass, darkly; but then face to face: now I know in part; but then shall I know even as also I am known.","And now abideth faith, hope, charity, these three; but the greatest of these is charity."]
+},Col:{
+1:["We give thanks to God and the Father of our Lord Jesus Christ, praying always for you,","For the hope which is laid up for you in heaven, whereof ye heard before in the word of the truth of the gospel;","Which is come unto you, as it is in all the world; and bringeth forth fruit, as it doth also in you, since the day ye heard of it, and knew the grace of God in truth:","Who hath delivered us from the power of darkness, and hath translated us into the kingdom of his dear Son:","In whom we have redemption through his blood, even the forgiveness of sins:","Who is the image of the invisible God, the firstborn of every creature:","For by him were all things created, that are in heaven, and that are in earth, visible and invisible, whether they be thrones, or dominions, or principalities, or powers: all things were created by him, and for him:","And he is before all things, and by him all things consist.","And he is the head of the body, the church: who is the beginning, the firstborn from the dead; that in all things he might have the preeminence.","For it pleased the Father that in him should all fulness dwell;","And, having made peace through the blood of his cross, by him to reconcile all things unto himself; by him, I say, whether they be things in earth, or things in heaven."]
+},Rev:{
+4:["After this I looked, and, behold, a door was opened in heaven: and the first voice which I heard was as it were of a trumpet talking with me; which said, Come up hither, and I will shew thee things which must be hereafter.","And immediately I was in the spirit: and, behold, a throne was set in heaven, and one sat on the throne.","And he that sat was to look upon like a jasper and a sardine stone: and there was a rainbow round about the throne, in sight like unto an emerald.","And round about the throne were four and twenty seats: and upon the seats I saw four and twenty elders sitting, clothed in white raiment; and they had on their heads crowns of gold.","And out of the throne proceeded lightnings and thunderings and voices: and there were seven lamps of fire burning before the throne, which are the seven Spirits of God.","And before the throne there was a sea of glass like unto crystal: and in the midst of the throne, and round about the throne, were four beasts full of eyes before and behind.","And the first beast was like a lion, and the second beast like a calf, and the third beast had a face as a man, and the fourth beast was like a flying eagle.","And the four beasts had each of them six wings about him; and they were full of eyes within: and they rest not day and night, saying, Holy, holy, holy, Lord God Almighty, which was, and is, and is to come.","The four and twenty elders fall down before him that sat on the throne, and worship him that liveth for ever and ever, and cast their crowns before the throne, saying,","Thou art worthy, O Lord, to receive glory and honour and power: for thou hast created all things, and for thy pleasure they are and were created."],
+22:["And he shewed me a pure river of water of life, clear as crystal, proceeding out of the throne of God and of the Lamb.","In the midst of the street of it, and on either side of the river, was there the tree of life, which bare twelve manner of fruits, and yielded her fruit every month: and the leaves of the tree were for the healing of the nations.","And there shall be no more curse: but the throne of God and of the Lamb shall be in it; and his servants shall serve him:","And they shall see his face; and his name shall be in their foreheads.","And there shall be no night there; and they need no candle, neither light of the sun; for the Lord God giveth them light: and they shall reign for ever and ever.","Behold, I come quickly: blessed is he that keepeth the sayings of the prophecy of this book.","I am Alpha and Omega, the beginning and the end, the first and the last.","Blessed are they that do his commandments, that they may have right to the tree of life, and may enter in through the gates into the city.","I Jesus have sent mine angel to testify unto you these things in the churches. I am the root and the offspring of David, and the bright and morning star.","And the Spirit and the bride say, Come. And let him that heareth say, Come. And let him that is athirst, come. And whosoever will, let him take the water of life freely.","He which testifieth these things saith, Surely I come quickly. Amen. Even so, come, Lord Jesus.","The grace of our Lord Jesus Christ be with you all. Amen."]
+}
 }};
 function bibleOpen(bk,ch){S.bibleOpen=true;S.bibleBook=bk;S.bibleChap=ch;S.bibleHeb=false;render();}
 function getBibleText(bk,ch){
@@ -2129,7 +2244,7 @@ function applyCFG(){
   enableFirmament(!!CFG.firmament);
 }
 loadCFG();
-let S={tab:CFG.defaultTab||"now",southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0};
+let S={tab:CFG.defaultTab||"now",southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,beingSort:'access'};
 function fmt(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:typeof CFG!=='undefined'?!CFG.tf24:true});}
 const fmtD=d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
 function tag(t,c="#b89a42"){return`<span class="tag" style="background:${c}14;color:${c};border:1px solid ${c}22">${t}</span>`}
@@ -2895,12 +3010,14 @@ function checkGoldenNotifications(now){
     }
   }
 }
-let _lastHourKey='';let _lastVOC=false;
+let _lastHourKey='__init__';let _lastVOC=false;
 function checkNotifications(now){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   const pd=pHours(now,CFG.lat);
   const ch=pd.hours.find(h=>now>=h.start&&now<h.end)||pd.hours[0];
   const hk=ch.ruler+ch.start.getTime();
+  // Suppress the very first check (app just opened — user already sees the hour)
+  if(_lastHourKey==='__init__'){_lastHourKey=hk;_lastVOC=vocMoon(now).isVOC;return;}
   if(CFG.notifyHour&&hk!==_lastHourKey){
     _lastHourKey=hk;
     showNotif(`${ch.ruler} hour begins \u00b7 ${fmt(ch.start)}\u2013${fmt(ch.end)}`);
@@ -3087,7 +3204,18 @@ if(!notifSupported){
 <label class="stoggle"><input type="checkbox" ${CFG.notifyGolden?'checked':''} onchange="CFG.notifyGolden=this.checked;saveCFG()"><div class="stoggle-track"></div><div class="stoggle-thumb"></div></label></div>`;
 }
 h+=`</div>`;
-// ── DATA & ABOUT
+// ── Notification Status Diagnostic
+if(notifGranted){
+const _gs=computeGoldenSchedule(new Date());
+const _now=new Date();
+const _nextGolden=_gs.find(function(c){return c.time>_now&&!_goldenFired[c.index];});
+const _activeCount=[CFG.notifyHour,CFG.notifyVOC,CFG.notifyGolden].filter(Boolean).length;
+h+=`<div style="padding:8px 12px;background:#4ade8008;border:1px solid #4ade8022;border-radius:8px;margin-bottom:10px">
+<div style="${sz(8)};letter-spacing:2px;color:#4ade80;margin-bottom:4px" class="cin">NOTIFICATION STATUS</div>
+<div style="${sz(11)};color:#8a96a8;line-height:1.6">${_activeCount} channel${_activeCount!==1?'s':''} active. Checking every 10 seconds.${_nextGolden?` Next golden spiral slot: ${fmt(_nextGolden.time)}.`:''}${_gs.length?' ('+_gs.filter(function(c){return _goldenFired[c.index];}).length+'/'+_gs.length+' fired today)':''}</div>
+<button onclick="showNotif('Test notification from Liber Temporis. The sky is listening.')" style="margin-top:4px;padding:4px 12px;border-radius:6px;background:#4ade8012;border:1px solid #4ade8030;color:#4ade80;cursor:pointer;${sz(10)};font-family:'Cinzel',serif">Send Test Notification</button>
+</div>`;
+}
 h+=`<div class="sgroup"><div class="sgroup-title">Data</div>
 <div class="srow"><div><div class="srow-label">Reset all settings</div><div class="srow-sub">Restore defaults and clear saved data</div></div>
 <button onclick="if(confirm('Reset all settings?')){localStorage.removeItem('ltcfg');location.reload();}" style="padding:5px 12px;background:#DC354518;border:1px solid #DC354544;border-radius:8px;color:#DC3545;cursor:pointer;${sz(11)};font-family:'Cinzel',serif">RESET</button></div>
@@ -3651,7 +3779,7 @@ let html=`<div style="text-align:center;padding:22px 0 12px">
 </div>
 <div style="${sz(9)};letter-spacing:7px;color:#7a6830" class="cin">${S.christianLens?'LIBER CRUCIS':'LIBER TEMPORIS'}</div>
 <div style="position:relative;display:inline-block;padding:0 20px"><div style="position:absolute;inset:-12px -30px;background:radial-gradient(ellipse 100% 100% at 50% 50%,var(--gold)0c,var(--gold)06 40%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0"></div><div class="cin" style="position:relative;z-index:1;${sz(22)};color:#b89a42;font-weight:700;letter-spacing:3px;background:linear-gradient(90deg,#7a6830,#b89a42,#d4b85a,#b89a42,#7a6830);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 8s linear infinite;text-shadow:none">${S.christianLens?'✞ Liber Crucis ✞':'☉ Liber Lucis ☽'}</div></div>
-<div style="${sz(11)};color:#606078;margin-top:2px">${fmtD(now)} · ${fmt(now)} · ${S.southern?'Southern':'Northern'} Hemisphere</div>
+<div id="lt-clock" style="${sz(11)};color:#606078;margin-top:2px">${fmtD(now)} · ${fmt(now)} · ${S.southern?'Southern':'Northern'} Hemisphere</div>
 ${S.christianLens?`<div style="margin:6px auto 0;display:inline-block;padding:3px 14px;background:#b89a4210;border:1px solid #b89a4230;border-radius:20px;${sz(9)};color:#b89a42;letter-spacing:2px;font-family:'Cinzel',serif">✝ CHRISTIAN KABBALISTIC LENS ACTIVE</div>`:''}
 ${_ckMotto?`<div style="${sz(10)};color:#60607888;margin-top:4px;font-style:italic;letter-spacing:0.5px">${_ckMotto}</div>`:''}
 </div>`;
@@ -3705,6 +3833,35 @@ return`<div class="fu">
 <div style="${sz(11)};color:#ccccd8;line-height:1.7">${rec}</div>
 </div>
 </div>
+<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+<div style="padding:5px 10px;background:${col}08;border:1px solid ${col}22;border-radius:8px;display:flex;align-items:center;gap:5px"><div style="${sz(8)};color:${col};letter-spacing:1px" class="cin">🕯 ${p.candle||'White'}</div></div>
+<div style="padding:5px 10px;background:${col}08;border:1px solid ${col}22;border-radius:8px;display:flex;align-items:center;gap:5px"><div style="${sz(8)};color:${col};letter-spacing:1px" class="cin">🪨 ${(p.stone||'Clear quartz').split(',')[0]}</div></div>
+<div style="padding:5px 10px;background:${col}08;border:1px solid ${col}22;border-radius:8px;display:flex;align-items:center;gap:5px"><div style="${sz(8)};color:${col};letter-spacing:1px" class="cin">🌿 ${(p.suf||'Frankincense').split(',')[0]}</div></div>
+<div style="padding:5px 10px;background:${col}08;border:1px solid ${col}22;border-radius:8px;display:flex;align-items:center;gap:5px"><div style="${sz(8)};color:${col};letter-spacing:1px" class="cin">📖 Ps ${SEPH_NUM[sephN].ps}</div></div>
+</div>
+${(()=>{const dp=getDailyPractice(ch);
+return`<div onclick="this.querySelector('.dp-body').style.display=this.querySelector('.dp-body').style.display==='none'?'block':'none'" style="padding:10px 14px;background:${dp.col}06;border:1px solid ${dp.col}22;border-radius:10px;margin-bottom:8px;cursor:pointer">
+<div style="display:flex;align-items:center;gap:8px">
+<div style="${sz(16)};color:${dp.col}">${PD[dp.planet].sym}</div>
+<div class="f1">
+<div class="cin" style="${sz(9)};letter-spacing:2px;color:${dp.col}">PRACTICE · ${dp.sephirah.toUpperCase()}</div>
+<div style="${sz(11)};color:#8a96a8">Psalm ${dp.psalm} · ${dp.angelName} · Face ${dp.angelDir}</div>
+</div>
+<div style="${sz(10)};color:#606078">▾</div>
+</div>
+<div class="dp-body" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid ${dp.col}18">
+<div style="padding:8px 12px;background:#07070c66;border-radius:8px;margin-bottom:6px;border-left:3px solid ${dp.col}44">
+<div style="${sz(8)};color:${dp.col};letter-spacing:1px;margin-bottom:3px" class="cin">PRAYER</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.7">${dp.prayer.split('.').slice(0,3).join('.')}.</div>
+</div>
+<div style="padding:8px 12px;background:#07070c66;border-radius:8px;margin-bottom:6px;border-left:3px solid #b89a4244">
+<div style="${sz(8)};color:#b89a42;letter-spacing:1px;margin-bottom:3px" class="cin">DEVOTION</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.7">${dp.devotion.split('.').slice(0,3).join('.')}.</div>
+</div>
+<div style="${sz(11)};color:#606078;margin-top:4px">Invoke <span style="color:${dp.col}">${dp.angelName}</span> facing ${dp.angelDir}. ${dp.isDay?'Diurnal':'Nocturnal'} hour — ${dp.isDay?'work openly':'work quietly'}.</div>
+</div>
+</div>`;
+})()}
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">
 <div class="card" style="padding:8px;text-align:center">
 <div style="${sz(8)};color:#606078;letter-spacing:1px" class="cin">MOON</div>
@@ -3756,7 +3913,7 @@ return`<div class="card" style="border-radius:14px;padding:14px;border-color:#b8
 <div style="${sz(9)};color:#606078;font-family:'Cinzel',serif;letter-spacing:1px">${Math.round(_compAngle)}° APART</div>
 </div>
 <div style="padding:12px;background:${_sunCol}06;border:1px solid ${_sunCol}22;border-radius:12px;margin-bottom:6px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:${_sSab.sabian?'6':'8'}px">
 <div style="${sz(22)};color:${_sunCol}">${_sSab.sym}</div>
 <div class="f1">
 <div style="${sz(9)};letter-spacing:2px;color:${_sunCol}" class="cin">☉ SOLAR SABIAN — ${_sSab.sign.toUpperCase()} ${_sSab.degRound}°</div>
@@ -3768,6 +3925,7 @@ return`<div class="card" style="border-radius:14px;padding:14px;border-color:#b8
 <div style="${sz(7)};color:${_sunCol}88">of 360</div>
 </div>
 </div>
+${_sSab.sabian?`<div style="padding:10px 14px;background:#07070c66;border-radius:10px;margin-bottom:8px;border-left:3px solid ${_sunCol}55"><div style="${sz(14)};color:#ccccd8;line-height:1.7;font-style:italic;font-family:'EB Garamond',serif">"${_sSab.sabian}"</div><div style="${sz(8)};color:${_sunCol}66;margin-top:4px;letter-spacing:1px" class="cin">${_sSab.sign} ${_sSab.degRound + 1}° · Jones/Wheeler 1925</div></div>`:''}
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:8px">
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">DECAN</div>
@@ -3787,10 +3945,9 @@ return`<div class="card" style="border-radius:14px;padding:14px;border-color:#b8
 </div>
 </div>
 <div style="${sz(11)};color:#8a96a8;line-height:1.6;font-style:italic">${_decanImg(_sSab)}. ${_sSab.letterName}. Sephirah: <span style="color:${_sSab.seph.c==='#FFFFFF'?'#e8e8e8':_sSab.seph.c}">${_sSab.seph.s}</span>.</div>
-${_sSab.sabian?`<div style="margin-top:8px;padding:10px 14px;background:${_sunCol}08;border-left:2px solid ${_sunCol}44;border-radius:0 8px 8px 0"><div style="${sz(8)};letter-spacing:2px;color:${_sunCol}88;margin-bottom:4px" class="cin">SABIAN SYMBOL · ${_sSab.sign.toUpperCase()} ${_sSab.degRound + 1}°</div><div style="${sz(13)};color:#ccccd8;line-height:1.7;font-style:italic">${_sSab.sabian}</div></div>`:''}
 </div>
 <div style="padding:12px;background:${_moonCol}06;border:1px solid ${_moonCol}18;border-radius:12px;margin-bottom:6px">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:${_mSab.sabian?'6':'8'}px">
 <div style="${sz(22)};color:${_moonCol}">${_mSab.sym}</div>
 <div class="f1">
 <div style="${sz(9)};letter-spacing:2px;color:${_moonCol}" class="cin">☽ LUNAR SABIAN — ${_mSab.sign.toUpperCase()} ${_mSab.degRound}°</div>
@@ -3802,6 +3959,7 @@ ${_sSab.sabian?`<div style="margin-top:8px;padding:10px 14px;background:${_sunCo
 <div style="${sz(7)};color:${_moonCol}88">of 360</div>
 </div>
 </div>
+${_mSab.sabian?`<div style="padding:10px 14px;background:#07070c66;border-radius:10px;margin-bottom:8px;border-left:3px solid ${_moonCol}55"><div style="${sz(14)};color:#ccccd8;line-height:1.7;font-style:italic;font-family:'EB Garamond',serif">"${_mSab.sabian}"</div><div style="${sz(8)};color:${_moonCol}66;margin-top:4px;letter-spacing:1px" class="cin">${_mSab.sign} ${_mSab.degRound + 1}° · Jones/Wheeler 1925</div></div>`:''}
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-bottom:8px">
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">DECAN</div>
@@ -3821,7 +3979,6 @@ ${_sSab.sabian?`<div style="margin-top:8px;padding:10px 14px;background:${_sunCo
 </div>
 </div>
 <div style="${sz(11)};color:#8a96a8;line-height:1.6;font-style:italic">${_decanImg(_mSab)}. ${_mSab.letterName}. Sephirah: <span style="color:${_mSab.seph.c==='#FFFFFF'?'#e8e8e8':_mSab.seph.c}">${_mSab.seph.s}</span>.</div>
-${_mSab.sabian?`<div style="margin-top:8px;padding:10px 14px;background:${_moonCol}08;border-left:2px solid ${_moonCol}44;border-radius:0 8px 8px 0"><div style="${sz(8)};letter-spacing:2px;color:${_moonCol}88;margin-bottom:4px" class="cin">SABIAN SYMBOL · ${_mSab.sign.toUpperCase()} ${_mSab.degRound + 1}°</div><div style="${sz(13)};color:#ccccd8;line-height:1.7;font-style:italic">${_mSab.sabian}</div></div>`:''}
 ${_timerStrip(_tr.moon,_moonCol)}
 </div>
 <div style="padding:12px;background:${_compCol}06;border:1px solid ${_compCol}22;border-radius:12px">
@@ -3864,7 +4021,7 @@ ${_timerStrip(_tr.moon,_moonCol)}
 </div>
 </div>
 <div style="${sz(11)};color:#8a96a8;line-height:1.6;font-style:italic">${_decanImg(_cSab)}. ${_cSab.letterName}. Sephirah: <span style="color:${_cSab.seph.c==='#FFFFFF'?'#e8e8e8':_cSab.seph.c}">${_cSab.seph.s}</span>.</div>
-${_cSab.sabian?`<div style="margin-top:8px;padding:10px 14px;background:${_compCol}08;border-left:2px solid ${_compCol}44;border-radius:0 8px 8px 0"><div style="${sz(8)};letter-spacing:2px;color:${_compCol}88;margin-bottom:4px" class="cin">SABIAN SYMBOL · ${_cSab.sign.toUpperCase()} ${_cSab.degRound + 1}°</div><div style="${sz(13)};color:#ccccd8;line-height:1.7;font-style:italic">${_cSab.sabian}</div></div>`:''}
+${_cSab.sabian?`<div style="padding:10px 14px;background:#07070c66;border-radius:10px;margin-top:8px;border-left:3px solid ${_compCol}55"><div style="${sz(14)};color:#ccccd8;line-height:1.7;font-style:italic;font-family:'EB Garamond',serif">"${_cSab.sabian}"</div><div style="${sz(8)};color:${_compCol}66;margin-top:4px;letter-spacing:1px" class="cin">${_cSab.sign} ${_cSab.degRound + 1}° · Jones/Wheeler 1925</div></div>`:''}
 ${_timerStrip(_tr.comp,_compCol)}
 </div>
 </div>`;
@@ -3996,11 +4153,11 @@ events.sort((a,b)=>a.t-b.t);
 return events.map(ev=>{
 const isCur=now>=ev.t&&(ev.type==='planet'?now<ev.data.end:true);
 if(ev.type==='planet'){
-const h2=ev.data;const col2=pc(h2.ruler);
+const h2=ev.data;const col2=pc(h2.ruler);const _sN=PLANET_SEPH[h2.ruler]||6;const _sD=SEPH_NUM[_sN];
 return`<div style="display:flex;align-items:center;gap:8px;padding:6px;border-bottom:1px solid #24243810;opacity:${now>h2.end?.35:1};background:${isCur?col2+'08':'transparent'};border-radius:${isCur?'6px':'0'}">
 <div style="${sz(16)};color:${col2};width:22px;text-align:center">${PD[h2.ruler].sym}</div>
 <div class="f1"><div class="cin" style="${sz(12)};color:${isCur?col2:'#ccccd8'}">${h2.ruler}${isCur?` <span style="${sz(8)};background:${col2}28;padding:1px 5px;border-radius:8px">NOW</span>`:''}</div>
-<div class="d10">${fmt(h2.start)}–${fmt(h2.end)} · ${HA[h2.ruler]}${S.christianLens?(()=>{const _g=CKAB_GIFTS.find(g=>g.planet===h2.ruler);return _g?` · <span style="color:#b89a42">✝ ${_g.gift}</span>`:''})():''}</div></div>
+<div class="d10">${fmt(h2.start)}–${fmt(h2.end)} · ${HA[h2.ruler]} · <span style="color:${_sD.c==='#FFFFFF'?'#e8e8e8':_sD.c}">${_sD.s}</span> · Ps ${_sD.ps}${S.christianLens?(()=>{const _g=CKAB_GIFTS.find(g=>g.planet===h2.ruler);return _g?` · <span style="color:#b89a42">✝ ${_g.gift}</span>`:''})():''}</div></div>
 <div class="d9">${h2.isDay?'☀':'☾'}</div></div>`;
 }else{
 const cn=ev.data;
@@ -4245,12 +4402,13 @@ ${fwBtn(9)}
 <div style="${sz(11)};color:#606078;margin-top:8px;line-height:1.65;padding-top:8px;border-top:1px solid #24243818">Gabriel governs all lunar operations: dreams, prophecy, fertility, and the transmission of divine messages to humanity. He is most accessible during a Water Moon. Invoke by name facing West at night, with silver, moonstone, or still water before you. Every dream of spiritual significance is his annunciation.</div>
 </div>
 ${(()=>{const voc=vocMoon(new Date());if(!voc.isVOC)return'';
-return`<div style="padding:10px 14px;background:#DC35450a;border:1px solid #DC354533;border-radius:10px;margin-top:8px">
-<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-<div style="width:8px;height:8px;border-radius:50%;background:#DC3545;animation:pulse 1.5s ease-in-out infinite;flex-shrink:0"></div>
-<div style="${sz(9)};letter-spacing:2px;color:#DC3545" class="cin">VOID OF COURSE</div>
+return`<div style="padding:14px 16px;background:#DC354510;border:2px solid #DC354544;border-radius:12px;margin-top:8px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+<div style="width:12px;height:12px;border-radius:50%;background:#DC3545;box-shadow:0 0 8px #DC354566;animation:pulse 1.5s ease-in-out infinite;flex-shrink:0"></div>
+<div class="cin" style="${sz(13)};letter-spacing:3px;color:#DC3545;font-weight:700">VOID OF COURSE</div>
 </div>
-<div style="${sz(12)};color:#8a96a8;line-height:1.6">Moon entering ${voc.nextSign} in ~${voc.hoursToIngress} hours (${voc.degsLeft}\u00b0 remaining in ${voc.curSign}). Operations begun now tend to come to nothing. Use this time for rest, contemplation, internal work, and completion of existing matters. Wait for ingress into ${voc.nextSign} before beginning new workings.</div>
+<div style="${sz(11)};color:#DC354588;margin-bottom:6px">DO NOT INITIATE NEW WORKINGS</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.7">Moon entering ${voc.nextSign} in ~${voc.hoursToIngress} hours (${voc.degsLeft}\u00b0 remaining in ${voc.curSign}). Operations begun now tend to come to nothing. Use this time for rest, contemplation, journal work, and completion of existing matters.</div>
 </div>`})()}
 ${(()=>{const _conj=nearbyStars(ms.lon,2);if(!_conj.length)return'';const st=_conj[0];
 return`<div style="padding:12px 14px;background:${st.col}0c;border:1px solid ${st.col}44;border-radius:12px;margin-top:8px;animation:glow 3s ease-in-out infinite">
@@ -4512,11 +4670,17 @@ h+='</div>';return h;}
 const dt=S.detailType||'goetia';
 if(dt==='goetia'){
 h+=`<input type="text" placeholder="Search name or power..." value="${S.filter}" oninput="S.filter=this.value;render()">`;
-h+=`<div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:8px">`;
+h+=`<div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:4px">`;
 ["All",...Object.keys(PD)].forEach(p=>{const on=S.planetF===p,col=p==="All"?"#b89a42":pc(p);h+=`<button class="pill ${on?'on':''}" style="${on?`border-color:${col}40;color:${col};background:${col}18`:''}" onclick="S.planetF='${p}';render()">${p==="All"?"All":PD[p].sym}</button>`});
 h+='</div>';
+h+=`<div style="display:flex;gap:4px;margin-bottom:8px">
+<button class="pill ${S.beingSort==='access'?'on':''}" onclick="S.beingSort='access';render()" style="${sz(9)};letter-spacing:0.5px">◉ Accessible Now</button>
+<button class="pill ${S.beingSort==='number'?'on':''}" onclick="S.beingSort='number';render()" style="${sz(9)};letter-spacing:0.5px"># By Number</button>
+</div>`;
 const q=S.filter.toLowerCase();
-G.filter(s=>(!q||s.nm.toLowerCase().includes(q)||s.pw.toLowerCase().includes(q))&&(S.planetF==="All"||s.pl===S.planetF)).forEach(s=>{
+const _gList=G.filter(s=>(!q||s.nm.toLowerCase().includes(q)||s.pw.toLowerCase().includes(q))&&(S.planetF==="All"||s.pl===S.planetF));
+if(S.beingSort==='access')_gList.sort((a,b)=>accessScore(b.pl,b.si)-accessScore(a.pl,a.si));
+_gList.forEach(s=>{
 const _ab=accessBadge(s.pl,s.si);const _ac=accessScore(s.pl,s.si);const _fg=firmGild(pc(s.pl),_ac);
 h+=`<div class="row" onclick="S.detail=${s.n};S.detailType='goetia';render()" style="border-color:${_ac>=3?pc(s.pl)+'33':'#242438'};background:${_ac>=5?pc(s.pl)+'08':_ac>=3?pc(s.pl)+'05':'#151520'};${_fg}"><div class="cin" style="${sz(15)};color:${pc(s.pl)};width:26px;text-align:center">${s.n}</div><div class="f1"><div class="cin" style="${sz(13)}">${s.nm} <span class="d10">· ${s.rk}</span></div><div class="d11">${s.pw}</div></div><div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px"><div style="display:flex;align-items:center;gap:4px"><div style="${sz(14)};color:${pc(s.pl)}">${PD[s.pl].sym}</div><div class="d10">${s.lg}L</div></div>${_ab}${s.tr?`<div style="${sz(9)};font-family:'Cinzel',serif;padding:1px 6px;border-radius:4px;margin-top:2px;background:${(TIER_DATA[s.tr]||TIER_DATA[2]).bg};color:${(TIER_DATA[s.tr]||TIER_DATA[2]).col};border:1px solid ${(TIER_DATA[s.tr]||TIER_DATA[2]).border};letter-spacing:1px">${[''  ,'I','II','III','IV'][s.tr]||''}</div>`:''}<button onclick="event.stopPropagation();openProjection('${s.pl}','${s.si}','${s.nm} (#${s.n})')" style="${sz(7)};padding:1px 5px;border-radius:4px;background:#07070c;border:1px solid #24243818;color:#606078;cursor:pointer;letter-spacing:1px;margin-top:2px">NEXT ▸</button></div></div>`});
 }else if(dt==='olympic'){
@@ -5005,9 +5169,10 @@ if(selPath!==null&&selPath>=0&&selPath<22){
   const colFrom=sc(spFrom);
   const colTo=sc(spTo);
   const pathTypeCol=lt.cls==='Mother'?'#c44520':lt.cls==='Double'?'#D4A020':'#b89a42';
-  detail=`<div class="card" style="border-radius:14px;border-color:#b89a4240;margin-top:10px">
-<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
-<div style="width:52px;height:52px;border-radius:50%;border:2px solid #b89a4266;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#b89a4215;${sz(26)};direction:rtl">${lt.l}</div>
+  detail=`<div class="card" style="border-radius:14px;border-color:#b89a4240;margin-top:10px;overflow:hidden;position:relative">
+<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${colFrom},#b89a42,${colTo})"></div>
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;margin-top:6px">
+<div style="width:52px;height:52px;border-radius:50%;border:2px solid #b89a4266;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:radial-gradient(#b89a4218,#b89a4208);box-shadow:0 0 12px #b89a4218;${sz(26)};direction:rtl;color:#b89a42">${lt.l}</div>
 <div>
 <div style="font-family:'Cinzel',serif;${sz(18)};color:#b89a42">${lt.n} · Path ${lt.num}</div>
 <div class="t11">${lt.t} · <span style="${sz(10)};padding:1px 6px;background:${pathTypeCol}20;border:1px solid ${pathTypeCol}40;border-radius:4px;color:${pathTypeCol}">${lt.cls}</span></div>
@@ -5025,19 +5190,27 @@ if(selPath!==null&&selPath>=0&&selPath<22){
 </div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:12px">
-${[['Value',lt.v],['Element',lt.el||'—'],['Planet',lt.pl||'—'],['Zodiac',lt.zo||'—'],['Body',lt.body],['Class',lt.cls]].map(([k,v])=>`<div style="padding:5px 6px;background:#07070c44;border-radius:6px;border:1px solid #b89a4218"><div style="${sz(8)};color:#606078;font-family:'Cinzel',serif;letter-spacing:1px">${k}</div><div style="${sz(10)};color:#ccccd8;margin-top:1px">${v}</div></div>`).join('')}
+${[['Value',lt.v],['Element',lt.el||'\u2014'],['Planet',lt.pl||'\u2014'],['Zodiac',lt.zo||'\u2014'],['Body',lt.body],['Class',lt.cls]].map(([k,v])=>`<div style="padding:5px 6px;background:#07070c44;border-radius:6px;border:1px solid #b89a4218"><div style="${sz(8)};color:#606078;font-family:'Cinzel',serif;letter-spacing:1px">${k}</div><div style="${sz(10)};color:#ccccd8;margin-top:1px">${v}</div></div>`).join('')}
 </div>
-<div style="${sz(12)};color:#8a96a8;line-height:1.75;margin-bottom:10px">${lt.form}</div>
-<div style="padding:10px;background:#b89a4208;border:1px solid #b89a4220;border-radius:8px;border-left:2px solid #b89a42">
-<div style="${sz(9)};color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:5px">CONTEMPLATION</div>
-<div style="${sz(12)};color:#8a96a8;line-height:1.7;font-style:italic">${lt.med}</div>
+<div style="padding:10px 12px;background:#07070c66;border-radius:8px;margin-bottom:8px;border-left:3px solid ${colFrom}44">
+<div style="${sz(9)};color:${colFrom};font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:5px">FORMATIVE POWER</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.75">${lt.form}</div>
 </div>
-${lt.sv?`<div style="margin-top:8px;${sz(11)};color:#606078;line-height:1.6;font-style:italic">"${lt.sv}"</div>`:''}
-<div style="margin-top:12px;${sz(9)};color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:6px">EXPLORE</div>
+<div style="padding:10px 12px;background:#b89a4208;border:1px solid #b89a4220;border-radius:8px;margin-bottom:8px;border-left:3px solid #b89a4244">
+<div style="${sz(9)};color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:5px">PATHWORKING</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.75;font-style:italic">${lt.med}</div>
+<div style="${sz(11)};color:#606078;margin-top:6px;line-height:1.6">Begin in <span style="color:${colFrom}">${spFrom.name}</span>. Visualise the Hebrew letter <span style="color:#b89a42;direction:rtl;display:inline-block">${lt.l}</span> (${lt.n} \u2014 "${lt.t}") suspended in the space between the two spheres. Hold the letter in your awareness until it becomes a door. Pass through toward <span style="color:${colTo}">${spTo.name}</span>. Record what you see.</div>
+</div>
+${S.christianLens&&CKAB_LETTERS&&CKAB_LETTERS[lt.l]?`<div style="padding:10px 12px;background:#b89a4206;border:1px solid #b89a4218;border-radius:8px;margin-bottom:8px;border-left:3px solid #b89a4244">
+<div style="${sz(9)};color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:5px">\u271e CHRISTOLOGICAL</div>
+<div style="${sz(12)};color:#ccccd8;line-height:1.75">${CKAB_LETTERS[lt.l].role}</div>
+</div>`:''}
+${lt.sv?`<div style="${sz(11)};color:#606078;line-height:1.6;font-style:italic;margin-bottom:8px">"${lt.sv}"</div>`:''}
+<div style="${sz(9)};color:#b89a42;font-family:'Cinzel',serif;letter-spacing:1.5px;margin-bottom:6px">EXPLORE</div>
 <div style="display:flex;flex-wrap:wrap;gap:5px">
-<button onclick="S.tab='study';S.studySub='letters';S.studyLetter=${selPath};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:#b89a4210;border:1px solid #b89a4230;color:#b89a42;cursor:pointer;font-family:'Cinzel',serif">◉ Full Letter Study</button>
-<button onclick="S.tab='study';S.studySub='numbers';S.studySeph=${from-1};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:${colFrom}10;border:1px solid ${colFrom}30;color:${colFrom};cursor:pointer;font-family:'Cinzel',serif">◉ ${spFrom.name}</button>
-<button onclick="S.tab='study';S.studySub='numbers';S.studySeph=${to-1};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:${colTo}10;border:1px solid ${colTo}30;color:${colTo};cursor:pointer;font-family:'Cinzel',serif">◉ ${spTo.name}</button>
+<button onclick="S.tab='study';S.studySub='letters';S.studyLetter=${selPath};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:#b89a4210;border:1px solid #b89a4230;color:#b89a42;cursor:pointer;font-family:'Cinzel',serif">\u25c9 Full Letter Study</button>
+<button onclick="S.tab='study';S.studySub='numbers';S.studySeph=${from-1};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:${colFrom}10;border:1px solid ${colFrom}30;color:${colFrom};cursor:pointer;font-family:'Cinzel',serif">\u25c9 ${spFrom.name}</button>
+<button onclick="S.tab='study';S.studySub='numbers';S.studySeph=${to-1};render()" style="${sz(10)};padding:4px 10px;border-radius:7px;background:${colTo}10;border:1px solid ${colTo}30;color:${colTo};cursor:pointer;font-family:'Cinzel',serif">\u25c9 ${spTo.name}</button>
 </div>
 </div>`;
 }
@@ -5878,6 +6051,19 @@ let h=`<div class="fu">
 <div style="${sz(10)};letter-spacing:4px;color:#606078" class="cin">ELECTIONAL ASTROLOGY</div>
 <div class="cin" style="${sz(16)};color:#b89a42;font-weight:700;margin-top:2px">Election Finder</div>
 </div>
+<div style="padding:10px 14px;background:#07070c66;border:1px solid #242438;border-radius:10px;margin-bottom:10px">
+<div style="${sz(8)};letter-spacing:2px;color:#606078;margin-bottom:6px" class="cin">RIGHT NOW — READINESS</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+${['love','wealth','protection','knowledge','healing','destruction','spirit','necromancy'].map(w=>{
+const wr=getWorkingReadiness(w);
+const barCol=wr.pct>=75?'#4ade80':wr.pct>=50?'#b89a42':wr.pct>=25?'#d4701a':'#DC3545';
+return`<div onclick="S.elCat=ECATS.find(x=>x.id==='${w}');render()" style="text-align:center;cursor:pointer;padding:4px 2px">
+<div style="${sz(7)};color:#606078;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px">${w.slice(0,5)}</div>
+<div style="height:3px;background:#242438;border-radius:2px;overflow:hidden"><div style="width:${Math.max(5,wr.pct)}%;height:100%;background:${barCol};border-radius:2px"></div></div>
+<div style="${sz(8)};color:${barCol};margin-top:2px">${wr.pct}%</div>
+</div>`}).join('')}
+</div>
+</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">`;
 ECATS.forEach(cat=>{const on=S.elCat&&S.elCat.id===cat.id;
 h+=`<div onclick="S.elCat=ECATS.find(x=>x.id==='${cat.id}');render()" style="background:${on?'#b89a4215':'#0d0d16'};border:1px solid ${on?'#b89a4255':'#242438'};border-radius:10px;padding:10px 8px;cursor:pointer;text-align:center;transition:all 0.15s">
@@ -6378,6 +6564,7 @@ return`<div class="card" style="border-radius:12px;border-color:${c}30;backgroun
 // targetField: which S.xxx field the keyboard writes to (default 'gemInput')
 function renderGemKbd(forceSys,targetField){
 _gemKbdField=targetField||'gemInput';
+_gemKbdElId=targetField==='gemNotarIn'?'gemNotarIn':targetField==='gemInputB'?'gemInB':'gemIn';
 const kbdSys=forceSys||(S.gemSys==='auto'?'hebrew':S.gemSys);
 if(kbdSys!=='hebrew'&&kbdSys!=='greek')return'';
 const isHeb=kbdSys==='hebrew';
@@ -6476,57 +6663,52 @@ function _scheduleGemRender(restoreFocus){
   _gemRAF=requestAnimationFrame(function(){
     _gemRAF=null;
     var scrollY=window.scrollY;
+    var _focusEl=function(){var el=document.getElementById(_gemKbdElId)||document.getElementById('gemIn')||document.getElementById('gemNotarIn')||document.getElementById('gemRev')||document.getElementById('tlIn');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}};
     // Layer 1a: calc mode — update only results (keyboard untouched)
     var resultsEl=document.getElementById('gem-results');
     if(resultsEl&&S.tab==='gem'&&(S.gemMode||'calc')==='calc'){
       var tmp=document.createElement('div');
       tmp.innerHTML=renderGem();
       var newRes=tmp.querySelector('#gem-results');
-      if(newRes){resultsEl.innerHTML=newRes.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus){var el=document.getElementById(_gemKbdElId)||document.getElementById('gemIn');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}return;}
+      if(newRes){resultsEl.innerHTML=newRes.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus)_focusEl();return;}
     }
-    // Layer 1b: compare mode — update only results (keyboard + inputs untouched)
+    // Layer 1b: compare mode
     var cmpRes=document.getElementById('gem-compare-results');
     if(cmpRes&&S.tab==='gem'&&S.gemMode==='compare'){
       var tmp2=document.createElement('div');
       tmp2.innerHTML=renderGem();
       var newCmp=tmp2.querySelector('#gem-compare-results');
-      if(newCmp){cmpRes.innerHTML=newCmp.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus){var el=document.getElementById(_gemKbdElId)||document.getElementById('gemIn');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}return;}
+      if(newCmp){cmpRes.innerHTML=newCmp.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus)_focusEl();return;}
     }
-    // Layer 1c: aiq mode — update only results
+    // Layer 1c: aiq mode
     var aiqRes=document.getElementById('gem-aiq-results');
     if(aiqRes&&S.tab==='gem'&&S.gemMode==='aiq'){
       var tmp3=document.createElement('div');
       tmp3.innerHTML=renderGem();
       var newAiq=tmp3.querySelector('#gem-aiq-results');
-      if(newAiq){aiqRes.innerHTML=newAiq.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus){var el=document.getElementById('gemIn');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}return;}
+      if(newAiq){aiqRes.innerHTML=newAiq.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus)_focusEl();return;}
     }
-    // Layer 1d: reverse mode — update only results
+    // Layer 1d: reverse mode
     var revRes=document.getElementById('gem-rev-results');
     if(revRes&&S.tab==='gem'&&S.gemMode==='reverse'){
       var tmp4=document.createElement('div');
       tmp4.innerHTML=renderGem();
       var newRev=tmp4.querySelector('#gem-rev-results');
-      if(newRev){revRes.innerHTML=newRev.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus){var el=document.getElementById('gemIn')||document.getElementById('gemRev');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}return;}
+      if(newRev){revRes.innerHTML=newRev.innerHTML;window.scrollTo(0,scrollY);if(restoreFocus)_focusEl();return;}
     }
     // Layer 2: medium — update gem section only (no header/nav rebuild)
     var wrapEl=document.getElementById('gem-wrap');
     if(wrapEl&&S.tab==='gem'){
       wrapEl.innerHTML=renderGem();
       window.scrollTo(0,scrollY);
-      if(restoreFocus){
-        var el=document.getElementById(_gemKbdElId)||document.getElementById('gemIn')||document.getElementById('gemRev')||document.getElementById('tlIn');
-        if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}
-      }
+      if(restoreFocus)_focusEl();
       return;
     }
     // Layer 3: full render (tab not active or containers missing)
     _skipNav=true;
     render();
     _skipNav=false;
-    if(restoreFocus){
-      var el=document.getElementById('gemIn');
-      if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}
-    }
+    if(restoreFocus)_focusEl();
   });
 }
 // ═══ RENDER GEM ═══
@@ -6599,7 +6781,7 @@ h+=`<div class="card" style="padding:16px 18px 14px;border-radius:16px;border-co
 <div class="cin" style="${sz(9)};letter-spacing:5px;color:#606078">${S.christianLens?'CABALA NUMERORUM':'GEMATRIA CALCULATOR'}</div>
 <div class="cin" style="${sz(16)};color:var(--gold);margin-top:2px">${S.christianLens?'The Numbers of the Word':'The Art of Sacred Number'}</div></div>
 <div style="display:flex;gap:3px;justify-content:center;margin-bottom:10px;flex-wrap:wrap">
-${[['calc','Calculate'],['compare','Compare'],['reverse','Reverse'],['notariqon','Notariqon'],['atbash','ATBaSh'],['aiq','AIQ']].map(([m,l])=>`<button class="pill ${mode===m?'on':''}" onclick="S.gemMode='${m}';render()">${l}</button>`).join('')}
+${[['calc','Calculate'],['compare','Compare'],['reverse','Reverse'],['notariqon','Notariqon'],['atbash','ATBaSh'],['aiq','AIQ']].map(([m,l])=>`<button class="pill ${mode===m?'on':''}" onclick="S.gemMode='${m}';_gemKbdField='gemInput';_gemKbdElId='gemIn';render()">${l}</button>`).join('')}
 </div></div>`;
 // ── CALC MODE
 if(mode==='calc'){
@@ -7100,7 +7282,7 @@ else if(mode==='notariqon'){
 h+=`<div class="card" style="border-radius:14px;border-color:#b89a4230;padding:16px">
 ${title('Notariqon — The Art of Initials')}
 <div style="${sz(12)};color:#606078;margin-bottom:12px;line-height:1.6">Notariqon is the third pillar of Kabbalistic hermeneutics alongside Gematria and ATBaSh. It extracts the first (or last) letters of each word in a phrase to form a new word — or expands a single word into a phrase. The most famous example: <b style="color:#FFD700">AGLA</b> = <span style="direction:rtl;color:#b89a42">אתה גבור לעולם אדני</span> (Atah Gibor Leolam Adonai — "Thou art mighty forever, O Lord").</div>
-<input type="text" id="gemIn" placeholder="Enter a phrase or divine name..." value="${(S.gemNotarIn||'').replace(/"/g,'&quot;')}" oninput="S.gemNotarIn=this.value;_scheduleGemRender(true)" style="${sz(16)};text-align:center;padding:12px;direction:auto;border-color:#b89a4233">`;
+<input type="text" id="gemNotarIn" placeholder="Enter a phrase or divine name..." value="${(S.gemNotarIn||'').replace(/"/g,'&quot;')}" oninput="S.gemNotarIn=this.value;_scheduleGemRender(true)" style="${sz(16)};text-align:center;padding:12px;direction:auto;border-color:#b89a4233">`;
 h+=gemSysPills();
 h+=renderGemKbd(null,'gemNotarIn');
 const nInp=(S.gemNotarIn||'').trim();
@@ -7174,7 +7356,33 @@ h+=`</div>`;return h;}
 renderStars();
 S.detailType='goetia';
 render();
-applyCFG();setInterval(()=>{render();checkNotifications(new Date());if(CFG.firmament)updateFirmament();},30000);
+applyCFG();
+// ── Soft tick: update only time-sensitive elements without destroying the DOM
+var _tickHourKey='';
+function softTick(){
+  const now=new Date();
+  // Update header time display
+  const timeEl=document.getElementById('lt-clock');
+  if(timeEl)timeEl.textContent=fmtD(now)+' \u00b7 '+fmt(now)+' \u00b7 '+(S.southern?'Southern':'Northern')+' Hemisphere';
+  // Check if the planetary hour changed — only then do a full render
+  const pd=pHours(now,CFG.lat);
+  const ch=pd.hours.find(function(h){return now>=h.start&&now<h.end;})||pd.hours[0];
+  const hk=ch.ruler+ch.start.getTime();
+  if(_tickHourKey&&hk!==_tickHourKey){
+    // Hour changed — full render needed
+    _tickHourKey=hk;
+    const sy=window.scrollY;
+    render();
+    window.scrollTo(0,sy);
+  }
+  if(!_tickHourKey)_tickHourKey=hk;
+  // Notifications + firmament (no DOM rebuild)
+  checkNotifications(now);
+  if(CFG.firmament)updateFirmament();
+}
+setInterval(softTick,10000);
+// Wake-up: when phone sleeps and user returns, check notifications immediately
+document.addEventListener('visibilitychange',function(){if(!document.hidden){softTick();}});
 // Parallax scroll listener (passive, 60fps-throttled)
 var _firmScrollRAF=null;
 window.addEventListener('scroll',function(){if(!CFG.firmament)return;if(_firmScrollRAF)return;_firmScrollRAF=requestAnimationFrame(function(){firmParallaxTick();_firmScrollRAF=null;});},{passive:true});
@@ -7193,6 +7401,75 @@ results.push({type:'shem',nm:shA.nm,n:shA.n,pl:'',sc:6,col:'#9B7BDB',ai:_nowActi
 return results.sort((a,b)=>b.sc-a.sc).slice(0,8);
 }
 function nowAct(i){if(_nowActions[i])_nowActions[i]();}
+// ═══ PRACTITIONER FUNCTIONS ═══
+// getDailyPractice — returns the devotional practice for the current planetary hour
+function getDailyPractice(ch){
+const pl=ch.ruler;
+const sN=PLANET_SEPH[pl]||6;
+const sp=SEPHIROTH_FULL[sN-1];
+const ckd=CKAB_SEPH_DEEP[sN-1];
+const pa=PA[{Sun:'Michael',Moon:'Gabriel',Mars:'Samael',Mercury:'Raphael',Jupiter:'Sachiel',Venus:'Anael',Saturn:'Cassiel'}[pl]];
+return{
+  planet:pl,sephirah:sp.name,sephN:sN,col:sp.col==='#FFFFFF'?'#e8e8e8':sp.col,
+  psalm:sp.ps,psalmText:'Psalm '+sp.ps,
+  divineName:sp.dn+' — '+sp.dt,
+  prayer:ckd?ckd.prayer:'',
+  devotion:ckd?ckd.devotion:'',
+  angel:pa?pa.heb:'',angelName:Object.keys(PA).find(function(k){return PA[k].pl===pl;})||'',
+  angelDir:pa?pa.dir:'',angelInf:pa?pa.inf:'',
+  isDay:ch.isDay
+};
+}
+// getWorkingReadiness — real-time readiness score for a working type
+function getWorkingReadiness(workingType){
+const now=new Date();
+const pd=pHours(now,CFG.lat);
+const ch=pd.hours.find(function(h){return now>=h.start&&now<h.end;})||pd.hours[0];
+const ms=mSign(now);const mp=mPhase(now);const voc=vocMoon(now);
+const cat=ECAT_META[workingType];
+if(!cat)return{score:0,max:10,factors:[],ready:false};
+const factors=[];
+let sc=0;
+// VOC penalty
+if(voc.isVOC){factors.push({f:'Moon void of course',v:-3,c:'#DC3545'});sc-=3;}
+// Planet match
+const wantPl=({love:'Venus',wealth:'Jupiter',protection:'Mars',knowledge:'Mercury',healing:'Sun',destruction:'Mars',spirit:'Moon',necromancy:'Saturn'})[workingType]||'Sun';
+if(ch.ruler===wantPl){factors.push({f:ch.ruler+' hour active',v:3,c:pc(ch.ruler)});sc+=3;}
+else if(ch.ruler==='Sun'||ch.ruler==='Jupiter'){factors.push({f:ch.ruler+' hour (benefic)',v:1,c:pc(ch.ruler)});sc+=1;}
+// Day ruler
+if(pd.dayRuler===wantPl){factors.push({f:pd.dayRuler+' day',v:2,c:pc(pd.dayRuler)});sc+=2;}
+// Moon sign element
+const wantEl=({love:'Water',wealth:'Earth',protection:'Fire',knowledge:'Air',healing:'Water',destruction:'Fire',spirit:'Water',necromancy:'Water'})[workingType]||'Air';
+if(ms.el===wantEl){factors.push({f:'Moon in '+ms.sign+' ('+ms.el+')',v:2,c:'#4ade80'});sc+=2;}
+else{factors.push({f:'Moon in '+ms.sign+' ('+ms.el+')',v:0,c:'#606078'});}
+// Moon phase
+const waxing=mp.ill<50?false:true;
+const wantWax=({love:true,wealth:true,protection:false,knowledge:true,healing:true,destruction:false,spirit:false,necromancy:false})[workingType];
+if(waxing===wantWax){factors.push({f:mp.name+(waxing?' (waxing)':' (waning)'),v:1,c:'#b89a42'});sc+=1;}
+// Compute label
+const max=8;
+const pct=Math.max(0,Math.round((sc/max)*100));
+const label=pct>=75?'Excellent':pct>=50?'Favourable':pct>=25?'Marginal':'Unfavourable';
+return{score:sc,max:max,pct:pct,label:label,factors:factors,ready:pct>=50,workingType:workingType,wantPl:wantPl};
+}
+// getPathworking — returns the meditative content for a path between two Sephiroth
+function getPathworking(pathIdx){
+if(pathIdx<0||pathIdx>=PATHS.length)return null;
+const p=PATHS[pathIdx];
+const li=p[0],from=p[1],to=p[2];
+const lt=LETTERS[li];
+const spFrom=SEPHIROTH_FULL[from-1];
+const spTo=SEPHIROTH_FULL[to-1];
+const ckl=CKAB_LETTERS?CKAB_LETTERS[lt.l]:null;
+return{
+  letter:lt,pathIdx:li,
+  from:{n:from,name:spFrom.name,col:spFrom.col==='#FFFFFF'?'#e8e8e8':spFrom.col,heb:spFrom.heb},
+  to:{n:to,name:spTo.name,col:spTo.col==='#FFFFFF'?'#e8e8e8':spTo.col,heb:spTo.heb},
+  formative:lt.form,meditation:lt.med,
+  ckab:ckl?ckl.role:'',
+  cls:lt.cls,element:lt.el||'',zodiac:lt.zo||'',planet:lt.pl||''
+};
+}
 // Recommendation engine
 function getNowRecommendation(ch,mp,ms,mn,voc,nearStars){
 const pl=ch.ruler;const el=ms.el;
