@@ -1,73 +1,69 @@
-# ✝ Liber Temporis / Liber Crucis
+# Liber Temporis
 
-A Christian Kabbalist ritual timing application — a single-file PWA that discloses the symbolic structure of reality through the dual lens of traditional Kabbalah and Christian Kabbalah.
+**A Christian Kabbalist ritual timing application built as a single-file Progressive Web App.**
+
+Liber Temporis renders the invisible architecture of time legible. It computes planetary hours, lunar positions, Sephirothic resonances, the 72 Names of God, and 360 degree-level Sabatons in real time, presenting them as a unified field of correspondences that the practitioner can read at a glance.
+
+## Install
+
+**Android / Chrome:** Visit the site → tap the browser menu → "Add to Home Screen" or "Install app"
+
+**iOS / Safari:** Visit the site → tap Share → "Add to Home Screen"
+
+The app works fully offline after first load. All computation runs on-device.
 
 ## Features
 
-### Dual-Lens Architecture
-Toggle the **✝ button** to switch between the underlying Kabbalistic framework and the Christian Kabbalistic revelation. When active, every tab transforms: the header becomes *Liber Crucis*, tab labels shift to their liturgical equivalents, Sephiroth reveal their Trinitarian identities, the 22 Letters become the Trinity/Sacraments/Apostles, and the Goetia spirits are reframed as broken vessels of divine attributes.
-
-### Core Systems
-- **Now** — Live planetary hour, moon phase, sign, mansion, correspondence web
-- **Timing/Office** — Planetary + canonical hours, VOC tracking, ingress forecasting
-- **Moon/Stella** — 15 Behenian fixed stars with live conjunction detection, sign deep-dive (Letter/Tribe/Apostle), Mazzaroth panel, constellation scripture
-- **Beings/Orders** — 72 Goetia spirits, 7 Olympic spirits, 7 Archangels, 9 Angelic Orders, 4 Elemental Kings, ritual implements guide. Tier system (I–IV) with approach/dismissal protocols
-- **72 Names** — Full Shemhamphorasch with Exodus source view, Psalm keys, decan mapping, divine name vibration, invocation structure. 1:1 indexed to Goetia counterparts
-- **Elections** — 8 operation categories with scored timing windows
-- **Gematria** — Calculate, Compare/Offset, Reverse, Notariqon, ATBaSh, AIQ Beker. Active Now panel, quick presets, Christological resonance priority under ✝ lens
-- **Study/Doctrina** — 22 Letters (Trinity/Sacraments/Apostles under ✝), 10 Sephiroth (full Trinitarian transformation under ✝), Colour Scales with liturgical vestment correspondences
-- **Tree** — Interactive SVG Tree of Life with all 10 Sephiroth, 22 paths, Da'ath, Ein Soph veils. Body-of-Christ mapping under ✝ lens
-- **CKab** — Dedicated Christian Kabbalah tab: Trinity & Tree, Pentagrammaton, Christological Numbers, Three Pillars, Sacraments, 7 Gifts, Mystics Guide, Liturgical Year, Sources
-- **Ref** — Four sub-tabs: Planets (full correspondence dictionary), Theology (8 doctrinal fault lines), Glossary (12 key terms with gematria), Sources (historical figures + mystics)
-
-### Gematria Defense System
-Every Goetia spirit has a bespoke numerical defense computed from the offset between YHShVH (326) and the spirit's Shem correspondent. The system produces: seed defense letter, seal letter, Ana B'Koach line, and a 5-step Summary Execution (Ground → Invoke → Apply → Command → Seal). Tier IV spirits receive the full adversary-shattering protocol.
-
-### Scripture Integration
-14 embedded chapters (247 verses): Psalms 8, 19, 23, 24, 33, 45, 91, 103, 116, 139, 150 + Genesis 49 + Job 38 + John 1. Scripture Viewer overlay accessible from any tab. Companion Bible JSON loader for full text.
-
-### Projection System
-Every being card (Goetia, Olympic, Shem angel) has a **NEXT ▸** button that opens a 7-day projection overlay showing scored future windows with **Projected Active** / **Projected Aligned** badges, timestamps, and contributing factors.
-
-### Global Search
-The **⊕** button searches across all 9 data domains: Goetia, Shem angels, Planets, Archangels, Sephiroth, Glossary, Theology, Letters, and Behenian Stars. Results navigate directly to the relevant card.
-
-## Installation
-
-### As a PWA (recommended)
-1. Open `index.html` in a mobile browser
-2. Tap "Add to Home Screen" (iOS) or the install prompt (Android/Chrome)
-3. The app works offline after first load
-
-### As a local file
-Simply open `index.html` in any modern browser. No build step, no dependencies, no server required.
-
-### Companion Bible File
-For full Bible text beyond the embedded chapters, load a JSON file through the Scripture Viewer:
-```json
-{"Ps":{"1":["Blessed is the man...","..."],...},"Gen":{"1":["In the beginning...","..."],...}}
-```
+- **Planetary Hours** — Traditional unequal-hour method computed from solar declination
+- **360° Sabaton System** — Degree-level oracle compositing Decan, Mansion, Shem angel, letter path, and Sephirothic resonance
+- **Golden Spiral Notifications** — Observations spaced by 137.5° (the golden angle), never repeating, never crowding
+- **72 Names of God** — Boustrophedon derivation from Exodus 14:19–21 with full Psalm and ritual correspondences
+- **Gematria Engine** — Hebrew (Mispar Gadol), Latin (Agrippa), Greek (Isopsephy) with ATBaSh, AIQ Beker, Notariqon, Compare, and Reverse Lookup
+- **Christian Kabbalistic Lens** — Toggle transforms every tab: Sephiroth reveal Trinitarian identities, the Tree becomes the Body of Christ, planetary hours map to Gifts of the Spirit
+- **Interactive Tree of Life** — SVG Tree with tappable Sephiroth, paths, Da'ath, Ein Sof veils
+- **Election Finder** — Scored ritual timing windows across 8 working categories
+- **Beings Database** — 72 Goetia, 7 Olympic Spirits, 4 Elemental Spirits, 9 Angelic Orders, 7 Planetary Angels
 
 ## Architecture
 
-Single-file HTML application. No framework, no build system, no external dependencies beyond Google Fonts (Cinzel + EB Garamond). All state managed through a central `S` object driving a `render()` function. Settings persisted via localStorage. ~5,300 lines of vanilla JavaScript.
+One HTML file (~720KB). No frameworks. No build step. No external API calls. No server. No telemetry. Everything runs client-side.
 
-### Key Design Principle
-The Christian Kabbalistic lens functions as a **revelatory overlay** — when active, it transforms content by revealing hidden Christian meaning already latent within each card, rather than generating separate standalone content. As Christ reveals hidden meaning in God's Word, the toggle reveals meaning already present in the existing structure.
+## Notifications (Android PWA)
 
-## Sources
+The notification system uses `ServiceWorkerRegistration.showNotification()` for proper Android PWA support. Three notification types:
 
-- **Agrippa**, *De Occulta Philosophia* (1531)
-- **Pico della Mirandola**, *Conclusiones* (1486), *Heptaplus* (1489)
-- **Reuchlin**, *De Verbo Mirifico* (1494), *De Arte Cabalistica* (1517)
-- **Kircher**, *Oedipus Aegyptiacus* (1652)
-- **Vaughan**, *Anthroposophia Theomagica* (1650)
-- *Sefer Yetzirah*, *Zohar*, *Bahir*
-- *Lemegeton Clavicula Salomonis* (Lesser Key of Solomon)
-- *Arbatel of Magic*
-- *Picatrix* (Ghāyat al-Ḥakīm)
-- **Pseudo-Dionysius**, *The Celestial Hierarchy*
+- **Planetary Hour Change** — Alert when the hour ruler shifts
+- **Void of Course Moon** — Alert when the Moon enters void state  
+- **Golden Spiral** — Contemplative observations at golden-angle intervals from sunrise
 
-## License
+Enable in Settings → Notifications. The app must be installed as a PWA and notification permission must be granted.
 
-This is a devotional and educational tool. Use with discernment.
+## Hosting
+
+Deploy the contents of this repository to any static hosting:
+
+```bash
+# GitHub Pages — push to main branch, enable Pages in Settings
+# Or any static server:
+npx serve .
+```
+
+## Files
+
+```
+index.html      — The entire application
+manifest.json   — PWA manifest
+sw.js           — Service worker (offline caching + notification click handling)
+icon-192.png    — App icon 192×192
+icon-512.png    — App icon 512×512
+.nojekyll       — GitHub Pages config (no Jekyll processing)
+README.md       — This file
+```
+
+## Source Authorities
+
+Agrippa, Picatrix, Sefer Yetzirah, Zohar, Key of Solomon, Lemegeton, Arbatel, Reuchlin, Pseudo-Dionysius, Teresa of Ávila, John of the Cross, Athanasius Kircher.
+
+---
+
+*The sky does not compete for your attention. It simply is, and you look up when you are moved to look up.*
