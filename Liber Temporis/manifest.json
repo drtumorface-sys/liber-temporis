@@ -1,0 +1,69 @@
+{
+  "name": "Liber Temporis",
+  "short_name": "Liber Temporis",
+  "description": "The Third Temple — Syncretic Semiotics Grimoire. Kabbalistic and Christian mystical apparatus: planetary hours, gematria, 72 Names, Tree of Life, electional astrology, and the Fibonacci acoustic matrix.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#04040a",
+  "theme_color": "#07070c",
+  "lang": "en",
+  "categories": ["education", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "./icon-16.png",
+      "sizes": "16x16",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "apple touch icon"
+    },
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Planetary Hours",
+      "short_name": "Hours",
+      "description": "Current planetary hour and Chaldean sequence",
+      "url": "./index.html#hours",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Gematria Calculator",
+      "short_name": "Gematria",
+      "description": "Hebrew, Greek, and Latin gematric evaluation",
+      "url": "./index.html#gem",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Frequency Matrix",
+      "short_name": "Freq",
+      "description": "Fibonacci acoustic engine and binaural calibration",
+      "url": "./index.html#freq",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
