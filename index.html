@@ -9556,9 +9556,12 @@ document.addEventListener("visibilitychange",function(){
   if(document.hidden){
     // Cancel RAF immediately — no CPU/GPU spend while hidden
     if(_masterRAF){cancelAnimationFrame(_masterRAF);_masterRAF=null;}
-    // Suspend AudioContext if running (saves ~5–15% battery on mobile)
+    // Suspend AudioContext ONLY when tones are not engaged
+    // If audio is playing, keep the context alive so tones continue
+    // through screen-off and background state
     var _ac=window._ltAudioCtxRef;
-    if(_ac&&_ac.state==="running")_ac.suspend();
+    var _audioActive=S.freqEngaged||(typeof LiberTemporis!=="undefined"&&LiberTemporis.Audio.state().engaged);
+    if(_ac&&_ac.state==="running"&&!_audioActive)_ac.suspend();
   } else {
     // Resync accumulators to prevent burst on wake
     _ltLastTs=performance.now();
@@ -9961,6 +9964,11 @@ const LiberTemporis = (function(){
     _setLedger('fibF0', f0);
     _setLedger('freqEngaged', true);
     _setLedger('lastGemSum', gemSum);
+    // Register MediaSession so OS treats this as a media app —
+    // audio continues through screen-off and lock screen.
+    _registerMediaSession(f0);
+    // Acquire WakeLock to prevent screen sleep while tones play.
+    _acquireWakeLock();
     return true;
   }
 
@@ -9974,6 +9982,9 @@ const LiberTemporis = (function(){
     _stopAll();
     _setLedger('fibAudioActive', false);
     _setLedger('freqEngaged', false);
+    // Release WakeLock and clear MediaSession on stop
+    _releaseWakeLock();
+    _clearMediaSession();
   }
 
   function toggle(gemSum, timbre){
@@ -10015,6 +10026,68 @@ const LiberTemporis = (function(){
       }catch(e){}
     });
     _setLedger('fibF0', newF0);
+  }
+
+  // ── WakeLock: prevent screen sleep while audio plays ──
+  var _wakeLock = null;
+  function _acquireWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    navigator.wakeLock.request('screen')
+      .then(function(lock){
+        _wakeLock = lock;
+        _wakeLock.addEventListener('release', function(){
+          _wakeLock = null;
+        });
+      })
+      .catch(function(){}); // silently ignore if denied
+  }
+  function _releaseWakeLock(){
+    if(_wakeLock){
+      _wakeLock.release().catch(function(){});
+      _wakeLock = null;
+    }
+  }
+  // Re-acquire WakeLock on tab return (lock auto-releases on hide)
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden && _audioEngaged && !_wakeLock){
+      _acquireWakeLock();
+    }
+  });
+
+  // ── MediaSession: register as media app for OS lock-screen controls ──
+  function _registerMediaSession(f0){
+    if(!('mediaSession' in navigator)) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: 'Liber Temporis — Acoustic Matrix',
+      artist: 'f₀ ' + (f0 ? f0.toFixed(1) : '432') + ' Hz · Fibonacci Polyrhythm',
+      album: 'Comparative Cosmology'
+    });
+    navigator.mediaSession.playbackState = 'playing';
+    // Hardware media key handlers
+    try{
+      navigator.mediaSession.setActionHandler('pause', function(){
+        disengage();
+        navigator.mediaSession.playbackState = 'paused';
+        // Sync UI button state
+        var btn = document.getElementById('nem-engage-btn');
+        if(btn) btn.textContent = '► PLAY';
+      });
+      navigator.mediaSession.setActionHandler('play', function(){
+        var sum = window._freqState ? window._freqState.f0 : 432;
+        engage(sum);
+        navigator.mediaSession.playbackState = 'playing';
+        var btn = document.getElementById('nem-engage-btn');
+        if(btn) btn.textContent = '■ STOP';
+      });
+      navigator.mediaSession.setActionHandler('stop', function(){ disengage(); });
+    }catch(e){}
+  }
+  function _clearMediaSession(){
+    if(!('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = 'none';
+    try{ navigator.mediaSession.setActionHandler('pause', null); }catch(e){}
+    try{ navigator.mediaSession.setActionHandler('play', null); }catch(e){}
+    try{ navigator.mediaSession.setActionHandler('stop', null); }catch(e){}
   }
 
   function state(){

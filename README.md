@@ -8,6 +8,27 @@ A single-file Progressive Web App fusing the Hebrew metaphysical scaffold (Sephi
 
 ---
 
+## Deploy to GitHub Pages
+
+> Estimated time: 3 minutes
+
+**1. Create the repository**
+
+Go to [https://github.com/organizations/SyncreticSemiotics/repositories/new](https://github.com/organizations/SyncreticSemiotics/repositories/new)
+
+- Repository name: `liber-temporis`
+- Visibility: **Public** (required for free GitHub Pages)
+- Do **not** initialise with a README
+
+**2. Upload all files**
+
+From the new empty repository, click **uploading an existing file** and drag the entire contents of this folder. Commit to `main`.
+
+**3. Enable GitHub Pages**
+
+**Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)` → Save**
+
+**4. Access the live app**
 
 ```
 https://syncreticsemiotics.github.io/liber-temporis/
