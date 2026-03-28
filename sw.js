@@ -10,7 +10,7 @@
  *   - Activate: purge stale caches automatically
  */
 
-const CACHE_NAME = 'liber-temporis-v6-1';
+const CACHE_NAME = 'liber-temporis-v6-2';
 const FONT_CACHE = 'liber-temporis-fonts-v1';
 
 // Assets to precache on install

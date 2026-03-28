@@ -66,7 +66,7 @@ body{
   /* ─── Typography ─── */
   --text:#d0d0e0;
   --text-bright:#e8e8f4;
-  --dim:#5a5a78;
+  --dim:#8a8a9e;
   --dim2:#787890;
 
   /* ─── Accent (cross-sephirotic resonance) ─── */
@@ -119,8 +119,8 @@ body{
   --panel-radius-sm:10px;
 }
 html{height:100%;overflow-anchor:none}
-body{height:100%;overflow-x:hidden;background:var(--firmament-gradient);margin:0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background-attachment:fixed;color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:calc(15px * var(--fs));line-height:1.5;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--goldD);border-radius:2px}
+body{height:100%;overflow-x:hidden;background:var(--firmament-gradient);margin:0;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background-attachment:fixed;color:var(--text);font-family:'EB Garamond',Georgia,serif;font-size:calc(15px * var(--fs));font-weight:500;line-height:1.5;font-synthesis:none;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+scrollbar-width:thin;scrollbar-color:var(--goldD) transparent;::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--goldD);border-radius:3px;border:1px solid transparent}
 /* ─ Desktop typographic scaling via --fs ─────────────────────────────
    The entire system uses calc(Npx * var(--fs)). Raising --fs on #app
    at desktop viewports scales all text uniformly without touching px values.
@@ -242,6 +242,16 @@ body{height:100%;overflow-x:hidden;background:var(--firmament-gradient);margin:0
   z-index:0;
 }
 .card>*{position:relative;z-index:1;}
+/* Lithic obsidian grain — SVG feTurbulence at α=0.04, GPU composited */
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+  mix-blend-mode:overlay;
+  opacity:0.04;
+  z-index:1;
+}
+
 .card:hover{
   background:var(--card-pigment-hover);
   border-color:rgba(255,255,255,0.08);
@@ -272,7 +282,7 @@ input[type=text]:focus,input[type=date]:focus,select:focus{
 input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--brd);outline:none;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
 input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;border:2px solid var(--bg)}
-.pill{padding:3px 9px;border-radius:8px;font-size:calc(11px * var(--fs));cursor:pointer;font-family:'Cinzel',serif;border:1px solid var(--brd);background:var(--card);color:var(--dim);display:inline-block;margin:2px;transition:border-color .15s,color .15s,background .15s}
+.pill{padding:3px 9px;border-radius:8px;font-size:calc(11px * var(--fs));cursor:pointer;font-family:'Cinzel',serif;border:1px solid var(--brd);background:var(--card);color:var(--dim);margin:2px;transition:border-color .15s,color .15s,background .15s;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
 .pill.on{border-color:var(--gold);color:var(--gold);background:linear-gradient(135deg,#b89a4210,#b89a4218)}
 .pill:active{opacity:.75}
 /* ─── Lithic row — polished incision within crystalline strata ─── */
@@ -286,6 +296,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   display:flex;align-items:center;gap:10px;cursor:pointer;
   box-shadow:0 1px 0 0 rgba(255,255,255,0.06),inset 0 1px 0 0 rgba(255,255,255,0.04),0 2px 8px rgba(0,0,0,0.45);
   transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;
+  min-height:44px;
 }
 .row:hover{background:rgba(14,14,28,0.60);border-top-color:rgba(255,255,255,0.14);box-shadow:0 2px 0 0 rgba(255,255,255,0.10),inset 0 1px 0 0 rgba(255,255,255,0.06),0 4px 16px rgba(0,0,0,0.55),0 0 0 1px rgba(184,154,66,0.08);}
 .row:active{background:rgba(18,18,34,0.75);}
@@ -309,6 +320,33 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 #firmament{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .firm-layer{position:absolute;inset:0;will-change:transform}
 #firm-tint{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:0;transition:opacity 1.5s ease,background 4s ease;mix-blend-mode:screen}
+/* Accessibility — reduce motion preference */
+@media(prefers-reduced-motion:reduce){
+  .card::after{display:none}
+  *{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}
+}
+/* ─ Endurance Mode — Obsidian State (battery saver) ─
+   Eradicates expensive GPU blur and noise when toggled.
+   Applied via body.endurance-mode class. */
+body.endurance-mode .card,
+body.endurance-mode .row,
+body.endurance-mode .pill,
+body.endurance-mode .nav-i,
+body.endurance-mode .settings-panel,
+body.endurance-mode .settings-overlay{
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  background-color:#0c0c14!important;
+  background-image:none!important;
+}
+body.endurance-mode .card::before,
+body.endurance-mode .card::after{
+  display:none!important;
+}
+body.endurance-mode #firmament{
+  display:none!important;
+}
+
 /* Monolithic Stele — Wmax = min(100vw, 56.25vh) enforces 9:16 on desktop */
 #app{position:relative;z-index:1;width:100%;max-width:min(100vw,56.25vh);min-height:100vh;margin:0;padding:0 12px 100px;contain:layout;overflow-x:hidden;box-shadow:0 0 60px rgba(0,0,0,0.85),0 0 120px rgba(0,0,0,0.4);background:transparent}
 #app>div.fu{will-change:transform,opacity;background:transparent}
@@ -338,7 +376,7 @@ body.firmament-on [style*="color:#606078"]{color:var(--dim)!important}
   -webkit-backdrop-filter:blur(var(--blur-overlay)) saturate(1.5);
   overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:opacity;
 }
-.settings-panel{max-width:100%;margin:0;padding:16px 16px 100px;overflow-y:auto;max-height:calc(100dvh - 40px)}
+.settings-panel{max-width:100%;margin:0;padding:16px 16px 100px;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:calc(100dvh - 40px)}
 .sgroup{
   margin-bottom:18px;padding:14px;
   background:rgba(10,10,20,0.70);
@@ -367,7 +405,7 @@ body.firmament-on [style*="color:#606078"]{color:var(--dim)!important}
 .gear-btn{display:none}
 .lt-header-wrap{position:relative;text-align:center;padding:18px 0 10px}
 .lt-liber-row{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:4px}
-.lt-liber-btn{flex:1;max-width:160px;padding:7px 10px;font-family:"Cinzel",serif;font-size:calc(13px * var(--fs));font-weight:600;letter-spacing:2px;cursor:pointer;border:1px solid;border-radius:0;transition:all 0.2s;background:transparent;position:relative}
+.lt-liber-btn{flex:1;max-width:160px;padding:calc(8px * var(--fs)) 4px;font-family:"Cinzel",serif;font-size:calc(13px * var(--fs));font-weight:600;letter-spacing:0.08em;cursor:pointer;border:1px solid;border-radius:0;transition:all 0.2s;background:transparent;position:relative;min-height:44px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lt-liber-btn.lucis{border-color:var(--goldD);color:var(--goldD);border-radius:8px 0 0 8px}
 .lt-liber-btn.crucis{border-color:var(--goldD);color:var(--goldD);border-radius:0 8px 8px 0}
 .lt-liber-btn.active{color:var(--gold);border-color:var(--gold);background:linear-gradient(137.5deg,rgba(36,36,56,0.9),rgba(21,21,32,0.95));box-shadow:0 0 12px rgba(212,184,106,0.12)}
@@ -420,9 +458,10 @@ body.no-motion *{animation:none!important;transition:none!important;will-change:
 /* bgD / bgC: upgrade to glassmorphic tinted surfaces */
 .bgD{background:rgba(4,4,10,0.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:10px;}
 .bgC{background:rgba(4,4,10,0.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:10px;}
-button:focus-visible,input:focus-visible,select:focus-visible,.pill:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,.pill:focus-visible{outline:none;box-shadow:0 0 0 1px var(--gold),0 0 16px rgba(184,154,66,0.3)}
 /* Ref section pill container — geometric stabilization */
 .ref-filter-container{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:12px;}
+.metric{font-family:monospace;letter-spacing:0.03em;font-variant-numeric:tabular-nums}
 .ref-filter-container .pill{padding:3px 9px;font-size:calc(10px * var(--fs));margin:0;flex:0 1 auto;white-space:nowrap;text-align:center;}
 
 /* ════════════════════════════════════════════════════════════════
@@ -3377,10 +3416,19 @@ const SHEM_EX=[
 // ═══ PERSISTENT SETTINGS ═══
 const ACCENT_COLS={gold:'#b89a42',silver:'#8a96a8',crimson:'#c44520',violet:'#9B7BDB'};
 const ACCENT_DARK={gold:'#7a6830',silver:'#606878',crimson:'#8a2010',violet:'#6a4aab'};
-let CFG={lat:40.7,southern:false,tf24:false,fontSize:'normal',accent:'gold',reducedMotion:false,firmament:true,hideTabs:[],electThreshold:60,notifyHour:false,notifyVOC:false,notifyGolden:false,defaultTab:'now',savedWorking:null};
-function loadCFG(){try{const raw=localStorage.getItem('ltcfg');if(raw){const p=JSON.parse(raw);if(p.firmament===undefined)p.firmament=true;Object.assign(CFG,p);}}catch(e){}}
+// ── Typographic Scale — global constants, must precede loadCFG() ──
+const FS_STEPS={xs:0.78,small:0.88,normal:1.0,large:1.15,xl:1.32,xxl:1.50};
+const FS_ORDER=['xs','small','normal','large','xl','xxl'];
+const FS_LABELS={xs:'XS',small:'Small',normal:'Normal',large:'Large',xl:'XL',xxl:'XXL'};
+const FS_DESCS={xs:'Minimal — maximum content density',small:'Compact — slightly condensed',normal:'Balanced — recommended baseline',large:'Comfortable — clear legibility',xl:'Generous — relaxed reading',xxl:'Maximum — accessibility or tablet'};
+let CFG={lat:40.7,southern:false,tf24:false,fontSize:'normal',accent:'gold',reducedMotion:false,firmament:true,enduranceMode:false,hideTabs:[],electThreshold:60,notifyHour:false,notifyVOC:false,notifyGolden:false,defaultTab:'now',savedWorking:null};
+function loadCFG(){try{const raw=localStorage.getItem('ltcfg');if(raw){
+const p=JSON.parse(raw);
+if(p.firmament===undefined)p.firmament=true;
+const _fsMap={compact:'xs',small:'small',normal:'normal',large:'large',spacious:'xl'};
+if(p.fontSize&&_fsMap[p.fontSize])p.fontSize=_fsMap[p.fontSize];
+Object.assign(CFG,p);}}catch(e){}}
 function saveCFG(){try{localStorage.setItem('ltcfg',JSON.stringify(CFG));}catch(e){}}
-const FS_STEPS={compact:0.82,small:0.91,normal:1,large:1.13,spacious:1.26};
 function applyCFG(){
   const ac=ACCENT_COLS[CFG.accent]||'#b89a42';
   const ad=ACCENT_DARK[CFG.accent]||'#7a6830';
@@ -3395,6 +3443,7 @@ function applyCFG(){
   if(fsVal<1)b.classList.add('fs-compact');
   else if(fsVal>1)b.classList.add('fs-large');
   b.classList.toggle('no-motion',!!CFG.reducedMotion);
+  b.classList.toggle('endurance-mode',!!CFG.enduranceMode);
   enableFirmament(!!CFG.firmament);
 }
 loadCFG();
@@ -4209,7 +4258,7 @@ function toggleTab(id,show){
 // ═══ RENDER SETTINGS ═══
 function renderSettings(){
 const ac=ACCENT_COLS[CFG.accent]||'#b89a42';
-let h=`<div class="settings-overlay" onclick="if(event.target===this){S.settingsOpen=false;render()}">
+let h=`<div class="settings-overlay" role="dialog" aria-modal="true" aria-label="Settings" onclick="if(event.target===this){S.settingsOpen=false;render()}">
 <div class="settings-panel">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-top:8px">
 <div class="cin" style="${sz(16)};color:var(--gold);font-weight:700">⚙ Settings</div>
@@ -4237,14 +4286,29 @@ h+=`<div class="sgroup"><div class="sgroup-title">Time</div>
 <label class="stoggle"><input type="checkbox" ${CFG.tf24?'checked':''} onchange="CFG.tf24=this.checked;saveCFG();render()"><div class="stoggle-track"></div><div class="stoggle-thumb"></div></label></div>
 </div>`;
 // ── APPEARANCE
-const fsOpts=[['compact','Compact'],['small','Small'],['normal','Normal'],['large','Large'],['spacious','Spacious']];
 const accOpts=[['gold','#b89a42'],['silver','#8a96a8'],['crimson','#c44520'],['violet','#9B7BDB']];
-const curScale=FS_STEPS[CFG.fontSize]||1;
+const curFsIdx=Math.max(0,FS_ORDER.indexOf(CFG.fontSize));
+const curScale=FS_STEPS[CFG.fontSize]||1.0;
 h+=`<div class="sgroup"><div class="sgroup-title">Appearance</div>
-<div class="srow" style="flex-direction:column;align-items:stretch;gap:8px">
-<div style="display:flex;justify-content:space-between;align-items:center"><div class="srow-label">Text scale</div><div style="${sz(11)};color:var(--gold);font-family:'Cinzel',serif">${Math.round(curScale*100)}%</div></div>
-<div style="display:flex;gap:3px">
-${fsOpts.map(([v,l])=>`<button onclick="CFG.fontSize='${v}';saveCFG();applyCFG();render()" style="flex:1;padding:5px 2px;border-radius:7px;background:${CFG.fontSize===v?'var(--gold)22':'#07070c'};border:1px solid ${CFG.fontSize===v?'var(--gold)':'#242438'};color:${CFG.fontSize===v?'var(--gold)':'#606078'};cursor:pointer;${sz(9)};font-family:'Cinzel',serif;text-align:center">${l}</button>`).join('')}
+<div class="srow" style="flex-direction:column;align-items:stretch;gap:10px">
+<div style="display:flex;justify-content:space-between;align-items:baseline">
+<div class="srow-label">Text scale</div>
+<div style="display:flex;align-items:baseline;gap:6px">
+<span class="cin" style="${sz(13)};color:var(--gold);font-weight:700">${FS_LABELS[CFG.fontSize]||'Normal'}</span>
+<span style="${sz(10)};color:#606078">${Math.round(curScale*100)}%</span>
+</div></div>
+<div style="position:relative;padding:4px 0">
+<input type="range" min="0" max="5" step="1" value="${curFsIdx}"
+  oninput="(function(v){var k=FS_ORDER[v];CFG.fontSize=k;saveCFG();applyCFG();var lbl=document.getElementById('fs-lbl');var pct=document.getElementById('fs-pct');var desc=document.getElementById('fs-desc');var prev=document.getElementById('fs-preview');if(lbl)lbl.textContent=FS_LABELS[k];if(pct)pct.textContent=Math.round((FS_STEPS[k]||1)*100)+'%';if(desc)desc.textContent=FS_DESCS[k];if(prev){prev.style.fontSize='calc(13px * '+(FS_STEPS[k]||1)+')';};})(parseInt(this.value))"
+  style="width:100%;accent-color:var(--gold);cursor:pointer;height:4px">
+<div style="display:flex;justify-content:space-between;margin-top:4px">
+${FS_ORDER.map((k,i)=>`<div style="${sz(8)};color:${i===curFsIdx?'var(--gold)':'#404058'};font-family:'Cinzel',serif;text-align:center;flex:1">${FS_LABELS[k]}</div>`).join('')}
+</div></div>
+<div id="fs-desc" style="${sz(10)};color:#606078;font-style:italic">${FS_DESCS[CFG.fontSize]||''}</div>
+<div style="padding:10px 12px;background:#07070c66;border-radius:8px;border:1px solid #24243818">
+<div style="${sz(8)};letter-spacing:2px;color:#606078;margin-bottom:5px" class="cin">PREVIEW</div>
+<div id="fs-preview" style="font-size:calc(13px * ${curScale});color:#ccccd8;line-height:1.65;margin-bottom:3px">The Moon enters Scorpio at the Mars hour — severity and depth converge.</div>
+<div style="${sz(9)};color:#606078">λ☽ 247° · Geburah · Shem ${Math.floor(247/5)+1}/72</div>
 </div>
 <div style="padding:8px 10px;background:#07070c66;border-radius:8px;border:1px solid #24243818">
 <div style="${sz(9)};letter-spacing:2px;color:#606078;margin-bottom:4px" class="cin">PREVIEW</div>
@@ -4330,6 +4394,12 @@ h+=`<div class="srow"><div><div class="srow-label">${i} ${l}</div></div>
 <label class="stoggle"><input type="checkbox" ${!CFG.hideTabs.includes(tid)?'checked':''} onchange="toggleTab('${tid}',this.checked)"><div class="stoggle-track"></div><div class="stoggle-thumb"></div></label></div>`;
 });
 h+=`</div>`;
+// ── ENDURANCE MODE
+const _isEndurance=document.body.classList.contains("endurance-mode");
+h+=`<div class="sgroup"><div class="sgroup-title">Performance</div>
+<div class="srow"><div><div class="srow-label">Endurance Mode</div><div class="srow-sub">Disables blur, noise &amp; starfield — maximises battery life</div></div>
+<label class="stoggle"><input type="checkbox" ${_isEndurance?"checked":""} onchange="document.body.classList.toggle('endurance-mode',this.checked);CFG.enduranceMode=this.checked;saveCFG();if(CFG.firmament&&this.checked){var el=document.getElementById('firmament');if(el)el.style.display='none';}else if(!this.checked){applyCFG();}"><div class="stoggle-track"></div><div class="stoggle-thumb"></div></label></div>
+</div>`;
 // ── PRACTICE
 const threshOpts=[[60,'Good+ (60)'],[75,'Strong+ (75)'],[0,'All windows']];
 h+=`<div class="sgroup"><div class="sgroup-title">Practice</div>
@@ -4775,8 +4845,11 @@ const scrollY=tabChanged?0:window.scrollY;
 // Manage waveform RAF on tab transitions
 if(tabChanged){
   if(S.tab==='gem'&&(S.gemMode==='freq'||!S.gemMode)){
-    // Entering freq tab — start continuous waveform animation
-    requestAnimationFrame(function(){if(window._freqStartAnim)window._freqStartAnim();});
+    // Entering freq tab — start waveform and reattach IntersectionObserver
+    requestAnimationFrame(function(){
+      if(window._freqStartAnim)window._freqStartAnim();
+      if(window._ltReattachWaveObs)window._ltReattachWaveObs();
+    });
   } else if(_lastTab==='gem'){
     // Leaving freq tab — stop waveform RAF to save GPU resources
     // SVG nodes will be invalidated on next gem render anyway
@@ -8469,8 +8542,9 @@ ${[['calc','Calculate'],['compare','Compare'],['reverse','Reverse'],['notariqon'
 </div></div>`;
 // ── CALC MODE
 if(mode==='calc'){
-h+=`<div class="card" style="padding:14px 16px;border-radius:14px;border-color:#b89a4225">
-<input type="text" id="gemIn" placeholder="Hebrew, Latin, or Greek..." value="${inp.replace(/"/g,'&quot;')}" oninput="gemInputHandler(this.value)" style="${sz(16)};text-align:center;padding:12px;direction:auto;border-color:#b89a4233">
+h+=`<div class="card" style="padding:14px 16px;border-radius:14px;border-color:#b89a4225;position:relative;overflow:hidden">
+<div aria-hidden="true" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;user-select:none;font-size:calc(72px * var(--fs));font-family:'EB Garamond',serif;color:#b89a42;opacity:0.06;direction:rtl;z-index:0;line-height:1;transform:rotate(-4deg)">${sys==="hebrew"?"א":sys==="greek"?"Α":sys==="latin"?"ℒ":"∑"}</div>
+<input type="text" id="gemIn" placeholder="Hebrew, Latin, or Greek..." value="${inp.replace(/"/g,'&quot;')}" oninput="gemInputHandler(this.value)" style="${sz(16)};text-align:center;padding:12px;direction:auto;border-color:#b89a4233;position:relative;z-index:1;background:transparent">
 <div style="display:flex;justify-content:center;gap:4px;margin-top:4px;flex-wrap:wrap">
 ${[{id:'auto',l:'Auto'},{id:'hebrew',l:'עברית'},{id:'latin',l:'Latin'},{id:'greek',l:'Ελληνικά'}].map(s=>`<button class="pill ${sys===s.id?'on':''}" onclick="S.gemSys='${s.id}';render()">${s.l}</button>`).join('')}
 <button class="pill ${S.gemPhrase?'on':''}" onclick="S.gemPhrase=!S.gemPhrase;render()" title="Strip spaces — compute full phrase as one value">Phrase</button>
@@ -8974,10 +9048,10 @@ ${[-40,-30,-20,-10,0].map(db=>{const y=(170-(db+40)/40*170).toFixed(1);return`<l
 h+=`</div>`; // close top-row grid
 // Live readings
 h+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
-<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(0,255,127,0.04);border:1px solid rgba(0,255,127,0.15)"><div style="${sz(8)};color:#00FF7F55;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">fL · Mercy</div><div id="nem-live-fL" style="${sz(16)};color:#00FF7F;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #00FF7F33">${fL.toFixed(2)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · LEFT</div></div>
-<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15)"><div style="${sz(8)};color:#FFD70055;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">f₀ · Carrier</div><div id="nem-live-f0" style="${sz(16)};color:#FFD700;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #FFD70033">${f0.toFixed(1)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · CENTER</div></div>
-<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(220,20,60,0.04);border:1px solid rgba(220,20,60,0.15)"><div style="${sz(8)};color:#DC143C55;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">fR · Severity</div><div id="nem-live-fR" style="${sz(16)};color:#DC143C;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #DC143C33">${fR.toFixed(2)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · RIGHT</div></div>
-<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(255,69,0,0.04);border:1px solid rgba(255,69,0,0.2)"><div style="${sz(8)};color:#FF450055;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">Δf · Beat</div><div id="nem-live-dF" style="${sz(16)};color:#FF4500;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #FF450033">${dF.toFixed(2)}</div><div id="nem-live-band" style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · ${band}</div></div>
+<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(0,255,127,0.04);border:1px solid rgba(0,255,127,0.15)"><div style="${sz(8)};color:#00FF7F55;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">fL · Mercy</div><div id="nem-live-fL" style="${sz(16)};color:#00FF7F;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #00FF7F33;font-variant-numeric:tabular-nums;display:block;min-width:5.5ch;text-align:center">${fL.toFixed(2)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · LEFT</div></div>
+<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.15)"><div style="${sz(8)};color:#FFD70055;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">f₀ · Carrier</div><div id="nem-live-f0" style="${sz(16)};color:#FFD700;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #FFD70033;font-variant-numeric:tabular-nums;display:block;min-width:5.5ch;text-align:center">${f0.toFixed(1)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · CENTER</div></div>
+<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(220,20,60,0.04);border:1px solid rgba(220,20,60,0.15)"><div style="${sz(8)};color:#DC143C55;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">fR · Severity</div><div id="nem-live-fR" style="${sz(16)};color:#DC143C;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #DC143C33;font-variant-numeric:tabular-nums;display:block;min-width:5.5ch;text-align:center">${fR.toFixed(2)}</div><div style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · RIGHT</div></div>
+<div style="padding:9px 6px;border-radius:10px;text-align:center;background:rgba(255,69,0,0.04);border:1px solid rgba(255,69,0,0.2)"><div style="${sz(8)};color:#FF450055;letter-spacing:0.15em;font-family:'Cinzel',serif;margin-bottom:2px">Δf · Beat</div><div id="nem-live-dF" style="${sz(16)};color:#FF4500;font-family:'Cinzel',serif;font-weight:700;line-height:1;text-shadow:0 0 10px #FF450033;font-variant-numeric:tabular-nums;display:block;min-width:5.5ch;text-align:center">${dF.toFixed(2)}</div><div id="nem-live-band" style="${sz(8)};color:#404058;letter-spacing:0.1em;margin-top:2px">Hz · ${band}</div></div>
 </div>`;
 // Formula row
 h+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
@@ -8992,7 +9066,7 @@ h+=`<div id="nem-fib-panel" class="card" style="border-radius:12px;padding:14px;
 <div class="cin" style="${sz(9)};letter-spacing:3px;color:#b89a4288;margin-bottom:3px">FIBONACCI POLYRHYTHM ENCODER</div>
 <div style="${sz(9)};color:#505068;font-family:monospace">F<sub>n</sub> = 13·F<sub>n−6</sub> + 8·F<sub>n−7</sub> · lcm(13,8) = 104-step cycle</div>
 </div>
-<div style="${sz(9)};color:#505068;font-family:monospace">step <span id="nem-fib-step" style="color:#b89a42">0</span>/104</div>
+<div style="${sz(9)};color:#505068;font-family:monospace;white-space:nowrap">step <span id="nem-fib-step" style="color:#b89a42;display:inline-block;min-width:3ch;text-align:right;font-variant-numeric:tabular-nums;transition:none">0</span> / 104</div>
 </div>
 <!-- Polyrhythm pulse bars: 13 mercy pulses (every 8) and 8 severity pulses (every 13) across 104 steps -->
 <div style="margin-bottom:8px">
@@ -9053,7 +9127,7 @@ ${S.freqEngaged?'\u25a0 SILENCE':'\u25ba TRANSMIT'}</button>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:10px">
 <div>
-<div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="${sz(9)};color:#00FF7F77;letter-spacing:0.18em">HARMONIC REGISTER Ω</div><div id="freq-f0-readout" style="${sz(10)};color:#ccccd8;font-family:monospace">${f0} Hz</div></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="${sz(9)};color:#00FF7F77;letter-spacing:0.18em">HARMONIC REGISTER Ω</div><div id="freq-f0-readout" style="${sz(10)};color:#ccccd8;font-family:monospace;font-variant-numeric:tabular-nums;min-width:6ch;text-align:right">${f0} Hz</div></div>
 <div style="display:flex;gap:3px;flex-wrap:wrap">
 ${CPRESETS.map(p=>`<button class="pill ${S.freqTuning===p.id?'on':''}" onclick="S.freqTuning='${p.id}';render()" style="${sz(9)};padding:2px 7px">${p.v} Hz</button>`).join('')}
 </div>
@@ -9066,7 +9140,7 @@ ${S.freqTuning==='custom'?`<input type="number" min="100" max="1000" step="0.5" 
 </div>
 </div>
 <div>
-<div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="${sz(9)};color:#FFD70077;letter-spacing:0.18em">MASTER SUM Σ ${fLex>0?'(lexical — locked)':'(manual)'}</div><div id="freq-sigma-readout" style="${sz(10)};color:#ccccd8;font-family:monospace">${sigma} → Δf ${dF.toFixed(2)} Hz</div></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:5px"><div style="${sz(9)};color:#FFD70077;letter-spacing:0.18em">MASTER SUM Σ ${fLex>0?'(lexical — locked)':'(manual)'}</div><div id="freq-sigma-readout" style="${sz(10)};color:#ccccd8;font-family:monospace;font-variant-numeric:tabular-nums;min-width:14ch;text-align:right">${sigma} → Δf ${dF.toFixed(2)} Hz</div></div>
 <input type="range" min="1" max="999" step="1" value="${S.freqSigma}" id="freq-sigma-slider" oninput="_ltSigmaInput(parseInt(this.value))" ${fLex>0?'disabled':''} style="width:100%;height:3px;border-radius:2px;cursor:pointer;accent-color:#FFD700;${fLex>0?'opacity:0.4':''}">
 <div style="display:flex;justify-content:space-between;${sz(8)};color:#282838;margin-top:3px;font-family:monospace"><span>1</span><span>Θ≤8Hz</span><span>Α&gt;8Hz</span><span>999</span></div>
 ${fLex>0?`<div style="${sz(9)};color:#606078;margin-top:4px;font-family:monospace">Σ locked: <span style="color:#FFD700">${fRaw}</span> = <span style="color:#b89a42">${fLex}</span></div>`:''}
@@ -9440,6 +9514,8 @@ function _ltTickAutoRefresh(){
 // Phase-locked to hardware VSync via requestAnimationFrame
 // Variance in frame delta approaches zero under stable conditions
 function _ltMasterTick(ts){
+  // Perceptual Gate: do not reschedule when document is hidden
+  if(document.hidden){_masterRAF=null;return;}
   _masterRAF=requestAnimationFrame(_ltMasterTick); // reschedule immediately
   var dt=ts-_ltLastTs;
   // Clamp: prevent accumulator spiral on tab-hide, wake from sleep, or throttle
@@ -9454,9 +9530,10 @@ function _ltMasterTick(ts){
   // ─ 30-second sub-clock (auto-refresh) ─
   if(_ltRefMs>=30000){_ltRefMs=0;_ltTickAutoRefresh();}
 
-  // ─ Fibonacci polyrhythm encoder: runs only when Freq module engaged ─
-  // The Freq engine has its own phase accumulator; master tick triggers it
-  if(window._freqState&&window._freqState.engaged&&window._freqAnimTick){
+  // ─ Fibonacci polyrhythm encoder: gated on engagement AND viewport visibility ─
+  // window._ltWaveVisible set by IntersectionObserver on #nem-freq-panel
+  if(window._freqState&&window._freqState.engaged&&window._freqAnimTick
+     &&window._ltWaveVisible!==false){
     window._freqAnimTick();
   }
 
@@ -9474,8 +9551,69 @@ function _ltMasterTick(ts){
 _ltLastTs=performance.now();
 _masterRAF=requestAnimationFrame(_ltMasterTick);
 
+// ─ Perceptual Gate: Visibility API — suspend/resume the master oscillator ─
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden){
+    // Cancel RAF immediately — no CPU/GPU spend while hidden
+    if(_masterRAF){cancelAnimationFrame(_masterRAF);_masterRAF=null;}
+    // Suspend AudioContext if running (saves ~5–15% battery on mobile)
+    var _ac=window._ltAudioCtxRef;
+    if(_ac&&_ac.state==="running")_ac.suspend();
+  } else {
+    // Resync accumulators to prevent burst on wake
+    _ltLastTs=performance.now();
+    _ltAccMs=0; // reset 1s sub-clock — will re-tick naturally
+    // Resume audio if it was engaged before hide
+    var _ac=window._ltAudioCtxRef;
+    if(_ac&&_ac.state==="suspended"&&
+       (S.freqEngaged||(typeof LiberTemporis!=="undefined"&&LiberTemporis.Audio.state().engaged))){
+      _ac.resume();
+    }
+    // Re-ignite master oscillator
+    if(!_masterRAF)_masterRAF=requestAnimationFrame(_ltMasterTick);
+    // Immediate refresh: sync planetary hour display after being away
+    _ltTickAutoRefresh();
+  }
+});
+
 // ─ Parallax scroll: set pending flag only — resolved in master tick write phase ─
 var _firmScrollRAF=null; // preserved: legacy compat with existing firmament code
+// ─ Spatial Culling: IntersectionObserver on waveform panel ─
+// Prevents Fibonacci polyrhythm from computing when panel is off-screen
+window._ltWaveVisible=false; // default off until observed
+(function(){
+  var _waveObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){window._ltWaveVisible=e.isIntersecting;});
+  },{threshold:0.01,rootMargin:"50px"});
+  // Observe panel immediately if already in DOM, else wait for first gem render
+  function _attachWaveObs(){
+    var el=document.getElementById("nem-freq-panel");
+    if(el){_waveObs.observe(el);return true;}
+    return false;
+  }
+  if(!_attachWaveObs()){
+    // Retry after renders — panel only exists when gem/freq tab is active
+    var _waveObsPoll=setInterval(function(){
+      if(_attachWaveObs())clearInterval(_waveObsPoll);
+    },500);
+  }
+  window._ltReattachWaveObs=_attachWaveObs; // callable from renderGem
+})();
+
+// ─ Battery API: auto-enable Endurance Mode at ≤20% charge ─
+if('getBattery' in navigator){
+  navigator.getBattery().then(function(bat){
+    function _checkBat(){
+      var low=!bat.charging&&bat.level<=0.20;
+      if(low&&!CFG.enduranceMode){CFG.enduranceMode=true;saveCFG();applyCFG();}
+      else if(!low&&CFG.enduranceMode&&bat.level>0.35){CFG.enduranceMode=false;saveCFG();applyCFG();}
+    }
+    _checkBat();
+    bat.addEventListener('levelchange',_checkBat);
+    bat.addEventListener('chargingchange',_checkBat);
+  }).catch(function(){});
+}
+
 window.addEventListener('scroll',function(){
   if(!CFG.firmament)return;
   _ltScrollPending=true;
@@ -9503,6 +9641,9 @@ document.addEventListener('keydown',function(e){
     if(S.searchOpen){S.searchOpen=false;_doRender();return;}
     if(S.projOpen){S.projOpen=false;_doRender();return;}
     if(S.settingsOpen){S.settingsOpen=false;_doRender();return;}
+    // Close signal menu (header dropdown)
+    var _sm=document.getElementById('lt-signal-menu');
+    if(_sm&&_sm.classList.contains('open')){_sm.classList.remove('open');return;}
     if(S.fwOpen){S.fwOpen=false;_doRender();return;}
     // Escape inside a detail view → back
     if(!isInput){
