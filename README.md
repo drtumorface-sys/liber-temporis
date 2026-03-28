@@ -1,83 +1,49 @@
-# Liber Temporis
+# Liber Temporis v6
 
-**A Christian Kabbalist ritual timing application built as a single-file Progressive Web App.**
+**The Third Temple — Syncretic Semiotics Grimoire**
 
-*The sky does not compete for your attention. It simply is, and you look up when you are moved to look up.*
+A single-file Progressive Web App combining Kabbalistic and Christian mystical apparatus: planetary hours, gematric evaluation (Hebrew/Greek/Latin), 72 Names of the Shemhamphorasch, Tree of Life, electional astrology, and a Fibonacci-based binaural acoustic engine.
 
----
+## Deploy to GitHub Pages
 
-## Install
+1. Create a new repository on GitHub (e.g. `liber-temporis`)
+2. Upload all files in this folder to the repository root
+3. Go to **Settings → Pages**
+4. Set Source to **Deploy from a branch**
+5. Select branch: `main` (or `master`), folder: `/ (root)`
+6. Save — GitHub Pages will deploy within 60 seconds
 
-1. Open `index.html` in Chrome, Safari, or Firefox (or visit the hosted URL)
-2. Tap **Add to Home Screen** to install as a standalone app
-3. Grant notification permission when prompted
-4. Set your latitude in **Settings**
-5. Enable **Living Firmament** in Settings → Appearance
-
-The app works fully offline once installed.
-
----
-
-## What It Does
-
-| Feature | Description |
-|---------|------------|
-| **Planetary Hours** | Traditional unequal-hour method with real-time countdown, recommendation engine, ritual materials |
-| **360 Sabian Symbols** | Jones/Wheeler (1925) composited with Decan faces, Mansions, and Shem angel arcs |
-| **72 Names of God** | Boustrophedon derivation from Exodus 14:19–21 with Psalm correspondences |
-| **Gematria** | 6 modes (Calculate, Reverse, ATBaSh, AIQ Beker, Compare, Notariqon) across Hebrew, Greek, Latin |
-| **Living Firmament** | 7 distinct planetary atmospheres with parallax starfield and adaptive readability |
-| **Celestial Map** | 66 real stars projected from your latitude using sidereal time |
-| **Tree of Life** | Interactive SVG with golden Middle Pillar, 22 paths with pathworking instructions |
-| **Spirit Directory** | 72 Goetia, 7 Olympic, 9 Angelic Orders, 7 Planetary Angels — sorted by access score |
-| **Christian Kabbalah** | Trinity mappings, Pentagrammaton theology, liturgical seasons, mystics |
-| **Election Engine** | 8 working categories with real-time readiness scoring |
-| **Scripture Canon** | 73 Psalms + Genesis, Exodus, Proverbs, Isaiah, Job, John, Matthew, Revelation, Romans |
-| **Golden Spiral** | 137.5° notification engine — the sky speaks when it has something to say |
-
----
-
-## Technical
-
+Your app will be live at:
 ```
-147 functions. 846KB. 7,501 lines. Single HTML file.
-Zero dependencies. Zero network calls. Zero data collection.
+https://[your-username].github.io/[repo-name]/
 ```
 
-### File Structure
+## Install as PWA
 
-```
-index.html       # The entire application
-manifest.json    # PWA manifest
-sw.js            # Service worker (offline caching + notifications)
-icon-192.png     # App icon 192×192
-icon-512.png     # App icon 512×512
-.nojekyll        # GitHub Pages config
-README.md        # This file
-```
+Once deployed, open the URL in Chrome or Safari on any device:
 
-### Deployment
+- **Android/Chrome**: tap the browser menu → *Add to Home Screen* or look for the install banner
+- **iOS/Safari**: tap Share → *Add to Home Screen*
+- **Desktop/Chrome**: look for the install icon (⊕) in the address bar
 
-```bash
-# Push all files to a GitHub repo
-# Settings → Pages → Deploy from branch → main → / (root)
-# Live at: https://yourusername.github.io/reponame/
-```
+The app will install with full offline support — all planetary calculations, gematric engines, and acoustic synthesis run locally without network access.
 
----
+## Files
 
-## Source Authorities
+| File | Purpose |
+|---|---|
+| `index.html` | Complete application (~1MB, self-contained) |
+| `manifest.json` | PWA manifest — name, icons, display mode |
+| `sw.js` | Service Worker — cache-first offline strategy |
+| `icon-512.png` | App icon (512×512, for splash screens) |
+| `icon-192.png` | App icon (192×192, for home screen) |
+| `icon-180.png` | Apple Touch Icon (180×180) |
+| `icon-32.png` | Favicon (32×32) |
+| `icon-16.png` | Favicon (16×16) |
+| `.nojekyll` | Disables Jekyll processing on GitHub Pages |
 
-Agrippa · Picatrix · Sefer Yetzirah · Zohar · Key of Solomon · Lemegeton · Arbatel · Reuchlin · Pseudo-Dionysius · Jones & Wheeler · Teresa of Ávila · John of the Cross · Athanasius Kircher
+## Architecture
 
----
+Built on the Syncretic Semiotics framework: Kabbalistic Vessels (Vᵢ) × Incarnational Logos currents (Lᵢ) — ΩTemple = Σᵢ₌₁¹⁰ (Vᵢ ⊗ Lᵢ).
 
-## Feedback
-
-This is a beta. We are looking for **field reports from practitioners**, not bug reports from testers.
-
-The question is not "does the button work" but "does the sky feel different when you can read it."
-
----
-
-*Liber Temporis — The Book of Time*
+The interface operates as a Monolithic Stele (9:16 aspect ratio on desktop), expanding toward the Golden Ratio (Φ=1.618) on macro-displays. All visual surfaces are Lithic Glassmorphic panels — obsidian with `backdrop-filter:blur(18px)` — allowing the star firmament to bleed through.
