@@ -2258,6 +2258,7 @@ G.forEach(s=>{if((s.nm+' '+s.pw+' '+s.rk+' '+s.pl+' '+s.ds).toLowerCase().includ
 SHEM72.forEach(s=>{if((s.nm+' '+s.domain+' '+s.tr).toLowerCase().includes(ql))results.push({type:'shem',label:s.nm,sub:`Name ${s.n} · ${s.domain.substring(0,50)}`,col:'#9B7BDB',ai:_searchActions.push(()=>{S.tab='shem';S.shemTriad=s.n-1;S.searchOpen=false;render();})-1});});
 Object.entries(PD).forEach(([pl,p])=>{if((pl+' '+p.metal+' '+p.stone+' '+p.inc+' '+p.angel+' '+p.intel+' '+p.spirit+' '+p.animals+' '+p.plants).toLowerCase().includes(ql))results.push({type:'planet',label:pl,sub:`${p.sym} · ${p.metal} · ${p.angel}`,col:p.c,ai:_searchActions.push(()=>{S.tab='ref';S.refSub='planets';S.refP=pl;S.searchOpen=false;render();})-1});});
 Object.entries(PA).forEach(([nm,a])=>{if((nm+' '+a.pl+' '+a.ds+' '+a.heb).toLowerCase().includes(ql))results.push({type:'angel',label:nm,sub:`${a.pl} · ${a.ord} · ${a.el}`,col:pc(a.pl),ai:_searchActions.push(()=>{S.tab='beings';S.detail=nm;S.detailType='angels';S.planView=false;S.searchOpen=false;render();})-1});});
+GODS.forEach(g=>{if((g.nm+' '+g.pan+' '+g.t+' '+g.d+' '+g.wk).toLowerCase().includes(ql))results.push({type:'god',label:g.nm,sub:`${g.pan} · ${g.t} · ${g.d}`,col:PANTHEONS[g.pan].c,ai:_searchActions.push(()=>{S.tab='beings';S.detail=g.id;S.detailType='gods';S.planView=false;S.searchOpen=false;render();})-1});});
 SEPHIROTH_FULL.forEach((sp,i)=>{if((sp.name+' '+sp.tr+' '+sp.pl+' '+sp.ar+' '+sp.dt).toLowerCase().includes(ql))results.push({type:'sephirah',label:sp.name,sub:`${sp.n}. ${sp.tr} · ${sp.pl} · ${sp.ar}`,col:sp.col==='#FFFFFF'?'#e8e8e8':sp.col,ai:_searchActions.push(()=>{S.tab='study';S.studySub='numbers';S.studySeph=i;S.searchOpen=false;render();})-1});});
 CKAB_GLOSSARY.forEach(g=>{if((g.term+' '+g.def+' '+g.heb).toLowerCase().includes(ql))results.push({type:'glossary',label:g.term,sub:`${g.heb} · ${g.gem}`,col:'#b89a42',ai:_searchActions.push(()=>{S.tab='ref';S.refSub='glossary';S.searchOpen=false;render();})-1});});
 GRIMOIRE_LEXICON.forEach(g=>{if((g.term+' '+g.short+' '+g.heb+' '+(g.full||'')).toLowerCase().includes(ql))results.push({type:'grimoire',label:g.term,sub:`${g.catLabel} · ${g.short.substring(0,50)}`,col:g.col,ai:_searchActions.push(()=>{S.tab='ref';S.refSub='grimoire';S.grimCat=g.cat;S.grimExpanded=g.id;S.searchOpen=false;render();})-1});});
@@ -2326,7 +2327,7 @@ function renderSearchOverlay(){
 if(!S.searchOpen)return'';
 const q=S.searchQ||'';
 const results=globalSearch(q);
-const typeCols={goetia:'Goetia',shem:'Shem',planet:'Planet',angel:'Angel',sephirah:'Sephirah',glossary:'Glossary',grimoire:'Grimoire',theology:'Theology',letter:'Letter',star:'Star'};
+const typeCols={god:'Deity',goetia:'Goetia',shem:'Shem',planet:'Planet',angel:'Angel',sephirah:'Sephirah',glossary:'Glossary',grimoire:'Grimoire',theology:'Theology',letter:'Letter',star:'Star'};
 return`<div onclick="S.searchOpen=false;render()" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#000000DD;z-index:160;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch">
 <div onclick="event.stopPropagation()" style="max-width:100%;margin:0 auto;background:#0d0d16;border-radius:16px;border:1px solid #b89a4228;padding:16px">
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -3904,7 +3905,7 @@ function applyCFG(){
   enableFirmament(!!CFG.firmament);
 }
 loadCFG();
-let S={tab:CFG.defaultTab||"now",chartSel:'now',chartForm:false,chartEdit:null,chartPick:null,chartSign:null,southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,grimCat:null,grimExpanded:null,freqTuning:'432',freqCustomBase:'440',freqInput:'',freqSigma:72,freqAin:-12,freqEngaged:false,freqSublim:false};
+let S={tab:CFG.defaultTab||"now",chartSel:'now',chartForm:false,chartEdit:null,chartPick:null,chartSign:null,godPan:'All',southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,grimCat:null,grimExpanded:null,freqTuning:'432',freqCustomBase:'440',freqInput:'',freqSigma:72,freqAin:-12,freqEngaged:false,freqSublim:false};
 function fmt(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:typeof CFG!=='undefined'?!CFG.tf24:true});}
 const fmtD=d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
 function tag(t,c="#b89a42"){return`<span class="tag" style="background:${c}14;color:${c};border:1px solid ${c}22">${t}</span>`}
@@ -6463,7 +6464,7 @@ return`<div onclick="nowAct(${b.ai})" style="cursor:pointer;padding:6px 12px;bor
 <div style="width:6px;height:6px;border-radius:50%;background:${badge.col};box-shadow:0 0 4px ${badge.col}88;flex-shrink:0"></div>
 <div>
 <div style="${sz(11)};color:${badge.col};font-family:'Cinzel',serif;font-weight:600">${b.nm}</div>
-<div class="d8">${b.type==='shem'?'Shem #'+b.n:b.type==='goetia'?'Goetia #'+b.n:b.type}</div>
+<div class="d8">${b.sub?b.sub:b.type==='shem'?'Shem #'+b.n:b.type==='goetia'?'Goetia #'+b.n:b.type}</div>
 </div>
 </div>`;}).join('')}
 </div>
@@ -7022,9 +7023,281 @@ function accessBadge(pl,si){
   if(sc>=3)return`<div style="display:flex;align-items:center;gap:3px"><div style="width:7px;height:7px;border-radius:50%;background:#b89a42;box-shadow:0 0 6px #b89a4266;flex-shrink:0"></div><div style="${sz(8)};color:#b89a42;letter-spacing:1px" class="cin">ALIGNED</div></div>`;
   return'';
 }
+// ═══ PANTHEONS — gods and goddesses commonly worked with, with invocation and rite ═══
+// Each pantheon has a ritual frame (open / offer / close) in the style of its tradition;
+// each deity adds its own timing, symbols, offerings and spoken invocation.
+// pl = planet used for timing (why = the reason, flagged where it is only a modern convention).
+const PANTHEONS={
+Norse:{c:"#6a8ce8",ic:"ᚨ",
+src:"Old Norse sources describe the blót (offering feast) only in outline. The frame below follows modern heathen practice.",
+open:"Hallow the space: trace the hammer sign (an upside-down T) toward north, east, south and west, then above and below, saying “Hammer, hallow this stead.” Light a candle or hearth flame.",
+offer:"Fill a horn or cup. Raise it, speak the invocation aloud, drink a sip, then pour the rest into an offering bowl. Lay any food beside it.",
+close:"Give thanks in plain words and declare the rite ended. Carry the bowl outside and pour it onto bare earth or at the foot of a tree."},
+Greek:{c:"#d4b85a",ic:"Ω",
+src:"The frame follows ancient Greek household practice as far as it is known: washing, barley, prayer, libation.",
+open:"Wash your hands and sprinkle the space with clean water (khernips). Light a flame and scatter a pinch of barley on the altar.",
+offer:"Stand with arms raised and palms up. Speak the invocation, pour a libation of the drink, set out the other offerings, then make your request plainly.",
+close:"Give thanks and pour a final libation. Let the flame burn down or put it out with respect, then share the food offerings as a meal.",
+chOffer:"Stand with palms turned down toward the earth. Speak the invocation and pour the whole libation onto the ground or into a small pit. Set out the other offerings, then make your request plainly.",
+chClose:"Give thanks and leave. Offerings to the gods below are given whole: nothing is tasted or taken back, and you do not look behind you as you go."},
+Egyptian:{c:"#4fc3c9",ic:"☥",
+src:"The frame is a household version of the daily temple rite: purification, light, incense, offerings named aloud, and their reversion.",
+open:"Wash, and rinse your mouth. Sprinkle the space with water in which a pinch of salt or natron is dissolved. Light a lamp or candle and burn incense before the image.",
+offer:"Stand or kneel with arms raised and palms facing outward. Speak the invocation, then present each offering by name: “I offer you bread; I offer you cool water…”",
+close:"Give thanks and step back from the shrine. After a little while the offerings revert to you: eat and drink them yourself, as the temple priests did."},
+Celtic:{c:"#6aa060",ic:"☘",
+src:"Very little ancient Celtic ritual survives. The frame follows modern Celtic pagan and druid practice; the gods are those of Irish and Welsh tradition.",
+open:"Light a flame. Honour the three realms — land beneath you, sea around you, sky above you — and ask the spirits of the place for leave to work there.",
+offer:"Speak the invocation, then give the offering: into a fire, into running water or a well, or onto the earth at the foot of a tree.",
+close:"Give thanks to the deity and to the spirits of the place. Cover or put out the flame and leave the ground as you found it."}
+};
+const GODS=[
+// ── NORSE ──
+{id:"odin",nm:"Odin",pan:"Norse",t:"The Allfather",d:"Wisdom, runes, poetry, magic, war and the dead",pl:"Mercury",why:"Wednesday is Woden’s day; the Romans equated him with Mercury.",
+sym:"The spear Gungnir, the ravens Huginn and Muninn, wolves, the valknut, a single eye",off:"Mead, red wine or strong ale; smoked meat; a poem composed for him",col:"Deep blue, grey, black",inc:"Juniper, mugwort, ash wood",
+wk:"Wisdom and hard-won knowledge, rune-work and divination, eloquence, strategy, communion with ancestors",
+inv:"Hail Odin, Allfather, Wanderer, who hung nine nights on the windswept tree to win the runes. One-eyed seeker, giver of breath and of the mead of poetry: I raise this horn to you. Turn your eye toward this work and lend me your sight.",
+note:"Odin is a god of costly bargains. Give what you promise, and do not ask for wisdom you are unwilling to pay for."},
+{id:"thor",nm:"Thor",pan:"Norse",t:"The Thunderer",d:"Protection, strength, storms, hallowing, defender of ordinary people",pl:"Jupiter",why:"Thursday is Thor’s day, matched to the Roman day of Jupiter.",
+sym:"The hammer Mjölnir, oak, goats, lightning, the belt of strength and iron gloves",off:"Beer or ale, hearty bread, beef or goat, oak leaves",col:"Red, iron grey",inc:"Oak bark, rowan, juniper",
+wk:"Protection of home and travellers, strength and endurance, blessing and hallowing, fair weather for crops",
+inv:"Hail Thor, son of Earth, wielder of Mjölnir, friend of humankind. Thunder-rider who guards the walls of Midgard: I raise this horn to you. Hallow this place and stand between my household and all harm.",
+note:"The most approachable of the Norse gods. Plain speech and an honest offering suit him better than ceremony."},
+{id:"freyja",nm:"Freyja",pan:"Norse",t:"Lady of the Vanir",d:"Love, desire, beauty, seiðr magic, gold, and half of the battle-slain",pl:"Venus",why:"Friday, the day of Venus, which she shares with Frigg.",
+sym:"The necklace Brísingamen, the falcon-feather cloak, cats, amber, the boar Hildisvíni",off:"Mead, honey, sweet wine, flowers, amber, golden things",col:"Gold, green, red",inc:"Rose, amber resin, linden blossom",
+wk:"Love and attraction, sexuality and self-worth, seiðr and trance work, wealth, courage in conflict",
+inv:"Hail Freyja, Vanadís, lady of Fólkvangr, bright one who weeps tears of red gold. Mistress of seiðr, chooser of the slain: I raise this horn to you. Kindle in me your fire and your fearless heart.",
+note:"Freyja is a goddess of war and sorcery as much as of love. Approach her as you would a queen."},
+{id:"frigg",nm:"Frigg",pan:"Norse",t:"Queen of Asgard",d:"Marriage, motherhood, the household, foresight",pl:"Venus",why:"Friday is named for her.",
+sym:"Distaff and spindle, keys, spun wool, the hall Fensalir",off:"Milk, mead or white wine, fresh bread, thread or handiwork you have made",col:"White, sky blue, silver",inc:"Birch, linden blossom, lady’s bedstraw (“Frigg’s grass”)",
+wk:"Marriage and family harmony, protection of children, keeping a home, quiet foresight",
+inv:"Hail Frigg, queen of the Æsir, lady of Fensalir, who knows all fates and speaks none. Spinner of the clouds, keeper of the keys: I raise this cup to you. Bless this household and those within it.",
+note:"A domestic rite suits her: a clean hearth, a tidy table, work done with the hands."},
+{id:"tyr",nm:"Tyr",pan:"Norse",t:"The One-Handed",d:"Justice, law, oaths, honourable victory",pl:"Mars",why:"Tuesday is Tyr’s day; the Romans equated him with Mars.",
+sym:"The sword, the Tiwaz rune (↑), the bound wolf Fenrir, the missing right hand",off:"Mead or dark ale, bread and meat, an oath kept",col:"Dark red, steel grey",inc:"Pine resin, oak",
+wk:"Justice and legal matters, courage, keeping oaths, sacrifice for a greater good",
+inv:"Hail Tyr, one-handed, bravest of the gods, who gave his sword hand so the wolf could be bound. Lord of the assembly and of the kept word: I raise this horn to you. Make my cause just and my oath unbroken.",
+note:"Never invoke Tyr over a promise you may not keep, or for a cause you know to be unjust."},
+{id:"freyr",nm:"Freyr",pan:"Norse",t:"Lord of the Vanir",d:"Fertility, harvest, peace, prosperity, sunshine and rain",pl:"Sun",why:"Snorri says he rules the rain and the shining of the sun.",
+sym:"The golden boar Gullinbursti, the ship Skíðblaðnir, an antler, sheaves of grain",off:"Ale or mead, barley bread, pork, grain, fruit",col:"Gold, green, brown",inc:"Sweet grasses, pine, summer flowers",
+wk:"Fertility of land and body, prosperity, peace and good seasons, virility, joy",
+inv:"Hail Freyr, lord of Alfheim, giver of peace and good seasons, who rides the golden boar. Bright one who gave up his sword for love: I raise this horn to you. Let what I have planted grow.",
+note:"Weapons were kept out of his holy places. Hold his rite in peace and leave anger outside."},
+{id:"hel",nm:"Hel",pan:"Norse",t:"Keeper of the Dead",d:"Ancestors, endings, acceptance of what cannot be changed",pl:"Saturn",why:"Modern convention: Saturn for death, age and boundaries.",
+sym:"A face half living and half dead, the hall Éljúðnir, the hound Garm, the bridge Gjallarbrú",off:"Dark bread, black tea or dark beer, dried flowers, a plate set for the dead",col:"Black, white, bone grey",inc:"Mugwort, myrrh, juniper",
+wk:"Honouring the dead, grief and letting go, ancestor work, facing what you avoid",
+inv:"Hail Hel, daughter of Loki, lady of the low halls, who gives lodging to all who come by the downward road. Half-dark, half-bright keeper of the dead: I set this bread before you. Carry my greeting to those in your keeping.",
+note:"Come quietly and without demands. The old sources record no worship of her; this is a modern devotional practice."},
+{id:"loki",nm:"Loki",pan:"Norse",t:"The Shape-Changer",d:"Wit, mischief, change, breaking what is stuck",pl:"Mercury",why:"Modern convention: Mercury for the trickster, cunning and crossings.",
+sym:"Flame, a knotted net, the serpent, a salmon, scarred lips",off:"Sweets, spiced rum or whiskey, something that made you laugh",col:"Red, orange, green",inc:"Cinnamon, dragon’s blood",
+wk:"Change when you are stuck, humour, cleverness, honest self-examination, the outsider’s view",
+inv:"Hail Loki, Laufey’s son, sky-treader, quick of tongue and quicker of wit. Blood-brother of Odin, mother of Sleipnir: I raise this cup to you. Show me the knot I have tied myself in, and the laugh that loosens it.",
+note:"Controversial among heathens: many groups do not hail Loki at shared rites, and there is no evidence he was worshipped in antiquity. Expect upheaval, and ask before invoking him in company."},
+// ── GREEK ──
+{id:"zeus",nm:"Zeus",pan:"Greek",t:"King of the Gods",d:"Sky, thunder, law, kingship, hospitality",pl:"Jupiter",why:"Jupiter is his Roman name and his planet; Thursday is his day.",
+sym:"The thunderbolt, eagle, oak, sceptre, the aegis",off:"Wine, olive oil, honey cakes",col:"Royal blue, white, gold",inc:"Storax, frankincense, oak leaves",
+wk:"Justice and fair dealing, authority and leadership, protection of guests and oaths, good fortune",
+inv:"I call on Zeus, father of gods and mortals, cloud-gatherer, lord of the bright sky and the thunderbolt. Guardian of oaths and of the stranger at the door: accept this libation. Look kindly on this household and make straight what is crooked.",
+note:"As Zeus Xenios he punishes those who wrong a guest or break an oath. Ask only for what is fair."},
+{id:"apollo",nm:"Apollo",pan:"Greek",t:"The Far-Shooter",d:"Light, prophecy, music, healing, purification",pl:"Sun",why:"Later antiquity identified him with Helios, the Sun.",
+sym:"The lyre, the bow, laurel, the raven, the Delphic tripod, the dolphin",off:"Wine, honey, bay laurel, cakes, a song or poem",col:"Gold, white, yellow",inc:"Frankincense, bay laurel",
+wk:"Healing, clarity and truth, divination, music and poetry, cleansing after pollution",
+inv:"I call on Apollo, Phoebus, lord of Delphi and of the silver bow, leader of the Muses. Healer, far-seer, bright one who drives out all pollution: accept this offering. Bring clear sight and sound health to this work.",
+note:"Come clean in body and in intent. “Know thyself” and “Nothing in excess” were carved at his temple."},
+{id:"artemis",nm:"Artemis",pan:"Greek",t:"Lady of Wild Things",d:"The hunt, wilderness, the moon, childbirth, protector of the young",pl:"Moon",why:"She was identified with Selene, the Moon; Monday is the Moon’s day.",
+sym:"Bow and arrows, deer, hounds, the crescent, cypress, the bear",off:"Spring water, honey cakes, round cakes set with small lights, wild flowers",col:"Silver, white, forest green",inc:"Cypress, mugwort (artemisia)",
+wk:"Protection of women and children, independence, safe childbirth, wild places, firm boundaries",
+inv:"I call on Artemis, daughter of Leto, arrow-pouring lady of the mountains and the wild beasts. Torch-bearer, guardian of the young: accept this offering. Guard what is free in me and keep the vulnerable from harm.",
+note:"She values privacy and independence. Hold her rite outdoors if you can, under the moon."},
+{id:"athena",nm:"Athena",pan:"Greek",t:"The Grey-Eyed",d:"Wisdom, strategy, craft, weaving, defence of the city",pl:"Mercury",why:"She has no classical planet; Mercury is a modern convention, for counsel and skill.",
+sym:"The owl, the olive tree, spear and helmet, the aegis with the Gorgon’s head, the loom",off:"Olive oil, olives, wine, honey cakes, something made by your own hands",col:"Grey, blue, olive green, gold",inc:"Frankincense, olive leaf",
+wk:"Clear thinking and strategy, study and examinations, skilled craft, just defence, civic matters",
+inv:"I call on Pallas Athena, grey-eyed daughter of Zeus, born in full armour, guardian of the city. Mistress of the loom and of wise counsel: accept this offering. Steady my mind and guide my hand to the right work.",
+note:"She favours preparation over luck. Do the work first, then ask her blessing on it."},
+{id:"aphrodite",nm:"Aphrodite",pan:"Greek",t:"The Foam-Born",d:"Love, beauty, desire, pleasure, harmony",pl:"Venus",why:"Venus is her Roman name and her planet; Friday is her day.",
+sym:"The dove, rose, myrtle, scallop shell, mirror, apple, sparrow",off:"Roses, myrtle, honey, sweet wine, apples, perfume",col:"Rose pink, sea green, gold",inc:"Rose, myrrh, frankincense",
+wk:"Love and attraction, self-regard and beauty, reconciliation, pleasure, the arts",
+inv:"I call on Aphrodite, golden, foam-born, laughter-loving lady of Cyprus and Cythera. You who join heart to heart and soften what is hard: accept these gifts. Bring sweetness and true desire into this life.",
+note:"Ask for love to come freely rather than for a named person to be bound. Compelled love ends badly in her myths."},
+{id:"ares",nm:"Ares",pan:"Greek",t:"Lord of Battle",d:"Courage, strength, fierce defence, righteous anger",pl:"Mars",why:"Mars is his Roman name and his planet; Tuesday is his day.",
+sym:"Spear, helmet, shield, the dog, the vulture, the war chariot",off:"Red wine, spiced meat, a hard physical effort completed in his name",col:"Red, bronze",inc:"Frankincense, pepper, dragon’s blood",
+wk:"Courage, physical strength and training, standing your ground, protection, mastering anger",
+inv:"I call on Ares, strong-armed, bronze-clad, shield-bearer, defender of cities. Tireless one who gives courage to the fearful: accept this offering. Give me strength for the fight that is mine, and peace when it is done.",
+note:"The Homeric Hymn asks Ares for courage and for restraint in the same breath. Ask for both."},
+{id:"hermes",nm:"Hermes",pan:"Greek",t:"The Messenger",d:"Travel, trade, language, luck, thieves, guide of souls",pl:"Mercury",why:"Mercury is his Roman name and his planet; Wednesday is his day.",
+sym:"The caduceus, winged sandals and cap, tortoise, rooster, purse, wayside stone pillars (herms)",off:"Wine, honey, olive oil, coins, sweets",col:"Orange, silver, saffron yellow",inc:"Frankincense, storax",
+wk:"Safe travel, commerce and negotiation, communication, luck and windfalls, crossing boundaries",
+inv:"I call on Hermes, son of Maia, swift messenger, giver of good things, guide on every road. Lord of the marketplace and the crossing: accept this offering. Open the way before me and bring my words safely home.",
+note:"A doorway or a crossroads is his place. He likes wit — and he is also the god of thieves, so be exact about what you ask for."},
+{id:"hecate",nm:"Hecate",pan:"Greek",t:"The Torch-Bearer",d:"Crossroads, witchcraft, night, ghosts, keeper of the keys",pl:"Moon",why:"A goddess of night, honoured at the dark of the moon.",chth:true,
+sym:"Twin torches, keys, the three-way crossroads, black dogs, serpents, the dagger",off:"Garlic, eggs, honey, bread or cakes — her supper (deipnon), left at a crossroads on the dark moon",col:"Black, saffron, silver",inc:"Myrrh, mugwort, cypress",
+wk:"Protection at thresholds, witchcraft and divination, guidance through transitions, banishing, settling the restless dead",
+inv:"I call on Hecate of the three ways, saffron-robed, torch-bearer, keeper of the keys of all the world. Night-wanderer who walks with the dead: accept this supper at your crossroads. Light the path through what is ending and guard my door.",
+note:"Leave the supper at the crossroads and walk away without looking back. It is not eaten."},
+{id:"dionysus",nm:"Dionysus",pan:"Greek",t:"The Loosener",d:"Wine, ecstasy, theatre, growing things, liberation",pl:"Jupiter",why:"He has no classical planet; Jupiter is a modern convention, for abundance and festivity.",
+sym:"The thyrsus (an ivy-wound staff tipped with a pine cone), grapevine, ivy, leopard, bull, masks",off:"Wine mixed with water, grapes, figs, honey, ivy",col:"Purple, wine red, green",inc:"Storax, pine resin",
+wk:"Release from inhibition, joy and celebration, creativity and theatre, breaking false constraints",
+inv:"I call on Dionysus, Bromios, twice-born son of Zeus and Semele, ivy-crowned lord of the vine. Loosener who frees the bound and unmasks the false: accept this wine. Loosen what is knotted in me and teach me gladness.",
+note:"His gift is release. His myths punish both those who refuse him and those who lose themselves entirely, so drink moderately."},
+{id:"hades",nm:"Hades & Persephone",pan:"Greek",t:"Rulers of the Underworld",d:"The dead, hidden wealth, the turning of the seasons",pl:"Saturn",why:"Modern convention: Saturn for the dead. Modern astrologers would use Pluto.",chth:true,
+sym:"Pomegranate, cypress, narcissus, the bident, the cap of invisibility, keys, black poplar",off:"Pomegranate, honey, milk and dark wine, poured into the earth",col:"Black, deep red, dark green",inc:"Myrrh, cypress, storax",
+wk:"Honouring the dead, grief and endings, ancestral matters, inner descent and return, hidden resources",
+inv:"I call on Hades, receiver of many, unseen lord of the wide realm below, and on Persephone, dread and holy queen who returns with the spring. Keepers of all who have gone before: accept this libation poured to the earth. Carry my greeting to my dead, and teach me how to come back from the dark.",
+note:"The Greeks avoided his name and called him Plouton, the Wealthy One. Speak with your face and palms turned toward the earth."},
+// ── EGYPTIAN ──
+{id:"ra",nm:"Ra",pan:"Egyptian",t:"The Sun in His Strength",d:"Creation, kingship, right order (ma’at), daily renewal",pl:"Sun",why:"He is the Sun itself; Sunday is the Sun’s day.",
+sym:"The sun disc with the uraeus cobra, the falcon, the solar barque, the obelisk, the scarab at dawn",off:"Cool water, bread, beer",col:"Gold, red, white",inc:"Frankincense at sunrise, myrrh at noon, kyphi at sunset",
+wk:"Vitality and renewal, authority, clarity and right order, protection against chaos",
+inv:"Hail to you, Ra, rising in the eastern horizon, lord of rays, who crosses the sky in the barque of millions of years. You who drive back the serpent of darkness each night: I offer you light and cool water. Rise in me, and set my day in order.",
+note:"Best performed facing the rising sun."},
+{id:"isis",nm:"Isis",pan:"Egyptian",t:"Great of Magic",d:"Healing, protection, motherhood, mourning and restoration",pl:"Moon",why:"In the Greek and Roman world she was closely tied to the Moon.",
+sym:"The throne headdress, the tyet knot, outstretched wings, the star Sirius, the sistrum",off:"Milk, bread, cool water, flowers",col:"Blue, white, gold, red",inc:"Myrrh, kyphi",
+wk:"Healing, protection of children and family, magic and words of power, grief, restoring what was broken",
+inv:"Hail to you, Isis, great of magic, mistress of the words of power, who gathered what was scattered and made it whole. Mother of Horus, whose wings give breath: I offer you milk and bread. Spread your wings over this house and mend what is broken here.",
+note:"Her Egyptian name is Aset. She is the model of the devoted mourner, so grief is not out of place in her rite."},
+{id:"osiris",nm:"Osiris",pan:"Egyptian",t:"Lord of the West",d:"Death and rebirth, the dead, fertile land, just judgement",pl:"Saturn",why:"Modern convention: Saturn for the dead and for what endures.",
+sym:"The crook and flail, the djed pillar, the white atef crown, green or black skin, sprouting grain",off:"Bread, beer, cool water, grain, fresh greenery",col:"Green, black, white",inc:"Myrrh, kyphi",
+wk:"Honouring ancestors, renewal after loss, endings and what grows from them, fairness, endurance",
+inv:"Hail to you, Osiris, foremost of the westerners, lord of eternity, whose body is the black earth and the green grain. You who died and were made whole, judge of the true of voice: I offer you bread and beer. Receive my dead kindly, and let what has ended in me rise again.",
+note:"His Egyptian name is Wesir. Sprouting a dish of grain on the altar is a traditional image of his return."},
+{id:"thoth",nm:"Thoth",pan:"Egyptian",t:"Lord of Divine Words",d:"Writing, wisdom, magic, measure, the moon, judgement",pl:"Mercury",why:"The Greeks identified him with Hermes. He is also a god of the moon.",
+sym:"The ibis, the baboon, the scribe’s palette and reed pen, the lunar disc and crescent",off:"Cool water, bread, ink and paper, something you have written",col:"White, silver, blue",inc:"Frankincense, kyphi",
+wk:"Study and writing, exact speech, magic and ritual, record-keeping, fair judgement, the reckoning of time",
+inv:"Hail to you, Thoth, lord of divine words, scribe of the gods, who reckons the years and measures the heavens. Heart and tongue of Ra, who records the weighing of every heart: I offer you water and my written word. Make my speech exact and my record true.",
+note:"His Egyptian name is Djehuty. Write your petition out, read it aloud, and leave the page on the altar."},
+{id:"anubis",nm:"Anubis",pan:"Egyptian",t:"Guardian of the Dead",d:"Embalming, protection of the dead, guide of souls, guardian of thresholds",pl:"Mercury",why:"As guide of souls the Greeks merged him with Hermes, as Hermanubis.",
+sym:"The black jackal, the imiut fetish, the scales, the flail",off:"Cool water, bread, beer, strong incense",col:"Black, gold",inc:"Myrrh, frankincense, cedar",
+wk:"Protection, safe passage for the dying and the dead, grief, guarding sacred space, finding what is lost",
+inv:"Hail to you, Anubis, he who is upon his mountain, lord of the sacred land, who tends the dead and steadies the scales. Guardian at the door, guide on the hidden roads: I offer you cool water and incense. Guide the one I name safely, and keep watch at my threshold.",
+note:"His Egyptian name is Anpu. He is a protector, not a figure of dread."},
+{id:"hathor",nm:"Hathor",pan:"Egyptian",t:"The Golden One",d:"Love, joy, music, dance, beauty, motherhood",pl:"Venus",why:"The Greeks identified her with Aphrodite.",
+sym:"Cow horns holding the sun disc, the sistrum, the menat necklace, the mirror, the sycamore, turquoise",off:"Beer, wine, milk, perfume, music and dancing",col:"Gold, turquoise, red",inc:"Myrrh, sweet perfumes",
+wk:"Joy and celebration, love and beauty, music and dance, comfort, motherhood",
+inv:"Hail to you, Hathor, golden one, lady of the sycamore, mistress of music, dance and drunkenness. Eye of Ra who gladdens every heart: I offer you beer and song. Fill this house with joy and make my heart light.",
+note:"Music is the offering she likes best. Shake a rattle or sistrum, sing, or play something."},
+{id:"sekhmet",nm:"Sekhmet",pan:"Egyptian",t:"The Powerful One",d:"Fierce protection, plague and its cure, righteous wrath, healing",pl:"Mars",why:"Modern convention: Mars for her ferocity. She is also a solar Eye of Ra.",
+sym:"The lioness head, the sun disc and uraeus, red linen, arrows",off:"Red beer or pomegranate juice (the red drink that calmed her), meat, cool water",col:"Red, gold, orange",inc:"Myrrh, frankincense",
+wk:"Protection, healing of serious illness, courage, cutting away what harms, firm boundaries",
+inv:"Hail to you, Sekhmet, great of might, lady of the red linen, Eye of Ra before whom evil trembles. Lady of plague and mistress of life, whose priests were healers: I offer you red beer to cool your heart. Turn your flame against what sickens me and stand as my guard.",
+note:"Rites to Sekhmet aim to calm her as well as to call her. Offer the cooling drink first, and never call on her wrath lightly."},
+{id:"horus",nm:"Horus",pan:"Egyptian",t:"The Falcon",d:"Kingship, the sky, victory, rightful inheritance, protection",pl:"Mars",why:"The Egyptians called the planet Mars “Horus the Red”.",
+sym:"The falcon, the wedjat eye, the double crown, the winged sun disc",off:"Bread, beer, cool water",col:"Gold, blue, red",inc:"Frankincense",
+wk:"Victory in a just struggle, reclaiming what is yours, leadership, protection, healing (the restored Eye)",
+inv:"Hail to you, Horus, son of Isis, avenger of his father, falcon whose eyes are the sun and the moon. Lord of the Two Lands, whose Eye was torn out and made whole: I offer you bread and incense. Give me victory in what is rightfully mine, and make sound what was injured.",
+note:"His Egyptian name is Heru. The wedjat eye is one of the oldest protective amulets."},
+{id:"bastet",nm:"Bastet",pan:"Egyptian",t:"Lady of Bubastis",d:"The home, cats, joy, perfume, gentle protection",pl:"Moon",why:"The Greeks identified her with Artemis.",
+sym:"The cat or cat-headed woman, the sistrum, the aegis collar, a basket, kittens",off:"Perfume, beer, wine, sweet things, kindness shown to a cat",col:"Green, gold, turquoise",inc:"Myrrh, sweet perfume",
+wk:"Protection of home and family, joy and play, women’s health, cats, warding off illness",
+inv:"Hail to you, Bastet, lady of Bubastis, lady of the perfume jar, Eye of Ra in her gentle form. Protector of the household, who delights in music: I offer you perfume and sweet things. Keep watch over this home and bring play into it.",
+note:"Herodotus describes her festival as the most joyful in Egypt."},
+// ── CELTIC ──
+{id:"brigid",nm:"Brigid",pan:"Celtic",t:"The Exalted One",d:"Poetry, healing, smithcraft, the hearth flame, holy wells, spring",pl:"Sun",why:"Modern convention: the Sun for her flame and the returning light. Her feast is Imbolc, 1 February.",
+sym:"The perpetual flame, the Brigid’s cross woven of rushes, holy wells, the anvil, the white cow",off:"Milk, butter, bread, oats, blackberries, a poem",col:"White, red, gold",inc:"Heather, rowan, chamomile",
+wk:"Healing, poetry and inspiration, craft and skilled making, protection of the home, new beginnings",
+inv:"Brigid, daughter of the Dagda, lady of the three fires — fire of the forge, fire of the hearth, fire in the head. Keeper of the wells and of the unquenched flame: I offer you milk and bread. Kindle your fire in my hands, my home and my words.",
+note:"On the eve of Imbolc a cloth is left outside overnight for her blessing and kept for healing through the year."},
+{id:"morrigan",nm:"The Morrígan",pan:"Celtic",t:"The Great Queen",d:"Battle, fate, sovereignty, prophecy, death and the land",pl:"Mars",why:"Modern convention: Mars for war and fierce protection.",
+sym:"Crows and ravens, the river ford, the wolf, the eel, the red-eared heifer, the spear",off:"Red wine or whiskey, milk, red meat, a poem of praise",col:"Red, black",inc:"Mugwort, juniper",
+wk:"Courage for a hard fight, sovereignty over your own life, prophecy, honest reckoning, protection",
+inv:"Morrígan, Great Queen, battle-crow, washer at the ford, who foretells the fall of kings and the fate of the world. Shape-shifter who offers victory to those who meet her rightly: I pour this out to you. Give me clear sight of what is coming and the strength to meet it.",
+note:"She holds people to their word. Make no promise to her casually: in the tales, refusing her cost Cú Chulainn dearly."},
+{id:"lugh",nm:"Lugh",pan:"Celtic",t:"The Many-Skilled",d:"Every craft, kingship, oaths, the harvest games",pl:"Mercury",why:"Caesar wrote that the Gauls honoured “Mercury” above all gods as inventor of every art — usually taken to be Lugus. Many modern pagans link him with the Sun instead.",
+sym:"The spear, the sling, the long arm, the harvest sheaf, the gaming board",off:"First fruits of the harvest, bread, ale, bilberries, something you have made with skill",col:"Gold, yellow, red",inc:"Oak, heather, meadowsweet",
+wk:"Mastering a skill, craftsmanship, leadership, winning contests fairly, oaths, the reward of work",
+inv:"Lugh Lámfada, Samildánach, master of every art, who came to the gates of Tara and was found skilled in all. Bright spear-bearer, founder of the harvest games: I offer you the first of what my work has made. Sharpen my skill and bring my labour to harvest.",
+note:"His festival is Lughnasadh, around 1 August. Offer the best of your own work, not something bought."},
+{id:"dagda",nm:"The Dagda",pan:"Celtic",t:"The Good God",d:"Abundance, strength, fatherhood, druid magic, the seasons",pl:"Jupiter",why:"Modern convention: Jupiter for the generous father and chieftain.",
+sym:"The cauldron that leaves none unsatisfied, the club that kills and revives, the harp Uaithne, the oak",off:"Porridge (he famously ate a pit full of it), ale, butter, pork, oats",col:"Brown, green, gold",inc:"Oak",
+wk:"Plenty and provision, protection, fatherhood, strength, right timing, generosity",
+inv:"Dagda, Eochaid Ollathair, father of all, lord of great knowledge, whose cauldron leaves no company unsatisfied. Bearer of the club of death and life, whose harp calls the seasons in their order: I offer you porridge and ale. Let there be enough at my table and strength in my arm.",
+note:"A hearty, good-humoured god. A generous shared meal is the right rite."},
+{id:"cernunnos",nm:"Cernunnos",pan:"Celtic",t:"The Horned One",d:"Wild animals, forests, fertility, wealth, the space between worlds",pl:"Saturn",why:"Modern convention: Saturn for earth, the wild and hidden wealth.",
+sym:"Stag antlers, the torc, the ram-horned serpent, a sack of coins or grain, the cross-legged seat",off:"Grain, nuts, apples, cider or mead, coins, time spent tending wild land",col:"Green, brown, gold",inc:"Oak moss, pine, cedar",
+wk:"Kinship with nature and animals, prosperity, fertility, balance of wildness and calm, journeys between states",
+inv:"Cernunnos, antlered one, lord of the wild things, who sits between the worlds with torc in hand and serpent at your side. Giver of the forest’s plenty: I lay this grain and fruit on the earth for you. Open the green ways to me, and let me take only what I return.",
+note:"None of his myth survives — only images such as the Gundestrup cauldron and the Pillar of the Boatmen. A rite outdoors in woodland suits him."},
+{id:"manannan",nm:"Manannán mac Lir",pan:"Celtic",t:"Son of the Sea",d:"The ocean, mists, the Otherworld, journeys, illusion",pl:"Moon",why:"Modern convention: the Moon for tides, mist and the sea.",
+sym:"The boat Wave-Sweeper, the horse Enbarr, the cloak of mists, the crane bag, the silver apple branch",off:"Bundles of rushes (once paid to him as rent on the Isle of Man at midsummer), yellow flowers, ale, bread cast on the water",col:"Sea blue, grey, silver",inc:"Mugwort, juniper",
+wk:"Safe travel over water, passage between worlds, protection through concealment, weather, guidance for the dying",
+inv:"Manannán son of Lir, rider of the maned waves, lord of the Land of Promise, whose cloak of mist hides what must be hidden. Ferryman between this world and the other: I give these rushes to the water. Grant me fair passage and bring me safely to the far shore.",
+note:"Make his offering at the shore or beside any body of water."},
+{id:"cerridwen",nm:"Cerridwen",pan:"Celtic",t:"Keeper of the Cauldron",d:"Inspiration (awen), transformation, wisdom, rebirth",pl:"Moon",why:"Modern convention: the Moon for change and the cauldron.",
+sym:"The cauldron of awen, the white sow, the hen, grain, the dark moon",off:"Grain, milk, herbs brewed in a pot, a poem",col:"White, black, silver",inc:"Vervain, mugwort",
+wk:"Poetic and creative inspiration, deep change, study and initiation, patience through a long working",
+inv:"Cerridwen, keeper of the cauldron that brews a year and a day, mother of Taliesin, who pursued the stolen drops through every shape. Lady of awen: I offer you grain and the steam of this cup. Let three drops fall on my tongue, and change me as I need to be changed.",
+note:"Her story comes from the Welsh tale of Taliesin. Her gifts come through long, patient work, and the change she brings is not always comfortable."},
+{id:"aengus",nm:"Aengus Óg",pan:"Celtic",t:"The Young Son",d:"Love, youth, dreams, poetry, beauty",pl:"Venus",why:"Modern convention: Venus for love and beauty.",
+sym:"Four birds circling his head, swans, Brú na Bóinne (Newgrange)",off:"Mead, honey, flowers, a love poem or song",col:"White, gold, rose",inc:"Meadowsweet, rose, hawthorn blossom",
+wk:"Love and courtship, dream work, poetic charm, youthfulness, reuniting lovers",
+inv:"Aengus Óg, Mac ind Óc, son of the Dagda and Boann, lord of the Brú on the Boyne, around whose head four bright birds fly. You who searched through a year of dreams for the swan-maiden Caer: I offer you mead and song. Send me a true dream, and bring love to meet me.",
+note:"Ask for a dream before sleep and write down what comes on waking."}
+];
+// Next planetary hour ruled by `pl`, within the coming 48 hours
+function godNextHour(pl){const now=new Date();
+for(let d=0;d<3;d++){const pd=pHours(new Date(now.getTime()+d*864e5),S.lat);
+const cur=pd.hours.find(h=>now>=h.start&&now<h.end);if(cur&&cur.ruler===pl)return{now:true,h:cur};
+const nx=pd.hours.find(h=>h.ruler===pl&&h.start>now);if(nx)return{now:false,h:nx};}
+return null;}
+function renderGodsList(){
+const pans=Object.keys(PANTHEONS),sel=S.godPan||'All';
+let h=`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px">`;
+['All',...pans].forEach(p=>{const on=sel===p,col=p==='All'?'#b89a42':PANTHEONS[p].c,n=p==='All'?GODS.length:GODS.filter(g=>g.pan===p).length;
+h+=`<button class="pill ${on?'on':''}" style="${on?`border-color:${col}66;color:${col};background:${col}18`:''}" onclick="S.godPan='${p}';render()">${p==='All'?'All':PANTHEONS[p].ic+' '+p} (${n})</button>`;});
+h+=`</div><div style="${sz(11)};color:#606078;margin-bottom:8px;line-height:1.45">Gods and goddesses that rites are commonly built around. Each opens to its symbols, offerings, a spoken invocation and step-by-step ritual. Timing uses the planet of each deity, so the badges show who is most accessible in the current hour.</div>`;
+(sel==='All'?pans:[sel]).forEach(p=>{const P=PANTHEONS[p];
+if(sel==='All')h+=`<div class="cin" style="${sz(10)};letter-spacing:3px;color:${P.c};margin:12px 0 6px">${P.ic} ${p.toUpperCase()}</div>`;
+GODS.filter(g=>g.pan===p).forEach(g=>{const _ab=accessBadge(g.pl,''),_ac=accessScore(g.pl,''),_fg=firmGild(pc(g.pl),_ac);
+h+=`<div class="row" onclick="S.detail='${g.id}';S.detailType='gods';render()" style="border-color:${_ac>=3?P.c+'44':'#242438'};background:${_ac>=5?P.c+'0c':_ac>=3?P.c+'06':'#151520'};${_fg}"><div style="${sz(20)};color:${pc(g.pl)};width:30px;text-align:center">${PD[g.pl].sym}</div><div class="f1"><div class="cin" style="${sz(14)};color:${P.c}">${g.nm} <span class="d10">· ${g.t}</span></div><div class="d11">${g.d}</div></div>${_ab}</div>`;});});
+return h;}
+function renderGodDetail(){
+const g=GODS.find(x=>x.id===S.detail);
+if(!g){S.detail=null;return renderBeings();}
+const P=PANTHEONS[g.pan],col=P.c,plc=pc(g.pl),day=PD[g.pl].day,dim='#606078',txt='#8a96a8';
+const nx=godNextHour(g.pl);
+const when=nx?(nx.now?`<span style="color:#4ade80">An hour of ${g.pl} is running now</span> — until ${fmt(nx.h.end)}.`:`Next hour of ${g.pl}: <span style="color:${plc}">${fmtD(nx.h.start)} ${fmt(nx.h.start)}–${fmt(nx.h.end)}</span>.`):'';
+const tile=(t,v)=>`<div style="padding:8px 10px;background:#07070c66;border-radius:8px;border:1px solid #24243814"><div style="${sz(8)};color:${dim};letter-spacing:1px">${t}</div><div style="${sz(12)};color:${txt};margin-top:2px;line-height:1.4">${v}</div></div>`;
+const lc=s=>s.charAt(0).toLowerCase()+s.slice(1);
+const steps=[
+['Choose the time',`Work on ${day}, or in any hour of ${g.pl}. ${when}`],
+['Prepare the altar',`Lay a cloth or set a candle in ${lc(g.col)}. Place one or more of their symbols: ${lc(g.sym)}. Have the offering ready (${lc(g.off)}) and burn ${lc(g.inc)}.`],
+['Open the rite',P.open],
+['Invoke and offer',(g.chth&&P.chOffer)?P.chOffer:P.offer],
+['State your purpose',`Say plainly why you have come. ${g.nm} is called on for ${lc(g.wk)}. Then sit in silence for a few minutes and take note of whatever comes — an image, a word, a change of mood.`],
+['Close',(g.chth&&P.chClose)?P.chClose:P.close]];
+let h=`<div class="fu"><button class="back" onclick="S.detail=null;render()">← Back</button>
+<div class="card" style="padding:18px 16px;border-radius:16px;border-color:${col}33;background:linear-gradient(135deg,#151520,${col}0c)">
+<div style="text-align:center;margin-bottom:12px">
+<div class="cin" style="${sz(9)};letter-spacing:3px;color:${dim}">${P.ic} ${g.pan.toUpperCase()} PANTHEON</div>
+<div class="cin" style="${sz(22)};color:${col};font-weight:700;margin-top:2px">${g.nm}</div>
+<div style="${sz(13)};color:${txt};font-style:italic;margin-top:2px">${g.t}</div>
+<div style="${sz(12)};color:${txt};margin-top:6px;line-height:1.45">${g.d}</div>
+</div>
+<div style="padding:10px 12px;background:${plc}0c;border:1px solid ${plc}33;border-radius:10px;margin-bottom:10px;display:flex;gap:10px;align-items:center">
+<div style="${sz(24)};color:${plc};width:30px;text-align:center">${PD[g.pl].sym}</div>
+<div class="f1"><div class="cin" style="${sz(11)};color:${plc};letter-spacing:1px">TIMING · ${day.toUpperCase()} · HOUR OF ${g.pl.toUpperCase()}</div>
+<div style="${sz(11)};color:${txt};line-height:1.45;margin-top:2px">${g.why}${when?'<br>'+when:''}</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">
+${tile('SYMBOLS',g.sym)}${tile('OFFERINGS',g.off)}${tile('COLOURS',g.col)}${tile('INCENSE &amp; PLANTS',g.inc)}
+</div>
+${tile('CALLED ON FOR',g.wk)}
+</div>
+<div class="card" style="padding:14px 16px;border-color:${col}33">
+<div class="title" style="color:${col}">Invocation</div>
+<div style="${sz(14)};color:#d0d0e0;line-height:1.6;font-style:italic;padding-left:12px;border-left:2px solid ${col}66">${g.inv}</div>
+<div style="${sz(10)};color:${dim};margin-top:8px;line-height:1.4">Speak it aloud, slowly. Change the wording to your own once you know their names and deeds.</div>
+</div>
+<div class="card" style="padding:14px 16px">
+<div class="title" style="color:${col}">The Rite</div>
+${steps.map(([t,b],i)=>`<div style="display:flex;gap:10px;margin-bottom:10px"><div class="cin" style="${sz(13)};color:${col};width:22px;height:22px;flex-shrink:0;border:1px solid ${col}55;border-radius:50%;display:flex;align-items:center;justify-content:center">${i+1}</div><div class="f1"><div class="cin" style="${sz(11)};color:${col};letter-spacing:1px">${t.toUpperCase()}</div><div style="${sz(12)};color:${txt};line-height:1.5;margin-top:2px">${b}</div></div></div>`).join('')}
+${g.note?`<div style="padding:10px 12px;background:#d98a4f0c;border:1px solid #d98a4f33;border-radius:8px;${sz(12)};color:${txt};line-height:1.45"><span class="cin" style="${sz(9)};color:#d98a4f;letter-spacing:1px">TAKE NOTE</span><br>${g.note}</div>`:''}
+</div>
+<div style="${sz(10)};color:${dim};line-height:1.5;margin:4px 4px 14px">${P.src} The invocations are original, built from each deity’s traditional names and deeds. Where a planet is marked as a modern convention, no ancient authority assigns one. Burn incense and candles with care, and never leave a flame unattended.</div>
+</div>`;
+return h;}
 function renderBeings(ch){
+if(S.detail&&S.detailType==='gods') return renderGodDetail();
 if(S.detail) return renderDetail();
-const cats=[{id:"goetia",l:"Goetia",n:72},{id:"olympic",l:"Olympic",n:7},{id:"angels",l:"Angels",n:7},{id:"elemental",l:"Elemental",n:4},{id:"kings",l:"Cardinal",n:4},{id:"orders",l:"Orders",n:9},{id:"ritual",l:"Circle & Seal",n:6}];
+const cats=[{id:"goetia",l:"Goetia",n:72},{id:"olympic",l:"Olympic",n:7},{id:"angels",l:"Angels",n:7},{id:"elemental",l:"Elemental",n:4},{id:"kings",l:"Cardinal",n:4},{id:"orders",l:"Orders",n:9},{id:"gods",l:"Pantheons",n:GODS.length},{id:"ritual",l:"Circle & Seal",n:6}];
 const _now=new Date();
 const _pd=pHours(_now,S.lat);
 const _ch=_pd.hours.find(h=>_now>=h.start&&_now<h.end)||_pd.hours[0];
@@ -7154,6 +7427,8 @@ ${S.christianLens&&CKAB_DIONYSIUS_NOTES[s.nm]?`<div style="${sz(9)};color:#b89a4
 </div>`;
 });
 h+=`</div>`;
+}else if(dt==='gods'){
+h+=renderGodsList();
 }else if(dt==='ritual'){
 h+=renderRitualImplements();
 }
@@ -11994,7 +12269,18 @@ OL.forEach(s=>{const sc=accessScore(s.pl,'');if(sc>=3)results.push({type:'olympi
 Object.entries(PA).forEach(([nm,a])=>{const sc=accessScore(a.pl,'');if(sc>=3)results.push({type:'angel',nm,n:0,pl:a.pl,sc,col:pc(a.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=nm;S.detailType='angels';S.planView=false;render();})-1});});
 const shA=getShemAngel(ms.lon);
 results.push({type:'shem',nm:shA.nm,n:shA.n,pl:'',sc:6,col:'#9B7BDB',ai:_nowActions.push(()=>{S.tab='shem';S.shemTriad=shA.n-1;render();})-1});
-return results.sort((a,b)=>b.sc-a.sc).slice(0,8);
+// Pantheon deities — aligned through their planet
+GODS.forEach(g=>{const sc=accessScore(g.pl,'');if(sc>=3)results.push({type:'deity',sub:g.pan,nm:g.nm,n:0,pl:g.pl,sc,col:PANTHEONS[g.pan].c,ai:_nowActions.push(()=>{S.tab='beings';S.detail=g.id;S.detailType='gods';S.planView=false;render();})-1});});
+// Angelic orders — aligned through their planetary sphere
+AO.forEach(s=>{if(!PD[s.sp])return;const sc=accessScore(s.sp,'');if(sc>=3)results.push({type:'order',sub:'Angelic order',nm:s.nm,n:0,pl:s.sp,sc,col:s.c,ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='orders';S.planView=false;render();})-1});});
+// Elementals and cardinal kings — aligned through the Moon's element (+ the hour planet's element)
+const _plEl={Sun:'Fire',Moon:'Water',Mars:'Fire',Mercury:'Air',Jupiter:'Fire',Venus:'Earth',Saturn:'Earth'};
+const _elSc=el=>(ms.el===el?3:0)+(_plEl[ch.ruler]===el?2:0);
+ELS.forEach(s=>{const sc=_elSc(s.el);if(sc>=3)results.push({type:'elemental',sub:s.el+' elemental',nm:s.nm,n:0,pl:'',sc,col:s.c,ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='elemental';S.planView=false;render();})-1});});
+CK.forEach(s=>{const sc=_elSc(s.el);if(sc>=3)results.push({type:'king',sub:'King of the '+s.dir,nm:s.nm,n:0,pl:'',sc,col:s.c,ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='kings';S.planView=false;render();})-1});});
+// Highest scores first, with a cap per kind so no one group crowds out the rest
+const _cap={goetia:4,olympic:1,angel:1,shem:1,deity:6,order:1,elemental:1,king:1},_cnt={};
+return results.sort((a,b)=>b.sc-a.sc).filter(r=>{_cnt[r.type]=(_cnt[r.type]||0)+1;return _cnt[r.type]<=(_cap[r.type]||2);});
 }
 function nowAct(i){if(_nowActions[i])_nowActions[i]();}
 // Recommendation engine
