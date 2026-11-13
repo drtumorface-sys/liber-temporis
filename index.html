@@ -1077,13 +1077,109 @@ const ZS=["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sa
 const ZY=["♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓"];
 const EL=["Fire","Earth","Air","Water","Fire","Earth","Air","Water","Fire","Earth","Air","Water"];
 const EC={Fire:"#c44520",Earth:"#5a7a3a",Air:"#7a9ab0",Water:"#2a4a8a"};
+// ═══ EPHEMERIS CORE — shared by the Chart tab and all Sun/Moon/sunrise helpers ═══
+function _astRev(x){return((x%360)+360)%360}
+function _astKep(M,e){M=_astRev(M)*D;let E=M+e*Math.sin(M)*(1+e*Math.cos(M));
+for(let i=0;i<30;i++){const dE=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));E-=dE;if(Math.abs(dE)<1e-10)break;}return E;}
+const _AST_EL={
+Mercury:d=>[48.3313+3.24587e-5*d,7.0047+5.00e-8*d,29.1241+1.01444e-5*d,0.387098,0.205635+5.59e-10*d,168.6562+4.0923344368*d],
+Venus:d=>[76.6799+2.46590e-5*d,3.3946+2.75e-8*d,54.8910+1.38374e-5*d,0.723330,0.006773-1.302e-9*d,48.0052+1.6021302244*d],
+Mars:d=>[49.5574+2.11081e-5*d,1.8497-1.78e-8*d,286.5016+2.92961e-5*d,1.523688,0.093405+2.516e-9*d,18.6021+0.5240207766*d],
+Jupiter:d=>[100.4542+2.76854e-5*d,1.3030-1.557e-7*d,273.8777+1.64505e-5*d,5.20256,0.048498+4.469e-9*d,19.8950+0.0830853001*d],
+Saturn:d=>[113.6634+2.38980e-5*d,2.4886-1.081e-7*d,339.3939+2.97661e-5*d,9.55475,0.055546-9.499e-9*d,316.9670+0.0334442282*d],
+Uranus:d=>[74.0005+1.3978e-5*d,0.7733+1.9e-8*d,96.6612+3.0565e-5*d,19.18171-1.55e-8*d,0.047318+7.45e-9*d,142.5905+0.011725806*d],
+Neptune:d=>[131.7806+3.0173e-5*d,1.7700-2.55e-7*d,272.8461-6.027e-6*d,30.05826+3.313e-8*d,0.008606+2.15e-9*d,260.2471+0.005995147*d]};
+function _astOrbit(el){const[N,i,w,a,e,M]=el;const E=_astKep(M,e);
+const xv=a*(Math.cos(E)-e),yv=a*Math.sqrt(1-e*e)*Math.sin(E);
+const v=Math.atan2(yv,xv)/D,r=Math.hypot(xv,yv),Nr=N*D,ir=i*D,u=(v+w)*D;
+const x=r*(Math.cos(Nr)*Math.cos(u)-Math.sin(Nr)*Math.sin(u)*Math.cos(ir));
+const y=r*(Math.sin(Nr)*Math.cos(u)+Math.cos(Nr)*Math.sin(u)*Math.cos(ir));
+const z=r*Math.sin(u)*Math.sin(ir);
+return{lon:Math.atan2(y,x)/D,lat:Math.atan2(z,Math.hypot(x,y))/D,r};}
+// Geocentric ecliptic longitudes (deg) for a UTC timestamp (ms)
+function astLongitudes(ms,lite){
+const d=ms/864e5+2440587.5-2451543.5;
+const sn=x=>Math.sin(x*D),cs=x=>Math.cos(x*D);
+const ws=282.9404+4.70935e-5*d,es=0.016709-1.151e-9*d,Ms=356.0470+0.9856002585*d;
+const Es=_astKep(Ms,es),sxv=Math.cos(Es)-es,syv=Math.sqrt(1-es*es)*Math.sin(Es);
+const sunLon=_astRev(Math.atan2(syv,sxv)/D+ws),sr=Math.hypot(sxv,syv);
+const xs=sr*cs(sunLon),ys=sr*sn(sunLon);
+const o={Sun:sunLon};
+// Moon
+const Nm=125.1228-0.0529538083*d,wm=318.0634+0.1643573223*d,Mm=115.3654+13.0649929509*d;
+let ml=_astOrbit([Nm,5.1454,wm,60.2666,0.054900,Mm]).lon;
+const Ls=Ms+ws,Lm=Mm+wm+Nm,Dm=Lm-Ls,F=Lm-Nm;
+ml+=-1.274*sn(Mm-2*Dm)+0.658*sn(2*Dm)-0.186*sn(Ms)-0.059*sn(2*Mm-2*Dm)-0.057*sn(Mm-2*Dm+Ms)
++0.053*sn(Mm+2*Dm)+0.046*sn(2*Dm-Ms)+0.041*sn(Mm-Ms)-0.035*sn(Dm)-0.031*sn(Mm+Ms)
+-0.015*sn(2*F-2*Dm)+0.011*sn(Mm-4*Dm);
+o.Moon=_astRev(ml);o.Node=_astRev(Nm);
+if(lite)return o;
+// Planets
+const Mj=19.8950+0.0830853001*d,Msa=316.9670+0.0334442282*d,Mu=142.5905+0.011725806*d;
+const geo=(lon,lat,r)=>_astRev(Math.atan2(r*sn(lon)*cs(lat)+ys,r*cs(lon)*cs(lat)+xs)/D);
+for(const k in _AST_EL){const h=_astOrbit(_AST_EL[k](d));let lon=h.lon,lat=h.lat;
+if(k==='Jupiter')lon+=-0.332*sn(2*Mj-5*Msa-67.6)-0.056*sn(2*Mj-2*Msa+21)+0.042*sn(3*Mj-5*Msa+21)-0.036*sn(Mj-2*Msa)+0.022*cs(Mj-Msa)+0.023*sn(2*Mj-3*Msa+52)-0.016*sn(Mj-5*Msa-69);
+if(k==='Saturn'){lon+=0.812*sn(2*Mj-5*Msa-67.6)-0.229*cs(2*Mj-4*Msa-2)+0.119*sn(Mj-2*Msa-3)+0.046*sn(2*Mj-6*Msa-69)+0.014*sn(Mj-3*Msa+32);
+lat+=-0.020*cs(2*Mj-4*Msa-2)+0.018*sn(2*Mj-6*Msa-49);}
+if(k==='Uranus')lon+=0.040*sn(Msa-2*Mu+6)+0.035*sn(Msa-3*Mu+33)-0.015*sn(Mj-Mu+20);
+o[k]=geo(lon,lat,h.r);}
+// Pluto (J2000 fit, precessed to date)
+const P=238.95+0.003968789*d,S2=50.03+0.033459652*d;
+const pl=238.9508+0.00400703*d-19.799*sn(P)+19.848*cs(P)+0.897*sn(2*P)-4.956*cs(2*P)+0.610*sn(3*P)+1.211*cs(3*P)
+-0.341*sn(4*P)-0.190*cs(4*P)+0.128*sn(5*P)-0.034*cs(5*P)-0.038*sn(6*P)+0.031*cs(6*P)+0.020*sn(S2-P)-0.010*cs(S2-P);
+const pb=-3.9082-5.453*sn(P)-14.975*cs(P)+3.527*sn(2*P)+1.673*cs(2*P)-1.051*sn(3*P)+0.328*cs(3*P)
++0.179*sn(4*P)-0.292*cs(4*P)+0.019*sn(5*P)+0.100*cs(5*P)-0.031*sn(6*P)-0.026*cs(6*P)+0.011*cs(S2-P);
+const pr=40.72+6.68*sn(P)+6.90*cs(P)-1.18*sn(2*P)-0.03*cs(2*P)+0.15*sn(3*P)-0.14*cs(3*P);
+o.Pluto=geo(pl+3.82394e-5*d,pb,pr);
+return o;}
+// Ascendant, Midheaven, RAMC (lonE: east-positive geographic longitude)
+function astAngles(ms,lat,lonE){
+const JD=ms/864e5+2440587.5,T=(JD-2451545)/36525;
+const ramc=_astRev(280.46061837+360.98564736629*(JD-2451545)+0.000387933*T*T-T*T*T/38710000+lonE);
+const eps=(23.4392911-0.0130042*T)*D,r=ramc*D,f=Math.max(-89.9,Math.min(89.9,lat))*D;
+const mc=_astRev(Math.atan2(Math.sin(r),Math.cos(r)*Math.cos(eps))/D);
+let asc=_astRev(Math.atan2(Math.cos(r),-(Math.sin(r)*Math.cos(eps)+Math.tan(f)*Math.sin(eps)))/D);
+if(_astRev(asc-mc)>180)asc=_astRev(asc+180);
+return{ramc,mc,asc,eps,lat};}
 function doy(d){return Math.floor((d-new Date(d.getFullYear(),0,0))/864e5)}
-function sunT(dt,lat){const dc=-23.45*Math.cos(D*(360/365)*(doy(dt)+10)),ha=Math.acos(Math.max(-1,Math.min(1,-Math.tan(lat*D)*Math.tan(dc*D))))/D,ri=12-ha/15,se=12+ha/15,r=new Date(dt),s=new Date(dt);r.setHours(Math.floor(ri),Math.round((ri%1)*60),0,0);s.setHours(Math.floor(se),Math.round((se%1)*60),0,0);return{rise:r,set:s}}
-function pHours(dt,lat){const su=sunT(dt,lat),dl=(su.set-su.rise)/12,ns=sunT(new Date(dt.getTime()+864e5),lat),nl=(ns.rise-su.set)/12,si=PO.indexOf(DR[dt.getDay()]),h=[];for(let i=0;i<24;i++){const dy=i<12,st=dy?new Date(su.rise.getTime()+i*dl):new Date(su.set.getTime()+(i-12)*nl),en=dy?new Date(su.rise.getTime()+(i+1)*dl):new Date(su.set.getTime()+(i-11)*nl);h.push({start:st,end:en,ruler:PO[(si+i)%7],isDay:dy,index:i})}return{hours:h,dayRuler:DR[dt.getDay()],sunrise:su.rise,sunset:su.set}}
-function mPhase(dt){const p=(((dt-new Date(2024,0,11,11,57))/864e5)%29.53+29.53)%29.53,il=Math.round(((1-Math.cos((p/29.53)*2*Math.PI))/2)*100);let n,ic;if(p<1.85){n="New Moon";ic="🌑"}else if(p<7.38){n="Waxing Crescent";ic="🌒"}else if(p<9.23){n="First Quarter";ic="🌓"}else if(p<14.76){n="Waxing Gibbous";ic="🌔"}else if(p<16.61){n="Full Moon";ic="🌕"}else if(p<22.14){n="Waning Gibbous";ic="🌖"}else if(p<23.99){n="Last Quarter";ic="🌗"}else{n="Waning Crescent";ic="🌘"}return{phase:p,name:n,icon:ic,ill:il,day:p,wax:p<14.765}}
+// Sunrise, sunset and solar noon for the local day containing dt, at latitude `lat` and CFG.lon.
+// True solar position (ephemeris) with the standard -0.833° horizon (refraction + solar radius).
+const _sunTCache=new Map();
+function sunT(dt,lat){
+const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:-74;
+const noon=new Date(dt);noon.setHours(12,0,0,0);
+const key=noon.getTime()+'|'+lat+'|'+lon,hit=_sunTCache.get(key);
+if(hit)return{rise:new Date(hit[0]),set:new Date(hit[1]),transit:new Date(hit[2])};
+const f=Math.max(-89.9,Math.min(89.9,lat))*D;
+const sun=ms=>{const L=astLongitudes(ms,true).Sun*D,e=(23.4392911-0.0130042*((ms/864e5+2440587.5-2451545)/36525))*D;
+return{ra:Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L))/D,dec:Math.asin(Math.sin(e)*Math.sin(L))};};
+// hour angle of the Sun (deg, -180..180; negative = before solar noon)
+const HA=(ms,ra)=>((280.46061837+360.98564736629*(ms/864e5+2440587.5-2451545)+lon-ra)%360+540)%360-180;
+let tr=noon.getTime();for(let i=0;i<3;i++)tr-=HA(tr,sun(tr).ra)/360*864e5;
+const ev=sg=>{let t=tr;for(let i=0;i<4;i++){const s=sun(t);
+const c=(Math.sin(-0.833*D)-Math.sin(f)*Math.sin(s.dec))/(Math.cos(f)*Math.cos(s.dec));
+const ha=Math.acos(Math.max(-1,Math.min(1,c)))/D;
+let dH=sg*ha-HA(t,s.ra);if(i===0)dH=sg*ha;t+=dH/360*864e5;}return t;};
+const r=ev(-1),s=ev(1);
+if(_sunTCache.size>200)_sunTCache.clear();_sunTCache.set(key,[r,s,tr]);
+return{rise:new Date(r),set:new Date(s),transit:new Date(tr)};}
+// Planetary hours for the planetary day (sunrise to next sunrise) that contains dt.
+// Before today's sunrise the hours belong to the previous day's night, per the traditional method.
+function pHours(dt,lat){
+let base=new Date(dt),su=sunT(base,lat),ns=sunT(new Date(base.getTime()+864e5),lat);
+if(dt<su.rise){base=new Date(base.getTime()-864e5);ns=su;su=sunT(base,lat);}
+else if(dt>=ns.rise){base=new Date(base.getTime()+864e5);su=ns;ns=sunT(new Date(base.getTime()+864e5),lat);}
+const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:-74;
+// weekday of the planetary day = the date at the location when the Sun is on the meridian
+const wd=new Date(su.transit.getTime()+lon/15*36e5).getUTCDay();
+const dl=(su.set-su.rise)/12,nl=(ns.rise-su.set)/12,si=PO.indexOf(DR[wd]),h=[];
+for(let i=0;i<24;i++){const dy=i<12,st=dy?new Date(su.rise.getTime()+i*dl):new Date(su.set.getTime()+(i-12)*nl),en=dy?new Date(su.rise.getTime()+(i+1)*dl):new Date(su.set.getTime()+(i-11)*nl);h.push({start:st,end:en,ruler:PO[(si+i)%7],isDay:dy,index:i})}
+return{hours:h,dayRuler:DR[wd],sunrise:su.rise,sunset:su.set}}
+// Moon phase from the true Sun–Moon elongation (p = age in days on a 29.53-day cycle)
+function mPhase(dt){const L=astLongitudes(+dt,true),el=((L.Moon-L.Sun)%360+360)%360,p=el/360*29.53,il=Math.round(((1-Math.cos(el*D))/2)*100);let n,ic;if(p<1.85){n="New Moon";ic="🌑"}else if(p<7.38){n="Waxing Crescent";ic="🌒"}else if(p<9.23){n="First Quarter";ic="🌓"}else if(p<14.76){n="Waxing Gibbous";ic="🌔"}else if(p<16.61){n="Full Moon";ic="🌕"}else if(p<22.14){n="Waning Gibbous";ic="🌖"}else if(p<23.99){n="Last Quarter";ic="🌗"}else{n="Waning Crescent";ic="🌘"}return{phase:p,name:n,icon:ic,ill:il,day:p,wax:p<14.765}}
 function mIcon(mp,sh){if(!sh)return mp.icon;const f={"🌒":"🌘","🌓":"🌗","🌔":"🌖","🌖":"🌔","🌗":"🌓","🌘":"🌒"};return f[mp.icon]||mp.icon}
-function mSign(dt){const d=(dt-new Date(2000,0,1,12))/864e5;let l=((218.316+13.176396*d)+6.289*Math.sin((134.963+13.064993*d)*D))%360;l=(l+360)%360;const i=Math.floor(l/30);return{sign:ZS[i],sym:ZY[i],deg:Math.round(l%30),el:EL[i],lon:l}}
-function sSign(dt){const d=(dt-new Date(2000,0,1,12))/864e5;let l=(280.46+.9856474*d)%360;l+=1.9148*Math.sin((357.528+.9856003*d)*D);l=((l%360)+360)%360;const i=Math.floor(l/30);return{sign:ZS[i],sym:ZY[i],deg:Math.round(l%30),el:EL[i],lon:l}}
+function mSign(dt){const l=astLongitudes(+dt,true).Moon,i=Math.floor(l/30)%12;return{sign:ZS[i],sym:ZY[i],deg:Math.floor(l%30),el:EL[i],lon:l}}
+function sSign(dt){const l=astLongitudes(+dt,true).Sun,i=Math.floor(l/30)%12;return{sign:ZS[i],sym:ZY[i],deg:Math.floor(l%30),el:EL[i],lon:l}}
 const MN=[{n:1,nm:"Alnath",s:0,p:"Journeys & discord",g:["Travel","Destruction of enemies"],im:"Head of Aries",an:"Geniel"},{n:2,nm:"Albotain",s:12.86,p:"Finding treasure",g:["Finding lost things","Gaining favor"],im:"Crowned king",an:"Enediel"},{n:3,nm:"Athoray",s:25.71,p:"Hunting & alchemy",g:["Hunting","Alchemy","Safe return"],im:"Woman with raised hand",an:"Anixiel"},{n:4,nm:"Aldebaran",s:38.57,p:"Revenge & enmity",g:["Revenge","Separation"],im:"Soldier on horse",an:"Azariel"},{n:5,nm:"Albachay",s:51.43,p:"Schools & favor",g:["Education","Favor of the powerful"],im:"Head of a man",an:"Gabiel"},{n:6,nm:"Alhanna",s:64.29,p:"Love & friendship",g:["Love between partners","Hunting"],im:"A star figure",an:"Dirachiel"},{n:7,nm:"Aldimiach",s:77.14,p:"Gain & friendship",g:["Obtaining good things","Friendship"],im:"Man in robes",an:"Scheliel"},{n:8,nm:"Alnaza",s:90,p:"Victory & love",g:["Victory in war","Love spells"],im:"An eagle",an:"Amnediel"},{n:9,nm:"Archaam",s:102.86,p:"Causing fear",g:["Fear in enemies","Affliction"],im:"Man with dark face",an:"Barbiel"},{n:10,nm:"Algelioche",s:115.71,p:"Love & buildings",g:["Strengthening buildings","Love"],im:"Head of a lion",an:"Ardefiel"},{n:11,nm:"Azobra",s:128.57,p:"Gain in trade",g:["Trade","Harvest","Redemption"],im:"Man on a chair",an:"Neciel"},{n:12,nm:"Alzarpha",s:141.43,p:"Improving harvests",g:["Planting","Building","Sailors"],im:"A dragon",an:"Abdizuel"},{n:13,nm:"Alhaire",s:154.29,p:"Voyages & commerce",g:["Trade","Favor of kings"],im:"Man cutting",an:"Jazeriel"},{n:14,nm:"Azimeth",s:167.14,p:"Love & healing",g:["Love","Healing the sick"],im:"Dog biting tail",an:"Ergediel"},{n:15,nm:"Agrapha",s:180,p:"Extracting treasure",g:["Hidden treasure","Digging wells"],im:"Seated man",an:"Ataliel"},{n:16,nm:"Azubene",s:192.86,p:"Commerce & rain",g:["Buying & selling","Causing rain"],im:"Seated king",an:"Azeruel"},{n:17,nm:"Alchil",s:205.71,p:"Against theft",g:["Preventing theft","Lasting things"],im:"An ape",an:"Adriel"},{n:18,nm:"Alcab",s:218.57,p:"Against enemies",g:["Against plotters","Freeing prisoners"],im:"A serpent",an:"Egibiel"},{n:19,nm:"Allatha",s:231.43,p:"Birth & curing",g:["Facilitating labor","Curing diseases"],im:"Woman holding face",an:"Amutiel"},{n:20,nm:"Abnahaya",s:244.29,p:"Taming beasts",g:["Taming beasts","Strengthening prisons"],im:"Man with bow",an:"Kyriel"},{n:21,nm:"Abeda",s:257.14,p:"Destruction",g:["Destruction","Devastation","Discord"],im:"Man with two faces",an:"Bethnael"},{n:22,nm:"Zodeboluch",s:270,p:"Healing",g:["Healing","Peaceful resolution"],im:"Cat with dog head",an:"Geliel"},{n:23,nm:"Zabadola",s:282.86,p:"Curing & freedom",g:["Curing illness","Liberation"],im:"Bird with human face",an:"Zequiel"},{n:24,nm:"Sadabath",s:295.71,p:"Victory",g:["Victory","Goodwill of allies"],im:"Table and book",an:"Abrinael"},{n:25,nm:"Sadalbracha",s:308.57,p:"Protection",g:["Protection of crops","Preserving allies"],im:"Crowned man",an:"Aziel"},{n:26,nm:"Alpharg",s:321.43,p:"Love & union",g:["Love","Goodwill","Protection"],im:"Woman washing hair",an:"Tagriel"},{n:27,nm:"Alcharya",s:334.29,p:"Commerce & gain",g:["Trade","Harvest","Healing"],im:"Man with wings",an:"Atheniel"},{n:28,nm:"Albotham",s:347.14,p:"Augmenting harvests",g:["Harvests","Gaining","Binding spirits"],im:"Fish",an:"Amnixiel"}];
 function gMn(lon){for(let i=MN.length-1;i>=0;i--)if(lon>=MN[i].s)return MN[i];return MN[0]}
 const HA={Sun:"Michael",Moon:"Gabriel",Mars:"Samael",Mercury:"Raphael",Jupiter:"Sachiel",Venus:"Anael",Saturn:"Cassiel"};
@@ -4627,15 +4723,18 @@ let h=`<div class="settings-overlay" role="dialog" aria-modal="true" aria-label=
 </div>`;
 // ── LOCATION
 h+=`<div class="sgroup"><div class="sgroup-title">Location</div>
+<div style="margin-bottom:10px"><div class="srow-label">City</div><div class="srow-sub" style="margin-bottom:6px">Search a major city to set latitude and longitude${CFG.place?` · now <span style="color:var(--gold)">${_astEsc(CFG.place)}</span>`:''}</div>
+<input id="set-city" type="text" autocomplete="off" maxlength="60" placeholder="Type a city, e.g. Sydney" value="${_astEsc(CFG.place||'')}" oninput="astCitySearch(this.value,'set-city-res','setCityPick')" style="margin:0">
+<div id="set-city-res"></div></div>
 <div class="srow"><div><div class="srow-label">Latitude</div><div class="srow-sub">Affects planetary hours, elections, VOC</div></div>
-<input type="number" min="-90" max="90" step="0.1" value="${CFG.lat.toFixed(1)}" onchange="CFG.lat=parseFloat(this.value)||40.7;CFG.southern=CFG.lat<0;saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
+<input type="number" min="-90" max="90" step="0.1" value="${CFG.lat.toFixed(1)}" onchange="CFG.lat=parseFloat(this.value)||40.7;CFG.southern=CFG.lat<0;CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
 </div>
 <div class="srow" style="padding-top:8px"><div><div class="srow-label">Longitude</div><div class="srow-sub">East +, West − · used for the chart's Ascendant &amp; houses</div></div>
-<input type="number" min="-180" max="180" step="0.1" value="${(CFG.lon==null?-74:CFG.lon).toFixed(1)}" onchange="var v=parseFloat(this.value);CFG.lon=isNaN(v)?-74:Math.max(-180,Math.min(180,v));saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
+<input type="number" min="-180" max="180" step="0.1" value="${(CFG.lon==null?-74:CFG.lon).toFixed(1)}" onchange="var v=parseFloat(this.value);CFG.lon=isNaN(v)?-74:Math.max(-180,Math.min(180,v));CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
 </div>
 <div class="srow" style="padding-top:8px">
 <div><div class="srow-label">Auto-detect location</div><div class="srow-sub">Uses device GPS · stays on-device</div></div>
-<button onclick="navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{CFG.lat=Math.round(p.coords.latitude*10)/10;CFG.lon=Math.round(p.coords.longitude*10)/10;CFG.southern=CFG.lat<0;saveCFG();render();},()=>alert('Location unavailable')):alert('Geolocation not supported')" style="padding:5px 12px;background:var(--gold)18;border:1px solid var(--gold)44;border-radius:8px;color:var(--gold);cursor:pointer;${sz(12)};font-family:'Cinzel',serif">DETECT</button>
+<button onclick="navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{CFG.lat=Math.round(p.coords.latitude*10)/10;CFG.lon=Math.round(p.coords.longitude*10)/10;CFG.southern=CFG.lat<0;CFG.place='';saveCFG();render();},()=>alert('Location unavailable')):alert('Geolocation not supported')" style="padding:5px 12px;background:var(--gold)18;border:1px solid var(--gold)44;border-radius:8px;color:var(--gold);cursor:pointer;${sz(12)};font-family:'Cinzel',serif">DETECT</button>
 </div>
 <div class="srow" style="padding-top:8px">
 <div><div class="srow-label">Hemisphere</div><div class="srow-sub">Auto-set from latitude · override here</div></div>
@@ -5434,83 +5533,25 @@ const f=new Intl.DateTimeFormat('en-US',{timeZone:zone,hourCycle:'h23',year:'num
 const offAt=t=>{const p={};f.formatToParts(new Date(t)).forEach(x=>{p[x.type]=+x.value;});return(Date.UTC(p.year,p.month-1,p.day,p.hour%24,p.minute,p.second)-t)/36e5;};
 let off=offAt(wall);off=offAt(wall-off*36e5);
 return isFinite(off)?Math.round(off*100)/100:null;}catch(e){return null;}}
-function astCitySearch(q){
-const inp=document.getElementById('ch-city'),box=document.getElementById('ch-city-res');if(!box)return;
+function astCitySearch(q,boxId,pick){
+boxId=boxId||'ch-city-res';pick=pick||'astCityPick';
+const inp=boxId==='ch-city-res'?document.getElementById('ch-city'):null,box=document.getElementById(boxId);if(!box)return;
 if(inp){inp.dataset.zone='';inp.dataset.place='';}
 const nq=_astNorm(q).trim();if(!nq){box.innerHTML='';return;}
 const a=[],b=[];AST_CITIES.forEach((c,i)=>{const nn=_astNorm(c.n),nc=_astNorm(c.c);
 if(nn.startsWith(nq))a.push(i);else if(nn.includes(nq)||nc.startsWith(nq))b.push(i);});
 const hits=a.concat(b).slice(0,8);
 box.innerHTML=hits.length?`<div style="margin-top:4px;border:1px solid #242438;border-radius:8px;overflow:hidden;background:#07070c">${hits.map(i=>{const c=AST_CITIES[i];
-return`<button type="button" onclick="astCityPick(${i})" style="display:flex;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;background:none;border:none;border-bottom:1px solid #24243855;color:#d0d0e0;cursor:pointer;text-align:left;font-family:'EB Garamond',serif;${sz(13)}"><span>${_astEsc(c.n)}<span style="color:#606078">, ${_astEsc(c.c)}</span></span><span style="color:#606078;${sz(10)};white-space:nowrap">${Math.abs(c.lat).toFixed(2)}°${c.lat>=0?'N':'S'} ${Math.abs(c.lon).toFixed(2)}°${c.lon>=0?'E':'W'}</span></button>`}).join('')}</div>`
+return`<button type="button" onclick="${pick}(${i})" style="display:flex;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;background:none;border:none;border-bottom:1px solid #24243855;color:#d0d0e0;cursor:pointer;text-align:left;font-family:'EB Garamond',serif;${sz(13)}"><span>${_astEsc(c.n)}<span style="color:#606078">, ${_astEsc(c.c)}</span></span><span style="color:#606078;${sz(10)};white-space:nowrap">${Math.abs(c.lat).toFixed(2)}°${c.lat>=0?'N':'S'} ${Math.abs(c.lon).toFixed(2)}°${c.lon>=0?'E':'W'}</span></button>`}).join('')}</div>`
 :`<div style="${sz(10)};color:#606078;margin-top:4px">No match in the list — enter the latitude and longitude below by hand.</div>`;}
+// Settings → Location: set the app's own location from the city list
+function setCityPick(i){const c=AST_CITIES[i];if(!c)return;
+CFG.lat=c.lat;CFG.lon=c.lon;CFG.southern=c.lat<0;CFG.place=c.n+', '+c.c;saveCFG();render();}
 function astCityPick(i){const c=AST_CITIES[i];if(!c)return;
 const inp=document.getElementById('ch-city'),box=document.getElementById('ch-city-res'),la=document.getElementById('ch-lat'),lo=document.getElementById('ch-lon');
 if(inp){inp.value=c.n+', '+c.c;inp.dataset.zone=c.z;inp.dataset.place=c.n+', '+c.c;}
 if(la)la.value=String(c.lat);if(lo)lo.value=String(c.lon);if(box)box.innerHTML='';
 astFillTZ();}
-function _astRev(x){return((x%360)+360)%360}
-function _astKep(M,e){M=_astRev(M)*D;let E=M+e*Math.sin(M)*(1+e*Math.cos(M));
-for(let i=0;i<30;i++){const dE=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));E-=dE;if(Math.abs(dE)<1e-10)break;}return E;}
-const _AST_EL={
-Mercury:d=>[48.3313+3.24587e-5*d,7.0047+5.00e-8*d,29.1241+1.01444e-5*d,0.387098,0.205635+5.59e-10*d,168.6562+4.0923344368*d],
-Venus:d=>[76.6799+2.46590e-5*d,3.3946+2.75e-8*d,54.8910+1.38374e-5*d,0.723330,0.006773-1.302e-9*d,48.0052+1.6021302244*d],
-Mars:d=>[49.5574+2.11081e-5*d,1.8497-1.78e-8*d,286.5016+2.92961e-5*d,1.523688,0.093405+2.516e-9*d,18.6021+0.5240207766*d],
-Jupiter:d=>[100.4542+2.76854e-5*d,1.3030-1.557e-7*d,273.8777+1.64505e-5*d,5.20256,0.048498+4.469e-9*d,19.8950+0.0830853001*d],
-Saturn:d=>[113.6634+2.38980e-5*d,2.4886-1.081e-7*d,339.3939+2.97661e-5*d,9.55475,0.055546-9.499e-9*d,316.9670+0.0334442282*d],
-Uranus:d=>[74.0005+1.3978e-5*d,0.7733+1.9e-8*d,96.6612+3.0565e-5*d,19.18171-1.55e-8*d,0.047318+7.45e-9*d,142.5905+0.011725806*d],
-Neptune:d=>[131.7806+3.0173e-5*d,1.7700-2.55e-7*d,272.8461-6.027e-6*d,30.05826+3.313e-8*d,0.008606+2.15e-9*d,260.2471+0.005995147*d]};
-function _astOrbit(el){const[N,i,w,a,e,M]=el;const E=_astKep(M,e);
-const xv=a*(Math.cos(E)-e),yv=a*Math.sqrt(1-e*e)*Math.sin(E);
-const v=Math.atan2(yv,xv)/D,r=Math.hypot(xv,yv),Nr=N*D,ir=i*D,u=(v+w)*D;
-const x=r*(Math.cos(Nr)*Math.cos(u)-Math.sin(Nr)*Math.sin(u)*Math.cos(ir));
-const y=r*(Math.sin(Nr)*Math.cos(u)+Math.cos(Nr)*Math.sin(u)*Math.cos(ir));
-const z=r*Math.sin(u)*Math.sin(ir);
-return{lon:Math.atan2(y,x)/D,lat:Math.atan2(z,Math.hypot(x,y))/D,r};}
-// Geocentric ecliptic longitudes (deg) for a UTC timestamp (ms)
-function astLongitudes(ms){
-const d=ms/864e5+2440587.5-2451543.5;
-const sn=x=>Math.sin(x*D),cs=x=>Math.cos(x*D);
-const ws=282.9404+4.70935e-5*d,es=0.016709-1.151e-9*d,Ms=356.0470+0.9856002585*d;
-const Es=_astKep(Ms,es),sxv=Math.cos(Es)-es,syv=Math.sqrt(1-es*es)*Math.sin(Es);
-const sunLon=_astRev(Math.atan2(syv,sxv)/D+ws),sr=Math.hypot(sxv,syv);
-const xs=sr*cs(sunLon),ys=sr*sn(sunLon);
-const o={Sun:sunLon};
-// Moon
-const Nm=125.1228-0.0529538083*d,wm=318.0634+0.1643573223*d,Mm=115.3654+13.0649929509*d;
-let ml=_astOrbit([Nm,5.1454,wm,60.2666,0.054900,Mm]).lon;
-const Ls=Ms+ws,Lm=Mm+wm+Nm,Dm=Lm-Ls,F=Lm-Nm;
-ml+=-1.274*sn(Mm-2*Dm)+0.658*sn(2*Dm)-0.186*sn(Ms)-0.059*sn(2*Mm-2*Dm)-0.057*sn(Mm-2*Dm+Ms)
-+0.053*sn(Mm+2*Dm)+0.046*sn(2*Dm-Ms)+0.041*sn(Mm-Ms)-0.035*sn(Dm)-0.031*sn(Mm+Ms)
--0.015*sn(2*F-2*Dm)+0.011*sn(Mm-4*Dm);
-o.Moon=_astRev(ml);o.Node=_astRev(Nm);
-// Planets
-const Mj=19.8950+0.0830853001*d,Msa=316.9670+0.0334442282*d,Mu=142.5905+0.011725806*d;
-const geo=(lon,lat,r)=>_astRev(Math.atan2(r*sn(lon)*cs(lat)+ys,r*cs(lon)*cs(lat)+xs)/D);
-for(const k in _AST_EL){const h=_astOrbit(_AST_EL[k](d));let lon=h.lon,lat=h.lat;
-if(k==='Jupiter')lon+=-0.332*sn(2*Mj-5*Msa-67.6)-0.056*sn(2*Mj-2*Msa+21)+0.042*sn(3*Mj-5*Msa+21)-0.036*sn(Mj-2*Msa)+0.022*cs(Mj-Msa)+0.023*sn(2*Mj-3*Msa+52)-0.016*sn(Mj-5*Msa-69);
-if(k==='Saturn'){lon+=0.812*sn(2*Mj-5*Msa-67.6)-0.229*cs(2*Mj-4*Msa-2)+0.119*sn(Mj-2*Msa-3)+0.046*sn(2*Mj-6*Msa-69)+0.014*sn(Mj-3*Msa+32);
-lat+=-0.020*cs(2*Mj-4*Msa-2)+0.018*sn(2*Mj-6*Msa-49);}
-if(k==='Uranus')lon+=0.040*sn(Msa-2*Mu+6)+0.035*sn(Msa-3*Mu+33)-0.015*sn(Mj-Mu+20);
-o[k]=geo(lon,lat,h.r);}
-// Pluto (J2000 fit, precessed to date)
-const P=238.95+0.003968789*d,S2=50.03+0.033459652*d;
-const pl=238.9508+0.00400703*d-19.799*sn(P)+19.848*cs(P)+0.897*sn(2*P)-4.956*cs(2*P)+0.610*sn(3*P)+1.211*cs(3*P)
--0.341*sn(4*P)-0.190*cs(4*P)+0.128*sn(5*P)-0.034*cs(5*P)-0.038*sn(6*P)+0.031*cs(6*P)+0.020*sn(S2-P)-0.010*cs(S2-P);
-const pb=-3.9082-5.453*sn(P)-14.975*cs(P)+3.527*sn(2*P)+1.673*cs(2*P)-1.051*sn(3*P)+0.328*cs(3*P)
-+0.179*sn(4*P)-0.292*cs(4*P)+0.019*sn(5*P)+0.100*cs(5*P)-0.031*sn(6*P)-0.026*cs(6*P)+0.011*cs(S2-P);
-const pr=40.72+6.68*sn(P)+6.90*cs(P)-1.18*sn(2*P)-0.03*cs(2*P)+0.15*sn(3*P)-0.14*cs(3*P);
-o.Pluto=geo(pl+3.82394e-5*d,pb,pr);
-return o;}
-// Ascendant, Midheaven, RAMC (lonE: east-positive geographic longitude)
-function astAngles(ms,lat,lonE){
-const JD=ms/864e5+2440587.5,T=(JD-2451545)/36525;
-const ramc=_astRev(280.46061837+360.98564736629*(JD-2451545)+0.000387933*T*T-T*T*T/38710000+lonE);
-const eps=(23.4392911-0.0130042*T)*D,r=ramc*D,f=Math.max(-89.9,Math.min(89.9,lat))*D;
-const mc=_astRev(Math.atan2(Math.sin(r),Math.cos(r)*Math.cos(eps))/D);
-let asc=_astRev(Math.atan2(Math.cos(r),-(Math.sin(r)*Math.cos(eps)+Math.tan(f)*Math.sin(eps)))/D);
-if(_astRev(asc-mc)>180)asc=_astRev(asc+180);
-return{ramc,mc,asc,eps,lat};}
 // House cusps [1..12] → array index 0..11
 function astHouses(sys,an){
 const{ramc,mc,asc,eps,lat}=an;
@@ -5700,7 +5741,7 @@ h+=`<div class="card" style="padding:16px 12px 12px;border-radius:16px;border-co
 <div style="text-align:center;margin-bottom:6px">
 <div class="cin" style="${sz(9)};letter-spacing:3px;color:${dim}">${src.saved?'NATAL · EVENT CHART':'LIVE TRANSIT CHART'}</div>
 <div class="cin" style="${sz(18)};color:${gold};font-weight:700;margin-top:2px">${_astEsc(src.name)}</div>
-<div style="${sz(11)};color:${txt};margin-top:2px">${whenTxt} · ${src.saved&&src.c.place?_astEsc(src.c.place)+' · ':''}${latTxt}</div>
+<div style="${sz(11)};color:${txt};margin-top:2px">${whenTxt} · ${(src.saved?src.c.place:CFG.place)?_astEsc(src.saved?src.c.place:CFG.place)+' · ':''}${latTxt}</div>
 </div>
 <div style="display:flex;justify-content:center;gap:4px;margin-bottom:6px">${Object.entries(AST_HOUSE_SYS).map(([k,l])=>`<button class="pill${sys===k?' on':''}" style="min-height:30px;${sz(10)}" onclick="CFG.chartHouse='${k}';saveCFG();render()">${l}</button>`).join('')}</div>
 ${ch.hs.sys==='porphyry'&&sys==='placidus'?`<div style="${sz(10)};color:#d98a4f;text-align:center;margin-bottom:4px">Placidus is undefined at this latitude — showing Porphyry houses.</div>`:''}
