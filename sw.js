@@ -10,7 +10,7 @@
  *   - Activate: purge stale caches automatically
  */
 
-const CACHE_NAME = 'liber-temporis-v6-2';
+const CACHE_NAME = 'liber-temporis-v6-3';
 const FONT_CACHE = 'liber-temporis-fonts-v1';
 
 // Assets to precache on install
@@ -20,9 +20,6 @@ const PRECACHE_URLS = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-180.png',
-  './icon-32.png',
-  './icon-16.png',
 ];
 
 // External origins that get their own cache (network-first, falls back to cache)

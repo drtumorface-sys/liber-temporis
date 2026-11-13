@@ -3808,7 +3808,7 @@ function applyCFG(){
   enableFirmament(!!CFG.firmament);
 }
 loadCFG();
-let S={tab:CFG.defaultTab||"now",chartSel:'now',chartForm:false,chartEdit:null,chartPick:null,southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,grimCat:null,grimExpanded:null,freqTuning:'432',freqCustomBase:'440',freqInput:'',freqSigma:72,freqAin:-12,freqEngaged:false,freqSublim:false};
+let S={tab:CFG.defaultTab||"now",chartSel:'now',chartForm:false,chartEdit:null,chartPick:null,chartSign:null,southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,grimCat:null,grimExpanded:null,freqTuning:'432',freqCustomBase:'440',freqInput:'',freqSigma:72,freqAin:-12,freqEngaged:false,freqSublim:false};
 function fmt(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:typeof CFG!=='undefined'?!CFG.tf24:true});}
 const fmtD=d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
 function tag(t,c="#b89a42"){return`<span class="tag" style="background:${c}14;color:${c};border:1px solid ${c}22">${t}</span>`}
@@ -5166,7 +5166,53 @@ const AST_BODIES=[
 {k:'Saturn',sym:'♄',c:'#a0a0b8'},{k:'Uranus',sym:'♅',c:'#4fc3c9'},{k:'Neptune',sym:'♆',c:'#7aa6e6'},
 {k:'Pluto',sym:'♇',c:'#c07a7a'},{k:'Node',sym:'☊',c:'#b89a42',nm:'North Node'},{k:'Lot',sym:'⊗',c:'#c8a860',nm:'Lot of Fortune'}];
 const AST_B=Object.fromEntries(AST_BODIES.map(b=>[b.k,b]));
+// What each planet and point signifies (brief key shown in the Chart tab)
+const AST_MEAN={
+Sun:'Core identity, vitality and conscious will — your purpose, and where you seek to shine.',
+Moon:'Emotions, instincts and inner needs — habit, memory, the body, and what makes you feel safe.',
+Mercury:'Mind and communication — how you think, learn, speak, write, trade and make connections.',
+Venus:'Love, beauty and values — attraction, pleasure, harmony, art, and what you cherish.',
+Mars:'Drive, desire and courage — how you act, assert yourself, compete, and meet conflict.',
+Jupiter:'Growth, faith and good fortune — expansion, wisdom, generosity, and where life opens up.',
+Saturn:'Structure, discipline and limits — duty, time, fear, and the hard lessons that bring mastery.',
+Uranus:'Awakening and upheaval — freedom, originality, rebellion and sudden change.',
+Neptune:'Dreams, spirit and dissolution — imagination, compassion and mysticism, but also illusion and escape.',
+Pluto:'Death, rebirth and power — deep transformation, obsession, the hidden, and what must be purged to renew.',
+Node:'The direction of growth — qualities to develop and the unfamiliar path that pulls you forward. The South Node, directly opposite, marks the past and ingrained habit.',
+Lot:'Fortune, body and material wellbeing — an ancient point calculated from the Sun, Moon and Ascendant, showing luck, health and worldly circumstance.',
+AC:'The degree rising in the east at that moment — your outward manner, body and approach to life.',
+MC:'The highest point of the chart — calling, career, reputation and public role.'};
 const AST_EL_COL={Fire:'#d9534f',Earth:'#6aa060',Air:'#d4b85a',Water:'#4A7BF7'};
+// Zodiac signs: what each represents and how it colours any placement
+// ess = essence · adj = manner · seeks = what it reaches for · shadow = pitfall
+const AST_SIGNS=[
+{img:'the Ram',dates:'Mar 21 – Apr 19',ruler:'Mars',body:'Head and face',ess:'The spark of beginnings — raw initiative, courage and the will to go first.',adj:'bold, direct and impulsive',seeks:'action, challenge and independence',shadow:'impatience and anger'},
+{img:'the Bull',dates:'Apr 20 – May 20',ruler:'Venus',body:'Neck and throat',ess:'The power to hold and build — patience, the senses and what endures.',adj:'steady, sensual and stubborn',seeks:'comfort, security and lasting value',shadow:'possessiveness and inertia'},
+{img:'the Twins',dates:'May 21 – Jun 20',ruler:'Mercury',body:'Arms, hands and lungs',ess:'The mind in motion — curiosity, language and the linking of ideas.',adj:'curious, quick and changeable',seeks:'ideas, conversation and variety',shadow:'restlessness and scattered focus'},
+{img:'the Crab',dates:'Jun 21 – Jul 22',ruler:'Moon',body:'Chest and stomach',ess:"The protective shell — feeling, memory, roots and care for one's own.",adj:'protective, sensitive and moody',seeks:'home, family and emotional safety',shadow:'clinging and defensiveness'},
+{img:'the Lion',dates:'Jul 23 – Aug 22',ruler:'Sun',body:'Heart and spine',ess:'The radiant heart — self-expression, pride, generosity and play.',adj:'proud, warm and dramatic',seeks:'creative expression, recognition and play',shadow:'vanity and the need for applause'},
+{img:'the Maiden',dates:'Aug 23 – Sep 22',ruler:'Mercury',body:'Intestines and digestion',ess:'The discerning hand — analysis, craft, service and the tending of details.',adj:'precise, practical and critical',seeks:'useful work, health and refinement',shadow:'worry and perfectionism'},
+{img:'the Scales',dates:'Sep 23 – Oct 22',ruler:'Venus',body:'Kidneys and lower back',ess:'The balance — relationship, fairness, taste and the weighing of both sides.',adj:'gracious, fair-minded and indecisive',seeks:'partnership, balance and beauty',shadow:'people-pleasing and avoidance of conflict'},
+{img:'the Scorpion',dates:'Oct 23 – Nov 21',ruler:'Mars',modern:'Pluto',body:'Reproductive organs',ess:'The depths — intensity, desire, secrets, and death-and-rebirth.',adj:'intense, probing and secretive',seeks:'depth, intimacy and hidden truth',shadow:'jealousy and the urge to control'},
+{img:'the Archer',dates:'Nov 22 – Dec 21',ruler:'Jupiter',body:'Hips and thighs',ess:'The arrow aimed far — exploration, philosophy, honesty and faith.',adj:'frank, adventurous and restless',seeks:'freedom, travel and meaning',shadow:'excess and tactlessness'},
+{img:'the Sea-Goat',dates:'Dec 22 – Jan 19',ruler:'Saturn',body:'Knees and bones',ess:'The mountain climb — ambition, duty, patience and earned authority.',adj:'disciplined, ambitious and reserved',seeks:'achievement, structure and standing',shadow:'coldness and overwork'},
+{img:'the Water-Bearer',dates:'Jan 20 – Feb 18',ruler:'Saturn',modern:'Uranus',body:'Ankles and circulation',ess:"The outsider's vision — ideals, friendship, invention and reform.",adj:'independent, inventive and detached',seeks:'ideals, community and reform',shadow:'aloofness and contrariness'},
+{img:'the Fishes',dates:'Feb 19 – Mar 20',ruler:'Jupiter',modern:'Neptune',body:'Feet',ess:'The boundless sea — empathy, imagination, surrender and the mystical.',adj:'compassionate, dreamy and elusive',seeks:'imagination, faith and union with something larger',shadow:'escapism and blurred boundaries'}];
+// One-line outline of what a planet or point placed in a sign tends to affect
+function _astAn(s){return(/^[aeiou]/i.test(s)?"an ":"a ")+s;}
+function astPlacement(k,g){switch(k){
+case'Sun':return`Identity and vitality — ${_astAn(g.adj)} sense of self that comes alive through ${g.seeks}.`;
+case'Moon':return`Emotions and needs — feelings are ${g.adj}; security comes from ${g.seeks}.`;
+case'Mercury':return`Mind and speech — thinks and communicates in ${_astAn(g.adj)} way, with attention on ${g.seeks}.`;
+case'Venus':return`Love and values — affection is ${g.adj}; drawn to ${g.seeks}.`;
+case'Mars':return`Drive and conflict — acts and asserts in ${_astAn(g.adj)} way, fighting for ${g.seeks}.`;
+case'Jupiter':return`Growth and luck — opportunity and meaning come through ${g.seeks}.`;
+case'Saturn':return`Discipline and fear — the long lessons concern ${g.seeks}; ${g.shadow} must be mastered.`;
+case'Uranus':return`Generational — a cohort that overturns convention around ${g.seeks}.`;
+case'Neptune':return`Generational — a cohort whose dreams and ideals attach to ${g.seeks}.`;
+case'Pluto':return`Generational — a cohort that transforms, and is transformed by, ${g.seeks}.`;
+case'Node':return`Path of growth — life pushes toward ${g.seeks}.`;
+case'Lot':return`Fortune — luck and material wellbeing come by way of ${g.seeks}.`;}return'';}
 const AST_MODES=['Cardinal','Fixed','Mutable'];
 const AST_ASP=[
 {n:'Conjunction',a:0,o:8,sym:'☌',c:'#d4b85a'},
@@ -5180,6 +5226,229 @@ const AST_EXA={Sun:0,Moon:1,Mercury:5,Venus:11,Mars:9,Jupiter:3,Saturn:6};
 const AST_HOUSE_SYS={placidus:'Placidus',whole:'Whole Sign',equal:'Equal'};
 const AST_FONT="'Segoe UI Symbol','Noto Sans Symbols 2','Noto Sans Symbols','Apple Symbols','DejaVu Sans',sans-serif";
 const _astT=s=>s+'︎'; // force text (not emoji) presentation
+// Major cities for the New Chart form: Name|Country|lat|lon(E+)|IANA time zone
+const AST_CITIES=`New York|USA|40.71|-74.01|America/New_York
+Los Angeles|USA|34.05|-118.24|America/Los_Angeles
+Chicago|USA|41.88|-87.63|America/Chicago
+Houston|USA|29.76|-95.37|America/Chicago
+Phoenix|USA|33.45|-112.07|America/Phoenix
+Philadelphia|USA|39.95|-75.17|America/New_York
+San Antonio|USA|29.42|-98.49|America/Chicago
+San Diego|USA|32.72|-117.16|America/Los_Angeles
+Dallas|USA|32.78|-96.80|America/Chicago
+San Francisco|USA|37.77|-122.42|America/Los_Angeles
+Seattle|USA|47.61|-122.33|America/Los_Angeles
+Denver|USA|39.74|-104.99|America/Denver
+Boston|USA|42.36|-71.06|America/New_York
+Washington DC|USA|38.91|-77.04|America/New_York
+Miami|USA|25.76|-80.19|America/New_York
+Atlanta|USA|33.75|-84.39|America/New_York
+Detroit|USA|42.33|-83.05|America/Detroit
+Minneapolis|USA|44.98|-93.27|America/Chicago
+New Orleans|USA|29.95|-90.07|America/Chicago
+Las Vegas|USA|36.17|-115.14|America/Los_Angeles
+Portland|USA|45.52|-122.68|America/Los_Angeles
+Salt Lake City|USA|40.76|-111.89|America/Denver
+Nashville|USA|36.16|-86.78|America/Chicago
+St. Louis|USA|38.63|-90.20|America/Chicago
+Honolulu|USA|21.31|-157.86|Pacific/Honolulu
+Anchorage|USA|61.22|-149.90|America/Anchorage
+Toronto|Canada|43.65|-79.38|America/Toronto
+Montreal|Canada|45.50|-73.57|America/Toronto
+Vancouver|Canada|49.28|-123.12|America/Vancouver
+Calgary|Canada|51.05|-114.07|America/Edmonton
+Edmonton|Canada|53.55|-113.49|America/Edmonton
+Ottawa|Canada|45.42|-75.70|America/Toronto
+Winnipeg|Canada|49.90|-97.14|America/Winnipeg
+Halifax|Canada|44.65|-63.57|America/Halifax
+Mexico City|Mexico|19.43|-99.13|America/Mexico_City
+Guadalajara|Mexico|20.67|-103.35|America/Mexico_City
+Monterrey|Mexico|25.69|-100.32|America/Monterrey
+Havana|Cuba|23.11|-82.37|America/Havana
+San Juan|Puerto Rico|18.47|-66.11|America/Puerto_Rico
+Kingston|Jamaica|17.97|-76.79|America/Jamaica
+Santo Domingo|Dominican Republic|18.49|-69.93|America/Santo_Domingo
+Guatemala City|Guatemala|14.63|-90.51|America/Guatemala
+San José|Costa Rica|9.93|-84.08|America/Costa_Rica
+Panama City|Panama|8.98|-79.52|America/Panama
+São Paulo|Brazil|-23.55|-46.63|America/Sao_Paulo
+Rio de Janeiro|Brazil|-22.91|-43.17|America/Sao_Paulo
+Brasília|Brazil|-15.79|-47.88|America/Sao_Paulo
+Salvador|Brazil|-12.97|-38.50|America/Bahia
+Buenos Aires|Argentina|-34.60|-58.38|America/Argentina/Buenos_Aires
+Santiago|Chile|-33.45|-70.67|America/Santiago
+Lima|Peru|-12.05|-77.04|America/Lima
+Bogotá|Colombia|4.71|-74.07|America/Bogota
+Caracas|Venezuela|10.48|-66.90|America/Caracas
+Quito|Ecuador|-0.18|-78.47|America/Guayaquil
+La Paz|Bolivia|-16.50|-68.15|America/La_Paz
+Montevideo|Uruguay|-34.90|-56.16|America/Montevideo
+Asunción|Paraguay|-25.26|-57.58|America/Asuncion
+London|UK|51.51|-0.13|Europe/London
+Manchester|UK|53.48|-2.24|Europe/London
+Birmingham|UK|52.49|-1.89|Europe/London
+Edinburgh|UK|55.95|-3.19|Europe/London
+Glasgow|UK|55.86|-4.25|Europe/London
+Belfast|UK|54.60|-5.93|Europe/London
+Cardiff|UK|51.48|-3.18|Europe/London
+Dublin|Ireland|53.35|-6.26|Europe/Dublin
+Paris|France|48.86|2.35|Europe/Paris
+Marseille|France|43.30|5.37|Europe/Paris
+Lyon|France|45.76|4.84|Europe/Paris
+Berlin|Germany|52.52|13.40|Europe/Berlin
+Munich|Germany|48.14|11.58|Europe/Berlin
+Hamburg|Germany|53.55|9.99|Europe/Berlin
+Frankfurt|Germany|50.11|8.68|Europe/Berlin
+Cologne|Germany|50.94|6.96|Europe/Berlin
+Madrid|Spain|40.42|-3.70|Europe/Madrid
+Barcelona|Spain|41.39|2.17|Europe/Madrid
+Lisbon|Portugal|38.72|-9.14|Europe/Lisbon
+Rome|Italy|41.90|12.50|Europe/Rome
+Milan|Italy|45.46|9.19|Europe/Rome
+Naples|Italy|40.85|14.27|Europe/Rome
+Florence|Italy|43.77|11.26|Europe/Rome
+Amsterdam|Netherlands|52.37|4.90|Europe/Amsterdam
+Brussels|Belgium|50.85|4.35|Europe/Brussels
+Zurich|Switzerland|47.38|8.54|Europe/Zurich
+Geneva|Switzerland|46.20|6.14|Europe/Zurich
+Vienna|Austria|48.21|16.37|Europe/Vienna
+Prague|Czechia|50.08|14.44|Europe/Prague
+Budapest|Hungary|47.50|19.04|Europe/Budapest
+Warsaw|Poland|52.23|21.01|Europe/Warsaw
+Kraków|Poland|50.06|19.94|Europe/Warsaw
+Copenhagen|Denmark|55.68|12.57|Europe/Copenhagen
+Stockholm|Sweden|59.33|18.07|Europe/Stockholm
+Oslo|Norway|59.91|10.75|Europe/Oslo
+Helsinki|Finland|60.17|24.94|Europe/Helsinki
+Reykjavík|Iceland|64.15|-21.94|Atlantic/Reykjavik
+Athens|Greece|37.98|23.73|Europe/Athens
+Istanbul|Türkiye|41.01|28.98|Europe/Istanbul
+Ankara|Türkiye|39.93|32.86|Europe/Istanbul
+Bucharest|Romania|44.43|26.10|Europe/Bucharest
+Sofia|Bulgaria|42.70|23.32|Europe/Sofia
+Belgrade|Serbia|44.79|20.45|Europe/Belgrade
+Zagreb|Croatia|45.81|15.98|Europe/Zagreb
+Kyiv|Ukraine|50.45|30.52|Europe/Kiev
+Minsk|Belarus|53.90|27.57|Europe/Minsk
+Moscow|Russia|55.76|37.62|Europe/Moscow
+St Petersburg|Russia|59.93|30.34|Europe/Moscow
+Novosibirsk|Russia|55.03|82.92|Asia/Novosibirsk
+Vladivostok|Russia|43.12|131.89|Asia/Vladivostok
+Jerusalem|Israel|31.78|35.22|Asia/Jerusalem
+Tel Aviv|Israel|32.09|34.78|Asia/Jerusalem
+Cairo|Egypt|30.04|31.24|Africa/Cairo
+Alexandria|Egypt|31.20|29.92|Africa/Cairo
+Mecca|Saudi Arabia|21.39|39.86|Asia/Riyadh
+Riyadh|Saudi Arabia|24.71|46.68|Asia/Riyadh
+Dubai|UAE|25.20|55.27|Asia/Dubai
+Abu Dhabi|UAE|24.45|54.38|Asia/Dubai
+Doha|Qatar|25.29|51.53|Asia/Qatar
+Kuwait City|Kuwait|29.38|47.98|Asia/Kuwait
+Baghdad|Iraq|33.31|44.37|Asia/Baghdad
+Tehran|Iran|35.69|51.39|Asia/Tehran
+Damascus|Syria|33.51|36.28|Asia/Damascus
+Beirut|Lebanon|33.89|35.50|Asia/Beirut
+Amman|Jordan|31.95|35.93|Asia/Amman
+Casablanca|Morocco|33.57|-7.59|Africa/Casablanca
+Fez|Morocco|34.03|-5.00|Africa/Casablanca
+Algiers|Algeria|36.75|3.06|Africa/Algiers
+Tunis|Tunisia|36.81|10.18|Africa/Tunis
+Tripoli|Libya|32.89|13.19|Africa/Tripoli
+Lagos|Nigeria|6.52|3.38|Africa/Lagos
+Abuja|Nigeria|9.08|7.40|Africa/Lagos
+Accra|Ghana|5.60|-0.19|Africa/Accra
+Dakar|Senegal|14.72|-17.47|Africa/Dakar
+Addis Ababa|Ethiopia|9.03|38.74|Africa/Addis_Ababa
+Nairobi|Kenya|-1.29|36.82|Africa/Nairobi
+Kampala|Uganda|0.35|32.58|Africa/Kampala
+Dar es Salaam|Tanzania|-6.79|39.21|Africa/Dar_es_Salaam
+Kinshasa|DR Congo|-4.44|15.27|Africa/Kinshasa
+Luanda|Angola|-8.84|13.23|Africa/Luanda
+Khartoum|Sudan|15.50|32.56|Africa/Khartoum
+Johannesburg|South Africa|-26.20|28.05|Africa/Johannesburg
+Cape Town|South Africa|-33.92|18.42|Africa/Johannesburg
+Durban|South Africa|-29.86|31.02|Africa/Johannesburg
+Harare|Zimbabwe|-17.83|31.05|Africa/Harare
+Karachi|Pakistan|24.86|67.01|Asia/Karachi
+Lahore|Pakistan|31.55|74.34|Asia/Karachi
+Islamabad|Pakistan|33.68|73.05|Asia/Karachi
+Kabul|Afghanistan|34.56|69.21|Asia/Kabul
+Tashkent|Uzbekistan|41.30|69.24|Asia/Tashkent
+Almaty|Kazakhstan|43.24|76.89|Asia/Almaty
+Delhi|India|28.61|77.21|Asia/Kolkata
+Mumbai|India|19.08|72.88|Asia/Kolkata
+Kolkata|India|22.57|88.36|Asia/Kolkata
+Chennai|India|13.08|80.27|Asia/Kolkata
+Bengaluru|India|12.97|77.59|Asia/Kolkata
+Hyderabad|India|17.39|78.49|Asia/Kolkata
+Varanasi|India|25.32|82.97|Asia/Kolkata
+Kathmandu|Nepal|27.72|85.32|Asia/Kathmandu
+Dhaka|Bangladesh|23.81|90.41|Asia/Dhaka
+Colombo|Sri Lanka|6.93|79.86|Asia/Colombo
+Bangkok|Thailand|13.76|100.50|Asia/Bangkok
+Yangon|Myanmar|16.84|96.17|Asia/Rangoon
+Hanoi|Vietnam|21.03|105.85|Asia/Ho_Chi_Minh
+Ho Chi Minh City|Vietnam|10.82|106.63|Asia/Ho_Chi_Minh
+Phnom Penh|Cambodia|11.56|104.92|Asia/Phnom_Penh
+Kuala Lumpur|Malaysia|3.14|101.69|Asia/Kuala_Lumpur
+Singapore|Singapore|1.35|103.82|Asia/Singapore
+Jakarta|Indonesia|-6.21|106.85|Asia/Jakarta
+Denpasar (Bali)|Indonesia|-8.65|115.22|Asia/Makassar
+Manila|Philippines|14.60|120.98|Asia/Manila
+Hong Kong|China|22.32|114.17|Asia/Hong_Kong
+Beijing|China|39.90|116.41|Asia/Shanghai
+Shanghai|China|31.23|121.47|Asia/Shanghai
+Guangzhou|China|23.13|113.26|Asia/Shanghai
+Shenzhen|China|22.54|114.06|Asia/Shanghai
+Chengdu|China|30.57|104.07|Asia/Shanghai
+Taipei|Taiwan|25.03|121.57|Asia/Taipei
+Seoul|South Korea|37.57|126.98|Asia/Seoul
+Busan|South Korea|35.18|129.08|Asia/Seoul
+Tokyo|Japan|35.68|139.69|Asia/Tokyo
+Osaka|Japan|34.69|135.50|Asia/Tokyo
+Kyoto|Japan|35.01|135.77|Asia/Tokyo
+Ulaanbaatar|Mongolia|47.89|106.91|Asia/Ulaanbaatar
+Sydney|Australia|-33.87|151.21|Australia/Sydney
+Melbourne|Australia|-37.81|144.96|Australia/Melbourne
+Brisbane|Australia|-27.47|153.03|Australia/Brisbane
+Perth|Australia|-31.95|115.86|Australia/Perth
+Adelaide|Australia|-34.93|138.60|Australia/Adelaide
+Canberra|Australia|-35.28|149.13|Australia/Sydney
+Hobart|Australia|-42.88|147.33|Australia/Hobart
+Darwin|Australia|-12.46|130.84|Australia/Darwin
+Gold Coast|Australia|-28.02|153.40|Australia/Brisbane
+Newcastle|Australia|-32.93|151.78|Australia/Sydney
+Bathurst|Australia|-33.42|149.58|Australia/Sydney
+Cairns|Australia|-16.92|145.77|Australia/Brisbane
+Auckland|New Zealand|-36.85|174.76|Pacific/Auckland
+Wellington|New Zealand|-41.29|174.78|Pacific/Auckland
+Christchurch|New Zealand|-43.53|172.64|Pacific/Auckland
+Suva|Fiji|-18.14|178.44|Pacific/Fiji
+Port Moresby|Papua New Guinea|-9.44|147.18|Pacific/Port_Moresby`.split('\n').map(l=>{const[n,c,la,lo,z]=l.trim().split('|');return{n,c,lat:+la,lon:+lo,z};});
+function _astNorm(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();}
+// UTC offset (hours, east +) of an IANA zone for a local wall-clock date & time — handles DST and historical changes
+function astZoneOffset(zone,date,time){
+try{const[y,mo,d]=String(date).split('-').map(Number),[hh,mi]=String(time||'12:00').split(':').map(Number);
+const wall=Date.UTC(y,mo-1,d,hh||0,mi||0);
+const f=new Intl.DateTimeFormat('en-US',{timeZone:zone,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'});
+const offAt=t=>{const p={};f.formatToParts(new Date(t)).forEach(x=>{p[x.type]=+x.value;});return(Date.UTC(p.year,p.month-1,p.day,p.hour%24,p.minute,p.second)-t)/36e5;};
+let off=offAt(wall);off=offAt(wall-off*36e5);
+return isFinite(off)?Math.round(off*100)/100:null;}catch(e){return null;}}
+function astCitySearch(q){
+const inp=document.getElementById('ch-city'),box=document.getElementById('ch-city-res');if(!box)return;
+if(inp){inp.dataset.zone='';inp.dataset.place='';}
+const nq=_astNorm(q).trim();if(!nq){box.innerHTML='';return;}
+const a=[],b=[];AST_CITIES.forEach((c,i)=>{const nn=_astNorm(c.n),nc=_astNorm(c.c);
+if(nn.startsWith(nq))a.push(i);else if(nn.includes(nq)||nc.startsWith(nq))b.push(i);});
+const hits=a.concat(b).slice(0,8);
+box.innerHTML=hits.length?`<div style="margin-top:4px;border:1px solid #242438;border-radius:8px;overflow:hidden;background:#07070c">${hits.map(i=>{const c=AST_CITIES[i];
+return`<button type="button" onclick="astCityPick(${i})" style="display:flex;justify-content:space-between;gap:8px;width:100%;padding:9px 10px;background:none;border:none;border-bottom:1px solid #24243855;color:#d0d0e0;cursor:pointer;text-align:left;font-family:'EB Garamond',serif;${sz(13)}"><span>${_astEsc(c.n)}<span style="color:#606078">, ${_astEsc(c.c)}</span></span><span style="color:#606078;${sz(10)};white-space:nowrap">${Math.abs(c.lat).toFixed(2)}°${c.lat>=0?'N':'S'} ${Math.abs(c.lon).toFixed(2)}°${c.lon>=0?'E':'W'}</span></button>`}).join('')}</div>`
+:`<div style="${sz(10)};color:#606078;margin-top:4px">No match in the list — enter the latitude and longitude below by hand.</div>`;}
+function astCityPick(i){const c=AST_CITIES[i];if(!c)return;
+const inp=document.getElementById('ch-city'),box=document.getElementById('ch-city-res'),la=document.getElementById('ch-lat'),lo=document.getElementById('ch-lon');
+if(inp){inp.value=c.n+', '+c.c;inp.dataset.zone=c.z;inp.dataset.place=c.n+', '+c.c;}
+if(la)la.value=String(c.lat);if(lo)lo.value=String(c.lon);if(box)box.innerHTML='';
+astFillTZ();}
 function _astRev(x){return((x%360)+360)%360}
 function _astKep(M,e){M=_astRev(M)*D;let E=M+e*Math.sin(M)*(1+e*Math.cos(M));
 for(let i=0;i<30;i++){const dE=(E-e*Math.sin(E)-M)/(1-e*Math.cos(E));E-=dE;if(Math.abs(dE)<1e-10)break;}return E;}
@@ -5306,9 +5575,11 @@ s+=`<circle cx="${C}" cy="${C}" r="${R0}" fill="url(#astBg)" stroke="#b89a4255" 
 // Zodiac band
 for(let i=0;i<12;i++){const a0=i*30,a1=a0+30,col=AST_EL_COL[EL[i]];
 const[x0,y0]=P(a0,R0),[x1,y1]=P(a1,R0),[x2,y2]=P(a1,RZ),[x3,y3]=P(a0,RZ);
-s+=`<path d="M${f2(x0)},${f2(y0)} A${R0},${R0} 0 0 0 ${f2(x1)},${f2(y1)} L${f2(x2)},${f2(y2)} A${RZ},${RZ} 0 0 1 ${f2(x3)},${f2(y3)} Z" fill="${col}14" stroke="#b89a4240" stroke-width="0.8"/>`;
+const sgSel=S.chartSign===i;
+s+=`<g style="cursor:pointer" onclick="S.chartSign=S.chartSign===${i}?null:${i};S.chartPick=null;render()"><title>${ZS[i]}</title>`;
+s+=`<path d="M${f2(x0)},${f2(y0)} A${R0},${R0} 0 0 0 ${f2(x1)},${f2(y1)} L${f2(x2)},${f2(y2)} A${RZ},${RZ} 0 0 1 ${f2(x3)},${f2(y3)} Z" fill="${col}${sgSel?'55':'14'}" stroke="${sgSel?col:'#b89a4240'}" stroke-width="${sgSel?1.4:0.8}"/>`;
 const[gx,gy]=P(a0+15,(R0+RZ)/2);
-s+=`<text x="${f2(gx)}" y="${f2(gy)}" text-anchor="middle" dominant-baseline="central" font-size="17" fill="${col}" opacity="0.92">${_astT(ZY[i])}</text>`;}
+s+=`<text x="${f2(gx)}" y="${f2(gy)}" text-anchor="middle" dominant-baseline="central" font-size="17" fill="${sgSel?'#ffffff':col}" opacity="0.92">${_astT(ZY[i])}</text></g>`;}
 // Degree ticks
 for(let dgr=0;dgr<360;dgr++){const len=dgr%10===0?9:dgr%5===0?6:3;const[x0,y0]=P(dgr,RZ),[x1,y1]=P(dgr,RZ-len);
 s+=`<line x1="${f2(x0)}" y1="${f2(y0)}" x2="${f2(x1)}" y2="${f2(y1)}" stroke="#b89a42" stroke-opacity="${dgr%10===0?0.55:0.28}" stroke-width="${dgr%10===0?0.9:0.6}"/>`;}
@@ -5340,7 +5611,7 @@ const[tx0,ty0]=P(p.lon,RZ),[tx1,ty1]=P(p.lon,RZ-12),[gx,gy]=P(dl,RP-6),[lx,ly]=P
 const sel=S.chartPick===p.k,fd=astFmtDeg(p.lon);
 s+=`<line x1="${f2(tx0)}" y1="${f2(ty0)}" x2="${f2(tx1)}" y2="${f2(ty1)}" stroke="${b.c}" stroke-width="1.4"/>`;
 if(AK.includes(p.k))s+=`<circle cx="${f2(ax)}" cy="${f2(ay)}" r="1.8" fill="${b.c}"/>`;
-s+=`<g style="cursor:pointer" onclick="S.chartPick=S.chartPick==='${p.k}'?null:'${p.k}';render()">`;
+s+=`<g style="cursor:pointer" onclick="S.chartPick=S.chartPick==='${p.k}'?null:'${p.k}';S.chartSign=null;render()">`;
 s+=`<circle cx="${f2(gx)}" cy="${f2(gy)}" r="13" fill="${sel?b.c+'33':'#07070c00'}" stroke="${sel?b.c:'none'}" stroke-width="1"/>`;
 s+=`<text x="${f2(gx)}" y="${f2(gy)}" text-anchor="middle" dominant-baseline="central" font-size="${p.k==='Lot'?14:18}" fill="${b.c}">${_astT(b.sym)}</text>`;
 s+=`<text x="${f2(lx)}" y="${f2(ly)}" text-anchor="middle" dominant-baseline="central" font-size="8.5" fill="#8a96a8" font-family="'EB Garamond',serif">${fd.dg}°${p.retro?'<tspan fill="#d9534f"> ℞</tspan>':''}</text>`;
@@ -5359,7 +5630,8 @@ const tz=parseFloat(g('ch-tz')),lat=parseFloat(g('ch-lat')),lon=parseFloat(g('ch
 if(!date||!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('Please enter a date.');return;}
 if(isNaN(lat)||lat<-90||lat>90){alert('Latitude must be between -90 and 90.');return;}
 if(isNaN(lon)||lon<-180||lon>180){alert('Longitude must be between -180 and 180 (west is negative).');return;}
-const rec={name:name.slice(0,60),date,time,tz:isNaN(tz)?0:tz,lat,lon};
+const cityEl=document.getElementById('ch-city'),cds=cityEl&&cityEl.dataset?cityEl.dataset:{};
+const rec={name:name.slice(0,60),date,time,tz:isNaN(tz)?0:tz,lat,lon,place:String(cds.place||'').slice(0,60),zone:String(cds.zone||'').slice(0,40)};
 CFG.charts=CFG.charts||[];
 if(S.chartEdit!=null&&CFG.charts[S.chartEdit]){CFG.charts[S.chartEdit]=rec;S.chartSel=S.chartEdit;}
 else{CFG.charts.push(rec);S.chartSel=CFG.charts.length-1;}
@@ -5368,9 +5640,15 @@ function astDeleteChart(i){const c=(CFG.charts||[])[i];if(!c)return;
 if(!confirm('Delete the chart "'+c.name+'"? This cannot be undone.'))return;
 CFG.charts.splice(i,1);S.chartSel='now';S.chartPick=null;saveCFG();render();}
 function astFillTZ(){const d=(document.getElementById('ch-date')||{}).value,t=(document.getElementById('ch-time')||{}).value||'12:00';
-if(!d)return;const dt=new Date(d+'T'+t);if(isNaN(dt))return;const el=document.getElementById('ch-tz');if(el)el.value=String(-dt.getTimezoneOffset()/60);}
+if(!d)return;const el=document.getElementById('ch-tz'),note=document.getElementById('ch-tz-note'),city=document.getElementById('ch-city');
+const zone=city&&city.dataset?city.dataset.zone:'';
+if(zone){const off=astZoneOffset(zone,d,t);if(off!==null){if(el)el.value=String(off);
+if(note)note.textContent='Set from the '+zone+' time zone for this date (UTC'+(off>=0?'+':'')+off+'), daylight saving included.';return;}}
+const dt=new Date(d+'T'+t);if(isNaN(dt))return;if(el)el.value=String(-dt.getTimezoneOffset()/60);
+if(note)note.textContent="Filled in from this device's time zone — adjust if the birthplace differs.";}
 function astGeo(){if(!navigator.geolocation){alert('Geolocation not supported');return;}
-navigator.geolocation.getCurrentPosition(p=>{const a=document.getElementById('ch-lat'),b=document.getElementById('ch-lon');
+navigator.geolocation.getCurrentPosition(p=>{const a=document.getElementById('ch-lat'),b=document.getElementById('ch-lon'),c=document.getElementById('ch-city');
+if(c){c.value='';c.dataset.zone='';c.dataset.place='';}
 if(a)a.value=(Math.round(p.coords.latitude*100)/100).toString();if(b)b.value=(Math.round(p.coords.longitude*100)/100).toString();},()=>alert('Location unavailable'));}
 // ── Tab renderer ──
 function renderChart(){
@@ -5399,8 +5677,11 @@ h+=`<div class="card" style="padding:14px 16px;border-color:${gold}33">
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
 <div>${lab('DATE')}<input id="ch-date" type="date" value="${dv}" onchange="astFillTZ()" style="${inp}"></div>
 <div>${lab('LOCAL TIME')}<input id="ch-time" type="time" value="${tv}" onchange="astFillTZ()" style="${inp}"></div></div>
-<div style="margin-bottom:8px">${lab('UTC OFFSET (HOURS) AT THAT PLACE & DATE')}<input id="ch-tz" type="number" step="0.25" min="-14" max="14" value="${e?e.tz:-nowD.getTimezoneOffset()/60}" style="${inp}">
-<div style="${sz(10)};color:${dim};margin-top:3px;line-height:1.4">Auto-filled from this device's time zone — adjust if the birthplace differs. E.g. New York: −5 (winter) / −4 (summer); London: 0 / +1.</div></div>
+<div style="margin-bottom:8px">${lab('PLACE — SEARCH A MAJOR CITY (OPTIONAL)')}<input id="ch-city" type="text" autocomplete="off" maxlength="60" placeholder="Type a city, e.g. Sydney" value="${_astEsc(e&&e.place?e.place:'')}" data-zone="${_astEsc(e&&e.zone?e.zone:'')}" data-place="${_astEsc(e&&e.place?e.place:'')}" oninput="astCitySearch(this.value)" style="${inp}">
+<div id="ch-city-res"></div>
+<div style="${sz(10)};color:${dim};margin-top:3px;line-height:1.4">Picking a city fills in the latitude, longitude and UTC offset below. For anywhere else, enter them by hand.</div></div>
+<div style="margin-bottom:8px">${lab('UTC OFFSET (HOURS) AT THAT PLACE & DATE')}<input id="ch-tz" type="number" step="any" min="-14" max="14" value="${e?e.tz:-nowD.getTimezoneOffset()/60}" style="${inp}">
+<div id="ch-tz-note" style="${sz(10)};color:${dim};margin-top:3px;line-height:1.4">${e&&e.zone?`Set from the ${_astEsc(e.zone)} time zone for this date.`:`Filled in from this device's time zone unless you pick a city — adjust if the birthplace differs. E.g. New York: −5 (winter) / −4 (summer); London: 0 / +1.`}</div></div>
 <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px">
 <div>${lab('LATITUDE (N +)')}<input id="ch-lat" type="number" step="0.01" min="-90" max="90" value="${e?e.lat:CFG.lat}" style="${inp}"></div>
 <div>${lab('LONGITUDE (E + / W −)')}<input id="ch-lon" type="number" step="0.01" min="-180" max="180" value="${e?e.lon:(CFG.lon==null?-74.0:CFG.lon)}" style="${inp}"></div>
@@ -5419,7 +5700,7 @@ h+=`<div class="card" style="padding:16px 12px 12px;border-radius:16px;border-co
 <div style="text-align:center;margin-bottom:6px">
 <div class="cin" style="${sz(9)};letter-spacing:3px;color:${dim}">${src.saved?'NATAL · EVENT CHART':'LIVE TRANSIT CHART'}</div>
 <div class="cin" style="${sz(18)};color:${gold};font-weight:700;margin-top:2px">${_astEsc(src.name)}</div>
-<div style="${sz(11)};color:${txt};margin-top:2px">${whenTxt} · ${latTxt}</div>
+<div style="${sz(11)};color:${txt};margin-top:2px">${whenTxt} · ${src.saved&&src.c.place?_astEsc(src.c.place)+' · ':''}${latTxt}</div>
 </div>
 <div style="display:flex;justify-content:center;gap:4px;margin-bottom:6px">${Object.entries(AST_HOUSE_SYS).map(([k,l])=>`<button class="pill${sys===k?' on':''}" style="min-height:30px;${sz(10)}" onclick="CFG.chartHouse='${k}';saveCFG();render()">${l}</button>`).join('')}</div>
 ${ch.hs.sys==='porphyry'&&sys==='placidus'?`<div style="${sz(10)};color:#d98a4f;text-align:center;margin-bottom:4px">Placidus is undefined at this latitude — showing Porphyry houses.</div>`:''}
@@ -5428,11 +5709,41 @@ ${astWheel(ch)}
 <span>AC <span style="color:${gold}">${ZY[astFmtDeg(ch.an.asc).si]}︎ ${astFmtDeg(ch.an.asc).txt}</span></span>
 <span>MC <span style="color:${gold}">${ZY[astFmtDeg(ch.an.mc).si]}︎ ${astFmtDeg(ch.an.mc).txt}</span></span>
 <span>${ch.day?'☉ Day chart':'☽ Night chart'}</span></div>
-<div style="${sz(10)};color:${dim};text-align:center;margin-top:4px;font-style:italic">Tap a planet to see its correspondences</div>
+<div style="${sz(10)};color:${dim};text-align:center;margin-top:4px;font-style:italic">Tap a planet or a zodiac sign for its meaning</div>
 ${src.saved?`<div style="display:flex;justify-content:center;gap:6px;margin-top:8px">
 <button class="back" style="margin:0;${sz(10)}" onclick="S.chartForm=true;S.chartEdit=${S.chartSel};render()">✎ Edit</button>
 <button class="back" style="margin:0;${sz(10)};border-color:#d9534f66;color:#d9534f" onclick="astDeleteChart(${S.chartSel})">✕ Delete</button></div>`:''}
 </div>`;
+// Selected zodiac sign detail
+if(S.chartSign!=null&&AST_SIGNS[S.chartSign]){const si=S.chartSign,g=AST_SIGNS[si],col=AST_EL_COL[EL[si]],nm=ZS[si];
+const here=AST_BODIES.filter(b=>Math.floor(_astRev(ch.pts[b.k].lon)/30)===si),others=AST_BODIES.filter(b=>!here.includes(b));
+const cuspHere=[['Ascendant',ch.an.asc],['Midheaven',ch.an.mc]].filter(([,l])=>Math.floor(_astRev(l)/30)===si).map(([t])=>t);
+const tile=(t,v)=>`<div style="padding:8px 10px;background:#07070c66;border-radius:8px;border:1px solid #24243814"><div style="${sz(8)};color:${dim};letter-spacing:1px">${t}</div><div style="${sz(12)};color:${txt};margin-top:2px;line-height:1.4">${v}</div></div>`;
+const pRow=(b,inChart)=>{const dg=astDignity(b.k,si*30+15),p=ch.pts[b.k];
+return`<div ${inChart?`onclick="S.chartPick='${b.k}';S.chartSign=null;render()"`:''} style="display:flex;gap:9px;padding:6px 4px;border-bottom:1px solid #24243822;${inChart?`cursor:pointer;background:${b.c}0d;border-radius:6px`:''}">
+<div style="width:22px;text-align:center;flex-shrink:0;color:${b.c};font-family:${AST_FONT};${sz(16)};opacity:${inChart?1:0.75}">${_astT(b.sym)}</div>
+<div style="flex:1"><div style="${sz(11)};color:${inChart?b.c:txt}" class="cin">${b.nm||b.k} in ${nm}${inChart?` <span style="color:${txt};font-family:'EB Garamond',serif">· ${astFmtDeg(p.lon).txt}${p.retro?' <span style="color:#d9534f">℞</span>':''} · House ${p.house}</span>`:''}${dg?` <span style="color:${dg.c};font-family:'EB Garamond',serif">· ${dg.t}</span>`:''}</div>
+<div style="${sz(12)};color:${inChart?'#b8c0d0':txt};line-height:1.4;margin-top:1px">${astPlacement(b.k,g)}</div></div></div>`;};
+h+=`<div class="card fi" style="padding:14px 16px;border-color:${col}44;background:linear-gradient(135deg,#151520,${col}0c)">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+<div style="font-family:${AST_FONT};${sz(30)};color:${col};line-height:1">${_astT(ZY[si])}</div>
+<div style="flex:1"><div class="cin" style="${sz(15)};color:${col};font-weight:700">${nm} <span style="${sz(11)};font-weight:400;color:${txt}">· ${g.img}</span></div>
+<div style="${sz(12)};color:${txt}">${EL[si]} · ${AST_MODES[si%3]} · ruled by ${g.ruler}${g.modern?` (modern: ${g.modern})`:''}</div></div>
+<button class="back" style="margin:0" onclick="S.chartSign=null;render()">✕</button></div>
+<div style="${sz(12)};color:${txt};line-height:1.45;font-style:italic;margin-bottom:8px;padding-left:10px;border-left:2px solid ${col}66">${g.ess}</div>
+<div style="${sz(12)};color:${txt};line-height:1.45;margin-bottom:10px">Anything placed in ${nm} works in ${/^[aeiou]/i.test(g.adj)?"an":"a"} <span style="color:${col}">${g.adj}</span> way and reaches for <span style="color:${col}">${g.seeks}</span>. Its pitfall is ${g.shadow}.</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">
+${tile('SUN IN THIS SIGN',g.dates)}
+${tile('BODY',g.body)}
+${typeof SIGN_LETTER!=='undefined'&&SIGN_LETTER[nm]?tile('HEBREW LETTER',`<span style="color:${gold};font-family:serif;${sz(15)}">${SIGN_LETTER[nm]}</span> ${typeof SIGN_LETTER_NAME!=='undefined'&&SIGN_LETTER_NAME[nm]?SIGN_LETTER_NAME[nm]:''}`):''}
+${tile('ANGLES HERE',cuspHere.length?cuspHere.join(' · '):'None in this chart')}
+</div>
+<div style="${sz(8)};color:${dim};letter-spacing:1px;margin-bottom:4px" class="cin">IN THIS CHART</div>
+${here.length?here.map(b=>pRow(b,true)).join(''):`<div style="${sz(11)};color:${dim};margin-bottom:4px">No planets or points fall in ${nm} in this chart.</div>`}
+<div style="${sz(8)};color:${dim};letter-spacing:1px;margin:10px 0 4px" class="cin">WHAT OTHER PLACEMENTS HERE WOULD AFFECT</div>
+${others.map(b=>pRow(b,false)).join('')}
+<div style="${sz(9)};color:${dim};margin-top:6px;line-height:1.4">Brief keyword outlines only — the house, aspects and the rest of the chart all modify how a placement plays out.</div>
+</div>`;}
 // Selected planet detail
 if(S.chartPick&&ch.pts[S.chartPick]){const p=ch.pts[S.chartPick],b=AST_B[p.k],fd=astFmtDeg(p.lon),sb=getSabaton(p.lon),dg=astDignity(p.k,p.lon);
 const myAsp=ch.asp.filter(a=>a.a===p.k||a.b===p.k);
@@ -5443,6 +5754,7 @@ h+=`<div class="card fi" style="padding:14px 16px;border-color:${b.c}44;backgrou
 <div style="flex:1"><div class="cin" style="${sz(15)};color:${b.c};font-weight:700">${b.nm||p.k}${p.retro?' <span style="color:#d9534f">℞</span>':''}</div>
 <div style="${sz(12)};color:${txt}">${fd.txt} ${ZS[fd.si]} · House ${p.house}${dg?` · <span style="color:${dg.c}">${dg.t}</span>`:''}</div></div>
 <button class="back" style="margin:0" onclick="S.chartPick=null;render()">✕</button></div>
+${AST_MEAN[p.k]?`<div style="${sz(12)};color:${txt};line-height:1.45;font-style:italic;margin-bottom:10px;padding-left:10px;border-left:2px solid ${b.c}66">${AST_MEAN[p.k]}</div>`:''}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px">
 ${tile('DECAN · '+sb.decan.pl.toUpperCase(),sb.decan.img)}
 ${tile('SABIAN SYMBOL · '+ZS[fd.si].toUpperCase()+' '+sb.sabDeg,'“'+sb.sabian+'”')}
@@ -5453,7 +5765,7 @@ ${myAsp.length?`<div style="${sz(8)};color:${dim};letter-spacing:1px;margin-bott
 </div>`;}
 // Positions table
 const rows=AST_BODIES.map(b=>{const p=ch.pts[b.k];const fd=astFmtDeg(p.lon),dg=astDignity(b.k,p.lon);
-return`<tr onclick="S.chartPick='${b.k}';render();window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer;${S.chartPick===b.k?`background:${b.c}12`:''}">
+return`<tr onclick="S.chartPick='${b.k}';S.chartSign=null;render();window.scrollTo({top:0,behavior:'smooth'})" style="cursor:pointer;${S.chartPick===b.k?`background:${b.c}12`:''}">
 <td style="padding:5px 4px;color:${b.c};font-family:${AST_FONT};${sz(15)};width:22px;text-align:center">${_astT(b.sym)}</td>
 <td style="padding:5px 4px;color:${txt}">${b.nm||b.k}</td>
 <td style="padding:5px 4px;color:${AST_EL_COL[EL[fd.si]]};font-family:${AST_FONT};text-align:center">${_astT(ZY[fd.si])}</td>
@@ -5481,6 +5793,13 @@ h+=`<div class="card" style="padding:14px 12px"><div class="title">Elemental Bal
 <div>${Object.entries(ch.el).map(([k,v])=>bar(k,v,AST_EL_COL[k])).join('')}</div>
 <div>${Object.entries(ch.md).map(([k,v])=>bar(k,v,gold)).join('')}</div></div>
 <div style="${sz(9)};color:${dim};margin-top:6px">Counts the ten planets (Sun through Pluto).</div></div>`;
+// Key: what each planet and point represents
+const keyRow=(symHtml,nm,col,k)=>`<div style="display:flex;gap:10px;padding:6px 2px;border-bottom:1px solid #24243822"><div style="width:24px;text-align:center;color:${col};flex-shrink:0">${symHtml}</div><div style="flex:1"><div class="cin" style="${sz(11)};color:${col};letter-spacing:1px">${nm}</div><div style="${sz(12)};color:${txt};line-height:1.4;margin-top:1px">${AST_MEAN[k]}</div></div></div>`;
+h+=`<div class="card" style="padding:14px 12px"><div class="title">Key to the Planets &amp; Points</div>
+${AST_BODIES.map(b=>keyRow(`<span style="font-family:${AST_FONT};${sz(17)}">${_astT(b.sym)}</span>`,b.nm||b.k,b.c,b.k)).join('')}
+${keyRow(`<span class="cin" style="${sz(10)}">AC</span>`,'Ascendant',gold,'AC')}
+${keyRow(`<span class="cin" style="${sz(10)}">MC</span>`,'Midheaven',gold,'MC')}
+</div>`;
 h+=`<div style="${sz(9)};color:${dim};text-align:center;margin:6px 0 14px;line-height:1.5">Tropical zodiac · geocentric · computed on-device. Positions are accurate to a few arc-minutes; double-check anything near a sign or house boundary.</div>`;
 h+=`</div>`;return h;}
 
@@ -10207,7 +10526,7 @@ function _ltTickCountdown(){
 function _ltTickAutoRefresh(){
   var activeEl=document.activeElement;
   var isTyping=activeEl&&(activeEl.tagName==='INPUT'||activeEl.tagName==='TEXTAREA'||activeEl.isContentEditable);
-  if(S.settingsOpen||S.searchOpen||S.bibleOpen||S.projOpen||isTyping)return;
+  if(S.settingsOpen||S.searchOpen||S.bibleOpen||S.projOpen||isTyping||(S.tab==='chart'&&S.chartForm))return;
 
   // ─ I · Macrocosmic LFO Anchoring: extract η(Phour) ─
   // η is the Sephirotic index of the current planetary ruler.
