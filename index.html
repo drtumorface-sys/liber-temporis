@@ -1146,7 +1146,7 @@ function doy(d){return Math.floor((d-new Date(d.getFullYear(),0,0))/864e5)}
 // True solar position (ephemeris) with the standard -0.833° horizon (refraction + solar radius).
 const _sunTCache=new Map();
 function sunT(dt,lat){
-const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:-74;
+const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:149.58;
 const noon=new Date(dt);noon.setHours(12,0,0,0);
 const key=noon.getTime()+'|'+lat+'|'+lon,hit=_sunTCache.get(key);
 if(hit)return{rise:new Date(hit[0]),set:new Date(hit[1]),transit:new Date(hit[2])};
@@ -1169,7 +1169,7 @@ function pHours(dt,lat){
 let base=new Date(dt),su=sunT(base,lat),ns=sunT(new Date(base.getTime()+864e5),lat);
 if(dt<su.rise){base=new Date(base.getTime()-864e5);ns=su;su=sunT(base,lat);}
 else if(dt>=ns.rise){base=new Date(base.getTime()+864e5);su=ns;ns=sunT(new Date(base.getTime()+864e5),lat);}
-const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:-74;
+const lon=(typeof CFG!=='undefined'&&CFG&&CFG.lon!=null&&!isNaN(CFG.lon))?+CFG.lon:149.58;
 // weekday of the planetary day = the date at the location when the Sun is on the meridian
 const wd=new Date(su.transit.getTime()+lon/15*36e5).getUTCDay();
 const dl=(su.set-su.rise)/12,nl=(ns.rise-su.set)/12,si=PO.indexOf(DR[wd]),h=[];
@@ -1364,7 +1364,12 @@ function translitHeb(s){let out='',i=0,lower=s.toLowerCase();while(i<lower.lengt
 const GRK_TR_MULTI=[['th','\u03b8'],['ph','\u03c6'],['ch','\u03c7'],['ps','\u03c8'],['ks','\u03be']];
 const GRK_TR_SINGLE={a:'\u03b1',b:'\u03b2',g:'\u03b3',d:'\u03b4',e:'\u03b5',z:'\u03b6',i:'\u03b9',k:'\u03ba',l:'\u03bb',m:'\u03bc',n:'\u03bd',x:'\u03be',o:'\u03bf',p:'\u03c0',r:'\u03c1',s:'\u03c3',t:'\u03c4',u:'\u03c5',y:'\u03c5',h:'\u03b7',w:'\u03c9'};
 function translitGrk(s){let out='',i=0,lower=s.toLowerCase();while(i<lower.length){let matched=false;for(const[ro,gc] of GRK_TR_MULTI){if(lower.slice(i,i+ro.length)===ro){out+=gc;i+=ro.length;matched=true;break;}}if(!matched){const gc=GRK_TR_SINGLE[lower[i]];if(gc)out+=gc;else if(lower[i]===' ')out+=' ';i++;}}return out.replace(/\u03c3(?= |$)/g,'\u03c2');}
-function gemHeb(s){let t=0;for(const c of s){const l=HEB_LETTERS[c];if(l)t+=l.v}return t}
+// Standard gematria (Mispar Hechrachi) gives the five final letters their ordinary value;
+// Mispar Gadol gives them 500–900. CFG.gemFinals switches the whole app to Mispar Gadol.
+const HEB_FINAL_BASE={'ך':20,'ם':40,'ן':50,'ף':80,'ץ':90};
+function gemGadol(){try{return !!CFG.gemFinals}catch(e){return false}}
+function hebVal(c,gadol){const l=HEB_LETTERS[c];if(!l)return 0;if(gadol===undefined)gadol=gemGadol();return(!gadol&&HEB_FINAL_BASE[c])?HEB_FINAL_BASE[c]:l.v}
+function gemHeb(s,gadol){if(gadol===undefined)gadol=gemGadol();let t=0;for(const c of s)t+=hebVal(c,gadol);return t}
 function gemLat(s){let t=0;for(const c of s.toLowerCase())if(LAT_VAL[c])t+=LAT_VAL[c];return t}
 function gemGrk(s){let t=0;for(const c of s.toLowerCase())if(GRK_VAL[c])t+=GRK_VAL[c];return t}
 function gemDetect(s){let heb=0,lat=0,grk=0;for(const c of s){if(HEB_LETTERS[c])heb++;if(LAT_VAL[c.toLowerCase()])lat++;if(GRK_VAL[c.toLowerCase()])grk++}if(heb>0&&heb>=grk)return'hebrew';if(grk>0&&grk>lat)return'greek';if(lat>0)return'latin';return'latin'}
@@ -3879,9 +3884,11 @@ const FS_STEPS={xs:0.78,small:0.88,normal:1.0,large:1.15,xl:1.32,xxl:1.50};
 const FS_ORDER=['xs','small','normal','large','xl','xxl'];
 const FS_LABELS={xs:'XS',small:'Small',normal:'Normal',large:'Large',xl:'XL',xxl:'XXL'};
 const FS_DESCS={xs:'Minimal — maximum content density',small:'Compact — slightly condensed',normal:'Balanced — recommended baseline',large:'Comfortable — clear legibility',xl:'Generous — relaxed reading',xxl:'Maximum — accessibility or tablet'};
-let CFG={lat:40.7,lon:-74.0,chartHouse:'placidus',charts:[],southern:false,tf24:false,fontSize:'normal',accent:'gold',reducedMotion:false,firmament:true,enduranceMode:false,hideTabs:[],electThreshold:60,notifyHour:false,notifyVOC:false,notifyGolden:false,defaultTab:'now',savedWorking:null};
+let CFG={gemFinals:false,lat:-33.42,lon:149.58,place:'Bathurst, Australia',chartHouse:'placidus',charts:[],southern:true,tf24:false,fontSize:'normal',accent:'gold',reducedMotion:false,firmament:true,enduranceMode:false,hideTabs:[],electThreshold:60,notifyHour:false,notifyVOC:false,notifyGolden:false,defaultTab:'now',savedWorking:null};
 function loadCFG(){try{const raw=localStorage.getItem('ltcfg');if(raw){
 const p=JSON.parse(raw);
+// Saved settings still holding the old built-in default (New York) take the current default instead
+if(p.lat===40.7&&(p.lon===undefined||p.lon===-74)&&!p.place){delete p.lat;delete p.lon;delete p.southern;}
 if(p.firmament===undefined)p.firmament=true;
 const _fsMap={compact:'xs',small:'small',normal:'normal',large:'large',spacious:'xl'};
 if(p.fontSize&&_fsMap[p.fontSize])p.fontSize=_fsMap[p.fontSize];
@@ -4728,10 +4735,10 @@ h+=`<div class="sgroup"><div class="sgroup-title">Location</div>
 <input id="set-city" type="text" autocomplete="off" maxlength="60" placeholder="Type a city, e.g. Sydney" value="${_astEsc(CFG.place||'')}" oninput="astCitySearch(this.value,'set-city-res','setCityPick')" style="margin:0">
 <div id="set-city-res"></div></div>
 <div class="srow"><div><div class="srow-label">Latitude</div><div class="srow-sub">Affects planetary hours, elections, VOC</div></div>
-<input type="number" min="-90" max="90" step="0.1" value="${CFG.lat.toFixed(1)}" onchange="CFG.lat=parseFloat(this.value)||40.7;CFG.southern=CFG.lat<0;CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
+<input type="number" min="-90" max="90" step="0.1" value="${CFG.lat.toFixed(1)}" onchange="var v=parseFloat(this.value);CFG.lat=isNaN(v)?-33.42:Math.max(-90,Math.min(90,v));CFG.southern=CFG.lat<0;CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
 </div>
 <div class="srow" style="padding-top:8px"><div><div class="srow-label">Longitude</div><div class="srow-sub">East +, West − · used for the chart's Ascendant &amp; houses</div></div>
-<input type="number" min="-180" max="180" step="0.1" value="${(CFG.lon==null?-74:CFG.lon).toFixed(1)}" onchange="var v=parseFloat(this.value);CFG.lon=isNaN(v)?-74:Math.max(-180,Math.min(180,v));CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
+<input type="number" min="-180" max="180" step="0.1" value="${(CFG.lon==null?149.58:CFG.lon).toFixed(1)}" onchange="var v=parseFloat(this.value);CFG.lon=isNaN(v)?149.58:Math.max(-180,Math.min(180,v));CFG.place='';saveCFG();render()" style="width:80px;padding:5px 8px;border-radius:8px;background:#07070c;border:1px solid #242438;color:var(--gold);${sz(13)};text-align:right;margin:0">
 </div>
 <div class="srow" style="padding-top:8px">
 <div><div class="srow-label">Auto-detect location</div><div class="srow-sub">Uses device GPS · stays on-device</div></div>
@@ -5664,7 +5671,7 @@ function astSource(){
 const list=CFG.charts||[];
 if(S.chartSel!=='now'&&list[S.chartSel]){const c=list[S.chartSel];const[y,mo,dd]=String(c.date).split('-').map(Number);const[hh,mi]=String(c.time||'12:00').split(':').map(Number);
 return{name:c.name||'Untitled',ms:Date.UTC(y,(mo||1)-1,dd||1,hh||0,mi||0)-(+c.tz||0)*36e5,lat:+c.lat||0,lon:+c.lon||0,tz:+c.tz||0,saved:true,c};}
-return{name:'The Sky Now',ms:Date.now(),lat:CFG.lat,lon:CFG.lon==null?-74.0:CFG.lon,tz:-new Date().getTimezoneOffset()/60,saved:false};}
+return{name:'The Sky Now',ms:Date.now(),lat:CFG.lat,lon:CFG.lon==null?149.58:CFG.lon,tz:-new Date().getTimezoneOffset()/60,saved:false};}
 function astSaveChart(){
 const g=id=>(document.getElementById(id)||{}).value;
 const name=(g('ch-name')||'').trim()||'Untitled',date=g('ch-date'),time=g('ch-time')||'12:00';
@@ -5726,7 +5733,7 @@ h+=`<div class="card" style="padding:14px 16px;border-color:${gold}33">
 <div id="ch-tz-note" style="${sz(10)};color:${dim};margin-top:3px;line-height:1.4">${e&&e.zone?`Set from the ${_astEsc(e.zone)} time zone for this date.`:`Filled in from this device's time zone unless you pick a city — adjust if the birthplace differs. E.g. New York: −5 (winter) / −4 (summer); London: 0 / +1.`}</div></div>
 <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:12px">
 <div>${lab('LATITUDE (N +)')}<input id="ch-lat" type="number" step="0.01" min="-90" max="90" value="${e?e.lat:CFG.lat}" style="${inp}"></div>
-<div>${lab('LONGITUDE (E + / W −)')}<input id="ch-lon" type="number" step="0.01" min="-180" max="180" value="${e?e.lon:(CFG.lon==null?-74.0:CFG.lon)}" style="${inp}"></div>
+<div>${lab('LONGITUDE (E + / W −)')}<input id="ch-lon" type="number" step="0.01" min="-180" max="180" value="${e?e.lon:(CFG.lon==null?149.58:CFG.lon)}" style="${inp}"></div>
 <button onclick="astGeo()" style="padding:7px 10px;background:var(--gold)18;border:1px solid var(--gold)44;border-radius:8px;color:var(--gold);cursor:pointer;${sz(11)};font-family:'Cinzel',serif;height:36px">⌖</button></div>
 <div style="display:flex;gap:8px;justify-content:flex-end">
 <button class="back" style="margin:0" onclick="S.chartForm=false;S.chartEdit=null;render()">Cancel</button>
@@ -6285,14 +6292,14 @@ return`<div class="fu">
 </div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px">
-<div class="card" style="padding:8px;text-align:center">
+<div onclick="S.tab='moon';S.mansion=null;render()" class="card" style="padding:8px;text-align:center;cursor:pointer">
 <div style="${sz(8)};color:#606078;letter-spacing:1px" class="cin">MOON</div>
 <div style="${sz(22)};margin:2px 0">${mIcon(mp,S.southern)}</div>
 <div style="${sz(10)};color:${EC[ms.el]}">${ms.sym} ${ms.sign} ${ms.deg}°</div>
 <div class="d9">${mp.name} · ${mp.ill}%</div>
-${voc.isVOC?'<div style="${sz(8)};color:#c03030;margin-top:2px;font-weight:600">⚠ VOC</div>':''}
+${voc.isVOC?`<div style="${sz(8)};color:#c03030;margin-top:2px;font-weight:600">⚠ VOC</div>`:''}
 </div>
-<div class="card" style="padding:8px;text-align:center">
+<div onclick="S.tab='moon';S.mansion=MN[${mn.n-1}];render()" class="card" style="padding:8px;text-align:center;cursor:pointer">
 <div style="${sz(8)};color:#606078;letter-spacing:1px" class="cin">MANSION</div>
 <div style="${sz(14)};color:#b89a42;margin:4px 0" class="cin">${mn.n}</div>
 <div style="${sz(10)};color:#b89a42">${mn.nm}</div>
@@ -6306,8 +6313,8 @@ ${voc.isVOC?'<div style="${sz(8)};color:#c03030;margin-top:2px;font-weight:600">
 </div>
 </div>
 <div class="grid2">
-<div class="card" style="padding:8px;text-align:center">${label('Day')}<div style="${sz(20)};color:${pc(pd.dayRuler)};margin-top:2px">${PD[pd.dayRuler].sym}</div><div class="cin" style="${sz(11)}">${pd.dayRuler}</div></div>
-<div class="card" style="padding:8px;text-align:center">${label('Sun')}<div style="${sz(18)};color:${EC[ss.el]};margin-top:2px">${ss.sym}</div><div class="cin" style="${sz(11)}">${ss.sign} ${ss.deg}°</div></div>
+<div onclick="S.tab='ref';S.refSub='planets';S.refP='${pd.dayRuler}';render()" class="card" style="padding:8px;text-align:center;cursor:pointer">${label('Day')}<div style="${sz(20)};color:${pc(pd.dayRuler)};margin-top:2px">${PD[pd.dayRuler].sym}</div><div class="cin" style="${sz(11)}">${pd.dayRuler}</div></div>
+<div onclick="S.tab='chart';S.chartSel='now';S.chartForm=false;S.chartSign=null;S.chartPick='Sun';render()" class="card" style="padding:8px;text-align:center;cursor:pointer">${label('Sun')}<div style="${sz(18)};color:${EC[ss.el]};margin-top:2px">${ss.sym}</div><div class="cin" style="${sz(11)}">${ss.sign} ${ss.deg}°</div></div>
 </div>
 ${(()=>{
 const _sSab=getSabaton(ss.lon);
@@ -7233,6 +7240,87 @@ inv:"Aengus Óg, Mac ind Óc, son of the Dagda and Boann, lord of the Brú on th
 note:"Ask for a dream before sleep and write down what comes on waking."}
 ];
 // Next planetary hour ruled by `pl`, within the coming 48 hours
+// ═══ PANTHEON SIGILS — drawn as SVG so they need no special fonts ═══
+// Norse: a rune of the Elder Futhark, with the name in runes beneath.
+// Greek and Egyptian: the deity's chief emblem, with the name in Greek / its Egyptian form.
+// Celtic: an emblem ringed by the name in Ogham.
+// Elder Futhark, each rune drawn in a 6 × 10 cell
+const RUNES={
+f:'M1.5,0V10M1.5,3L5,.5M1.5,6L5,3.5',u:'M1,10V0L5,3.5V10',th:'M1.5,0V10M1.5,2.5L5,5L1.5,7.5',
+a:'M1.5,0V10M1.5,0L5,2.5M1.5,3L5,5.5',r:'M1.5,10V0L5,2.5L1.5,5L5,10',k:'M5,1.5L1.5,5L5,8.5',
+g:'M.5,.5L5.5,9.5M5.5,.5L.5,9.5',w:'M1.5,10V0L5,2.5L1.5,5',h:'M1,0V10M5,0V10M1,3.5L5,6.5',
+n:'M3,0V10M1,3.5L5,6.5',i:'M3,0V10',j:'M3.5,1L1,3.5L3.5,6M2.5,4L5,6.5L2.5,9',
+ei:'M3,0V10M3,0L5,2.5M3,10L1,7.5',p:'M1.5,0V10M1.5,0L3.5,2L5.5,0M1.5,10L3.5,8L5.5,10',
+z:'M3,10V0M3,5L.5,.5M3,5L5.5,.5',s:'M5,.5L1.5,3.5L4.5,6.5L1,9.5',t:'M3,10V0M3,0L.5,3M3,0L5.5,3',
+b:'M1.5,0V10M1.5,0L5,2.5L1.5,5L5,7.5L1.5,10',e:'M1,10V0L3,3L5,0V10',m:'M1,10V0L5,4M5,10V0L1,4',
+l:'M1.5,10V0L5,3',ng:'M3,2L5.5,5L3,8L.5,5Z',d:'M.5,1L5.5,9V1L.5,9Z',o:'M1,10L4.8,4.2L3,1.5L1.2,4.2L5,10'};
+const RUNE_NAMES={f:'Fehu',u:'Uruz',th:'Thurisaz',a:'Ansuz',r:'Raidho',k:'Kenaz',g:'Gebo',w:'Wunjo',h:'Hagalaz',n:'Nauthiz',i:'Isa',j:'Jera',ei:'Eihwaz',p:'Perthro',z:'Algiz',s:'Sowilo',t:'Tiwaz',b:'Berkano',e:'Ehwaz',m:'Mannaz',l:'Laguz',ng:'Ingwaz',d:'Dagaz',o:'Othala'};
+// Ogham: [side, strokes] — b = right of the stem, h = left, m = slanting across, v = vowel notch
+const OGHAM={B:['b',1],L:['b',2],F:['b',3],S:['b',4],N:['b',5],H:['h',1],D:['h',2],T:['h',3],C:['h',4],Q:['h',5],
+M:['m',1],G:['m',2],NG:['m',3],Z:['m',4],R:['m',5],A:['v',1],O:['v',2],U:['v',3],E:['v',4],I:['v',5]};
+// r = rune, nm = name in runes · e = emblem (44 × 44 box), t = name line · og = Ogham letters · n = what it is
+const GOD_SIG={
+odin:{r:'a',nm:['o','d','i','n'],n:'Ansuz, the god-rune. The Icelandic rune poem names it for Odin himself.'},
+thor:{r:'th',nm:['th','o','r'],n:'Thurisaz, the thorn: the Þ that begins Þórr and the rune of the giants he fights. A modern association.'},
+freyja:{r:'f',nm:['f','r','e','j','a'],n:'Fehu, wealth and gold: the first rune of the row, in the group modern practice calls Freyr’s and Freyja’s. A modern association.'},
+frigg:{r:'b',nm:['f','r','i','g'],n:'Berkano, the birch: birth, growth and the household. A modern association.'},
+tyr:{r:'t',nm:['t','i','r'],n:'Tiwaz, the rune that carries Tyr’s own name. The Sigrdrífumál tells warriors to carve it for victory and name Tyr twice.'},
+freyr:{r:'ng',nm:['f','r','e','j','r'],n:'Ingwaz, the rune of Ing — the older name of Yngvi-Freyr.'},
+hel:{r:'h',nm:['h','e','l'],n:'Hagalaz, hail: the sudden, impersonal ending. A modern association.'},
+loki:{r:'k',nm:['l','o','k','i'],n:'Kenaz, the torch: fire, craft and cunning. A modern association.'},
+zeus:{t:'ΖΕΥΣ',n:'The thunderbolt, his weapon and emblem.',e:'<path d="M27,2L11,24H21L16,42L33,18H23Z"/>'},
+apollo:{t:'ΑΠΟΛΛΩΝ',n:'The lyre, with which he leads the Muses.',e:'<path d="M12,5C5,20 9,36 22,39C35,36 39,20 32,5M9,11H35M17,11V36M22,11V39M27,11V36"/>'},
+artemis:{t:'ΑΡΤΕΜΙΣ',n:'The drawn bow of the huntress.',e:'<path d="M13,5Q36,22 13,39M13,5V39M3,22H40M40,22L34,17.5M40,22L34,26.5"/>'},
+athena:{t:'ΑΘΗΝΑ',n:'The spear of Pallas — the sign astronomers still use for the asteroid Pallas.',e:'<path d="M22,3L32,15L22,27L12,15ZM22,27V42M15,35H29"/>'},
+aphrodite:{t:'ΑΦΡΟΔΙΤΗ',n:'The sign ♀, traditionally read as her hand mirror.',e:'<circle cx="22" cy="15" r="11"/><path d="M22,26V42M14,34H30"/>'},
+ares:{t:'ΑΡΗΣ',n:'The sign ♂, traditionally read as his shield and spear.',e:'<circle cx="17" cy="27" r="11"/><path d="M25,19L39,5M39,5H29M39,5V15"/>'},
+hermes:{t:'ΕΡΜΗΣ',n:'The sign ☿, his herald’s staff (the caduceus) reduced to a glyph.',e:'<circle cx="22" cy="21" r="8"/><path d="M12,3Q22,23 32,3M22,29V42M15,36H29"/>'},
+hecate:{t:'ΕΚΑΤΗ',n:'The meeting of three roads within her wheel.',e:'<circle cx="22" cy="22" r="18"/><circle cx="22" cy="22" r="3.5" fill="currentColor"/><path d="M22,22V4M22,22L6.4,31M22,22L37.6,31"/>'},
+dionysus:{t:'ΔΙΟΝΥΣΟΣ',n:'The kantharos, his deep two-handled wine cup.',e:'<path d="M10,8H34C34,21 29,26 22,26C15,26 10,21 10,8ZM22,26V37M14,40H30M22,37L14,40M22,37L30,40M10,10C1,10 1,21 12,21M34,10C43,10 43,21 32,21"/>'},
+hades:{t:'ΑΙΔΗΣ · ΚΟΡΗ',n:'The bident, the two-pronged staff of the lord below. The name line reads Hades and Kore, “the Maiden”, Persephone’s title.',e:'<path d="M22,42V18M11,3V13Q11,18 22,18Q33,18 33,13V3"/>'},
+ra:{t:'RA',n:'The sun disc — the hieroglyph that writes his name.',e:'<circle cx="22" cy="22" r="15"/><circle cx="22" cy="22" r="3.5" fill="currentColor"/>'},
+isis:{t:'ASET',n:'The throne — the hieroglyph she wears as a crown, and the one that writes her name.',e:'<path d="M11,41V5H18V21H33V41ZM11,31H33"/>'},
+osiris:{t:'WESIR',n:'The djed pillar, called his backbone: stability and endurance.',e:'<path d="M17,42V20H27V42M13,42H31M11,20H33M11,15H33M11,10H33M11,5H33M14,5V20M30,5V20"/>'},
+thoth:{t:'DJEHUTY',n:'The moon disc resting in its crescent, crown of the reckoner of time.',e:'<circle cx="22" cy="15" r="9"/><path d="M5,14Q22,46 39,14Q22,32 5,14Z"/>'},
+anubis:{t:'ANPU',n:'The scales on which the heart is weighed against the feather of truth.',e:'<path d="M22,5V40M13,41H31M6,11H38M6,11L2,26M6,11L10,26M38,11L34,26M38,11L42,26M1,26Q6,33 11,26ZM33,26Q38,33 43,26Z"/>'},
+hathor:{t:'HUT-HERU',n:'The sun disc held between cow’s horns, her crown.',e:'<circle cx="22" cy="17" r="9"/><path d="M7,3Q3,32 22,34Q41,32 37,3M22,34V42"/>'},
+sekhmet:{t:'SEKHMET',n:'The sun disc with the rearing cobra, crown of the Eye of Ra.',e:'<circle cx="22" cy="28" r="13"/><path d="M22,15C15,11 16,3 23,3C29,3 29,10 23,10"/>'},
+horus:{t:'HERU',n:'The wedjat, his restored eye: wholeness and protection.',e:'<path d="M3,21Q20,7 40,19Q20,31 3,21ZM2,12Q20,-1 42,10M17,28L15,41M27,28Q33,41 41,36Q44,32 39,31"/><circle cx="21" cy="19.5" r="4.5" fill="currentColor"/>'},
+bastet:{t:'BAST',n:'The sistrum, the sacred rattle shaken at her festivals.',e:'<path d="M14,25V11Q22,-3 30,11V25ZM10,10H34M10,15H34M10,20H34M22,25V42M18,42H26"/>'},
+brigid:{og:['B','R','I','G','I','D'],n:'Her perpetual flame, tended at Kildare.',e:'<path d="M22,2C31,13 37,20 37,29C37,37 31,42 22,42C13,42 7,37 7,29C7,22 12,18 15,11C17,17 19,19 22,19C20,13 20,8 22,2Z"/><path d="M22,27C26,31 27,34 27,36C27,39 25,41 22,41C19,41 17,39 17,36C17,33 19,31 22,27Z"/>'},
+morrigan:{og:['M','O','R','R','I','G','A','N'],n:'Three crows in flight — she comes as a battle-crow, and often as three sisters.',e:'<path d="M10,14Q16,3 22,14Q28,3 34,14M1,34Q6,24 11,34Q16,24 21,34M23,34Q28,24 33,34Q38,24 43,34"/>'},
+lugh:{og:['L','U','G'],n:'His spear, one of the four treasures of the Tuatha Dé Danann. The Ogham spells Lug, the older form of his name.',e:'<path d="M22,42V16M22,2L28,13L22,18L16,13ZM15,25H29"/>'},
+dagda:{og:['D','A','G','D','A'],n:'The cauldron from which no company went away unsatisfied.',e:'<path d="M5,14H39M8,14Q8,37 22,37Q36,37 36,14M13,35L10,42M31,35L34,42"/>'},
+cernunnos:{og:['C','E','R','N','U','N','N','O','S'],n:'The stag’s antlers he wears on the Gundestrup cauldron.',e:'<path d="M22,42V28M22,30Q7,28 7,5M22,30Q37,28 37,5M8,18L2,13M9,11L15,6M36,18L42,13M35,11L29,6"/>'},
+manannan:{og:['M','A','N','A','N','N','A','N'],n:'The waves he rides — in the tales, his horses.',e:'<path d="M4,13Q10,5 16,13T28,13T40,13M4,23Q10,15 16,23T28,23T40,23M4,33Q10,25 16,33T28,33T40,33"/>'},
+cerridwen:{og:['C','E','R','I','D','F','E','N'],n:'The moon and the three drops of awen from her cauldron. Ogham has no W, so the letter fern (once a W sound) stands in for it.',e:'<path d="M30,5A17,17 0 1,0 30,39A13,13 0 1,1 30,5Z" fill="currentColor" fill-opacity=".28"/><circle cx="33" cy="15" r="2" fill="currentColor"/><circle cx="37" cy="22" r="2" fill="currentColor"/><circle cx="33" cy="29" r="2" fill="currentColor"/>'},
+aengus:{og:['A','E','N','G','U','S'],n:'The four birds that circle his head.',e:'<circle cx="22" cy="23" r="5"/><path d="M13,10Q17.5,2 22,10Q26.5,2 31,10M13,43Q17.5,35 22,43Q26.5,35 31,43M-1,26Q3,18 7,26Q11,18 15,26M29,26Q33,18 37,26Q41,18 45,26"/>'}
+};
+function godSigil(g,size){
+const c=PANTHEONS[g.pan].c,sg=GOD_SIG[g.id];if(!sg)return'';
+const emb=(d,sc,cy)=>`<g transform="translate(${(60-22*sc).toFixed(1)},${(cy-22*sc).toFixed(1)}) scale(${sc})" stroke-width="${(2.3/sc).toFixed(2)}">${d}</g>`;
+let s=`<svg viewBox="0 0 120 120" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sigil of ${g.nm}" style="display:block;flex-shrink:0;color:${c}" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="60" cy="60" r="57" stroke-width="1.6"/>`;
+if(g.pan==='Norse'){
+s+=`<circle cx="60" cy="60" r="52" stroke-width=".7" opacity=".6"/><path d="${RUNES[sg.r]}" transform="translate(44.4,16) scale(5.2)" stroke-width=".6"/>`;
+const w=6.6,gap=2.6,tot=sg.nm.length*w+(sg.nm.length-1)*gap;let x=60-tot/2;
+sg.nm.forEach(r=>{s+=`<path d="${RUNES[r]}" transform="translate(${x.toFixed(1)},81) scale(1.1)" stroke-width="1.2" opacity=".85"/>`;x+=w+gap;});
+}else if(g.pan==='Celtic'){
+s+=`<circle cx="60" cy="60" r="46" stroke-width="1"/>`+emb(sg.e,1.2,60);
+const L=sg.og.map(k=>OGHAM[k]),total=L.reduce((a,l)=>a+l[1],0)+1.6*(L.length-1),ua=Math.min(300/total,6.5),a0=270-(total-1)*ua/2;
+const pt=(r,a)=>{const t=a*Math.PI/180;return(60+r*Math.cos(t)).toFixed(1)+','+(60+r*Math.sin(t)).toFixed(1);};
+let d='',pos=0;
+L.forEach(l=>{for(let k=0;k<l[1];k++){const a=a0+pos*ua;
+d+=l[0]==='b'?`M${pt(46,a)}L${pt(40,a)}`:l[0]==='h'?`M${pt(46,a)}L${pt(52.5,a)}`:l[0]==='m'?`M${pt(40,a-ua*.4)}L${pt(52.5,a+ua*.4)}`:`M${pt(43.4,a)}L${pt(48.6,a)}`;pos++;}pos+=1.6;});
+s+=`<path d="${d}" stroke-width="1.5"/>`;
+}else{
+s+=`<circle cx="60" cy="60" r="52" stroke-width=".7" opacity=".6"/>`+emb(sg.e,1.3,47);
+s+=`<text x="60" y="97" text-anchor="middle" font-size="${sg.t.length>9?6.6:sg.t.length>7?7.6:8.6}" letter-spacing="1.4" fill="currentColor" stroke="none" font-family="${g.pan==='Greek'?"'EB Garamond','Times New Roman',serif":"'Cinzel','EB Garamond',serif"}">${sg.t}</text>`;
+}
+return s+`</svg>`;}
+// One-line description of what the sigil shows
+function godSigilNote(g){const sg=GOD_SIG[g.id];if(!sg)return'';
+const tail=g.pan==='Norse'?'Beneath it, the name in Elder Futhark runes.':g.pan==='Greek'?'Beneath it, the name in Greek.':g.pan==='Egyptian'?'Beneath it, the Egyptian form of the name.':'Around the ring, the name in Ogham, read clockwise.';
+return sg.n+' '+tail;}
 function godNextHour(pl){const now=new Date();
 for(let d=0;d<3;d++){const pd=pHours(new Date(now.getTime()+d*864e5),S.lat);
 const cur=pd.hours.find(h=>now>=h.start&&now<h.end);if(cur&&cur.ruler===pl)return{now:true,h:cur};
@@ -7247,7 +7335,7 @@ h+=`</div><div style="${sz(11)};color:#606078;margin-bottom:8px;line-height:1.45
 (sel==='All'?pans:[sel]).forEach(p=>{const P=PANTHEONS[p];
 if(sel==='All')h+=`<div class="cin" style="${sz(10)};letter-spacing:3px;color:${P.c};margin:12px 0 6px">${P.ic} ${p.toUpperCase()}</div>`;
 GODS.filter(g=>g.pan===p).forEach(g=>{const _ab=accessBadge(g.pl,''),_ac=accessScore(g.pl,''),_fg=firmGild(pc(g.pl),_ac);
-h+=`<div class="row" onclick="S.detail='${g.id}';S.detailType='gods';render()" style="border-color:${_ac>=3?P.c+'44':'#242438'};background:${_ac>=5?P.c+'0c':_ac>=3?P.c+'06':'#151520'};${_fg}"><div style="${sz(20)};color:${pc(g.pl)};width:30px;text-align:center">${PD[g.pl].sym}</div><div class="f1"><div class="cin" style="${sz(14)};color:${P.c}">${g.nm} <span class="d10">· ${g.t}</span></div><div class="d11">${g.d}</div></div>${_ab}</div>`;});});
+h+=`<div class="row" onclick="S.detail='${g.id}';S.detailType='gods';render()" style="border-color:${_ac>=3?P.c+'44':'#242438'};background:${_ac>=5?P.c+'0c':_ac>=3?P.c+'06':'#151520'};${_fg}">${godSigil(g,38)}<div class="f1"><div class="cin" style="${sz(14)};color:${P.c}">${g.nm} <span class="d10">· ${g.t} · <span style="color:${pc(g.pl)}">${PD[g.pl].sym}</span></span></div><div class="d11">${g.d}</div></div>${_ab}</div>`;});});
 return h;}
 function renderGodDetail(){
 const g=GODS.find(x=>x.id===S.detail);
@@ -7267,10 +7355,12 @@ const steps=[
 let h=`<div class="fu"><button class="back" onclick="S.detail=null;render()">← Back</button>
 <div class="card" style="padding:18px 16px;border-radius:16px;border-color:${col}33;background:linear-gradient(135deg,#151520,${col}0c)">
 <div style="text-align:center;margin-bottom:12px">
+<div style="display:flex;justify-content:center;margin-bottom:10px">${godSigil(g,140)}</div>
 <div class="cin" style="${sz(9)};letter-spacing:3px;color:${dim}">${P.ic} ${g.pan.toUpperCase()} PANTHEON</div>
 <div class="cin" style="${sz(22)};color:${col};font-weight:700;margin-top:2px">${g.nm}</div>
 <div style="${sz(13)};color:${txt};font-style:italic;margin-top:2px">${g.t}</div>
 <div style="${sz(12)};color:${txt};margin-top:6px;line-height:1.45">${g.d}</div>
+<div style="${sz(11)};color:${dim};margin-top:8px;line-height:1.45"><span class="cin" style="${sz(8)};letter-spacing:1px;color:${col}">THE SIGIL</span><br>${godSigilNote(g)}</div>
 </div>
 <div style="padding:10px 12px;background:${plc}0c;border:1px solid ${plc}33;border-radius:10px;margin-bottom:10px;display:flex;gap:10px;align-items:center">
 <div style="${sz(24)};color:${plc};width:30px;text-align:center">${PD[g.pl].sym}</div>
@@ -9654,7 +9744,7 @@ if(isHeb){
 const KHB=['\u05d0','\u05d1','\u05d2','\u05d3','\u05d4','\u05d5','\u05d6','\u05d7','\u05d8','\u05d9','\u05db','\u05da','\u05dc','\u05de','\u05dd','\u05e0','\u05df','\u05e1','\u05e2','\u05e4','\u05e3','\u05e6','\u05e5','\u05e7','\u05e8','\u05e9','\u05ea'];
 const KHF={'\u05da':'\u05db','\u05dd':'\u05de','\u05df':'\u05e0','\u05e3':'\u05e4','\u05e5':'\u05e6'};
 k+=`<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:2px">`;
-for(let ki=0;ki<KHB.length;ki++){const kc=KHB[ki],kb=KHF[kc]||kc,kl=HEB_LETTERS[kb],kf=!!KHF[kc];if(kl)k+=`<div style="display:inline-flex;flex-direction:column;align-items:center;padding:5px 3px;width:38px;background:#07070c44;border:1px solid ${kf?'#b89a4230':'#24243818'};border-radius:6px;cursor:pointer" onclick="gemKeyPress('${kc}')"><div style="${sz(18)};color:${kf?'#9B7BDB':kbdCol};direction:rtl">${kc}</div><div style="${sz(7)};color:#606078">${kl.n.substring(0,4)}${kf?' F':''}</div><div style="${sz(10)};color:#8a96a8">${kf?HEB_LETTERS[kc]?HEB_LETTERS[kc].v:kl.v:kl.v}</div></div>`;}
+for(let ki=0;ki<KHB.length;ki++){const kc=KHB[ki],kb=KHF[kc]||kc,kl=HEB_LETTERS[kb],kf=!!KHF[kc];if(kl)k+=`<div style="display:inline-flex;flex-direction:column;align-items:center;padding:5px 3px;width:38px;background:#07070c44;border:1px solid ${kf?'#b89a4230':'#24243818'};border-radius:6px;cursor:pointer" onclick="gemKeyPress('${kc}')"><div style="${sz(18)};color:${kf?'#9B7BDB':kbdCol};direction:rtl">${kc}</div><div style="${sz(7)};color:#606078">${kl.n.substring(0,4)}${kf?' F':''}</div><div style="${sz(10)};color:#8a96a8">${hebVal(kf?kc:kb)||kl.v}</div></div>`;}
 k+=`</div>`;
 }else{
 const GK=[['\u03b1','\u03b2','\u03b3','\u03b4','\u03b5','\u03b6','\u03b7','\u03b8','\u03b9','\u03ba','\u03bb','\u03bc'],['\u03bd','\u03be','\u03bf','\u03c0','\u03c1','\u03c3','\u03c2','\u03c4','\u03c5','\u03c6','\u03c7','\u03c8','\u03c9']];
@@ -9855,7 +9945,7 @@ function addTranslit(){
 function gemBreakdown(word,sys,col){
 col=col||'var(--gold)';
 let bd='';
-if(sys==='hebrew'){for(const c of word){const l=HEB_LETTERS[c];if(l)bd+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:${col}0a;border:1px solid ${col}18;border-radius:8px"><div style="${sz(20)};color:${col};direction:rtl">${c}</div><div style="${sz(8)};color:#606078">${l.n.substring(0,4)}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${l.v}</div></div>`;}}
+if(sys==='hebrew'){for(const c of word){const l=HEB_LETTERS[c];if(l)bd+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:${col}0a;border:1px solid ${col}18;border-radius:8px"><div style="${sz(20)};color:${col};direction:rtl">${c}</div><div style="${sz(8)};color:#606078">${l.n.substring(0,4)}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${hebVal(c)}</div></div>`;}}
 else if(sys==='greek'){for(const c of word){const l=GRK_LETTERS[c];const v=GRK_VAL[c.toLowerCase()];if(v)bd+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:${col}0a;border:1px solid ${col}18;border-radius:8px"><div style="${sz(20)};color:${col}">${c}</div><div style="${sz(8)};color:#606078">${l?l.n.substring(0,5):''}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${v}</div></div>`;}}
 else{for(const c of word){const v=LAT_VAL[c.toLowerCase()];if(v)bd+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:${col}0a;border:1px solid ${col}18;border-radius:8px"><div style="${sz(20)};color:${col}" class="cin">${c.toUpperCase()}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${v}</div></div>`;}}
 return bd?`<div style="display:flex;flex-wrap:wrap;justify-content:center;margin-top:6px">${bd}</div>`:'';
@@ -9951,17 +10041,18 @@ if(val>0){
     if(LiberTemporis.Audio.state().engaged) LiberTemporis.Audio.retune(val);
   }
 }
-const sysLabel={hebrew:'Hebrew · Mispar Gadol (with Finals)',latin:'Latin · Agrippa Cipher',greek:'Greek · Isopsephy'}[detected];
+const sysLabel={hebrew:gemGadol()?'Hebrew · Mispar Gadol (finals 500–900)':'Hebrew · Standard (Mispar Hechrachi)',latin:'Latin · Agrippa Cipher',greek:'Greek · Isopsephy'}[detected];
 if(val>0){
 let breakdown='';
-if(detected==='hebrew'){for(const ch2 of rawInp){const l=HEB_LETTERS[ch2];if(l)breakdown+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:#b89a420a;border:1px solid #b89a4218;border-radius:8px"><div style="${sz(22)};color:var(--gold);direction:rtl">${ch2}</div><div class="d8">${l.n}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${l.v}</div></div>`}}
+if(detected==='hebrew'){for(const ch2 of rawInp){const l=HEB_LETTERS[ch2];if(l)breakdown+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:#b89a420a;border:1px solid #b89a4218;border-radius:8px"><div style="${sz(22)};color:var(--gold);direction:rtl">${ch2}</div><div class="d8">${l.n}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${hebVal(ch2)}</div></div>`}}
 else if(detected==='latin'){for(const ch2 of rawInp){const v=LAT_VAL[ch2.toLowerCase()];if(v)breakdown+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:#b89a420a;border:1px solid #b89a4218;border-radius:8px"><div style="${sz(20)};color:var(--gold)" class="cin">${ch2.toUpperCase()}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${v}</div></div>`}}
 else{for(const ch2 of rawInp){const v=GRK_VAL[ch2.toLowerCase()];if(v)breakdown+=`<div style="display:inline-flex;flex-direction:column;align-items:center;margin:2px;padding:4px 7px;background:#b89a420a;border:1px solid #b89a4218;border-radius:8px"><div style="${sz(20)};color:var(--gold)">${ch2}</div><div style="${sz(11)};color:#8a96a8;font-weight:600">${v}</div></div>`}}
 // Result card
 h+=`<div class="card" style="padding:20px;text-align:center;border-radius:16px;border-color:#b89a4240;background:linear-gradient(135deg,#151520,#b89a4206)">
 <div style="${sz(9)};letter-spacing:3px;color:#606078;text-transform:uppercase">${sysLabel}</div>
 <div class="cin" style="${sz(54)};color:var(--gold);font-weight:700;margin:4px 0;text-shadow:0 0 30px #b89a4222">${val}</div>
-<div style="${sz(14)};color:#8a96a8;direction:auto">${rawInp}</div></div>`;
+<div style="${sz(14)};color:#8a96a8;direction:auto">${rawInp}</div>
+${detected==='hebrew'?`<div style="margin-top:10px;display:flex;justify-content:center;gap:4px;flex-wrap:wrap"><button class="pill ${gemGadol()?'':'on'}" style="min-height:30px;${sz(10)}" onclick="CFG.gemFinals=false;saveCFG();render()">Standard</button><button class="pill ${gemGadol()?'on':''}" style="min-height:30px;${sz(10)}" onclick="CFG.gemFinals=true;saveCFG();render()">Final letters 500–900</button></div>${gemHeb(rawInp,true)!==gemHeb(rawInp,false)?`<div style="${sz(11)};color:#606078;margin-top:6px">${gemGadol()?'Standard value (finals as ordinary letters)':'Mispar Gadol (final letters as 500–900)'}: <span style="color:#b8c0d0">${gemHeb(rawInp,!gemGadol())}</span></div>`:''}`:''}</div>`;
 h+=`<div class="card" style="border-radius:12px"><div style="display:flex;flex-wrap:wrap;justify-content:center">${breakdown}</div></div>`;
 // Sephirothic resonance
 h+=gemSephCard(val);
@@ -10264,7 +10355,7 @@ h+=`<div class="card" style="border-radius:12px;margin-top:8px">
 <div style="${sz(9)};letter-spacing:2px;color:#606078;margin-bottom:8px" class="cin">LETTER-BY-LETTER REDUCTION</div>
 <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:3px">`;
 for(const c of inp){
-const lData=HEB_LETTERS[c];const chVal=AIQ_MAP[c]||AIQ_FINALS[c]||0;const fv=lData?lData.v:0;
+const lData=HEB_LETTERS[c];const chVal=AIQ_MAP[c]||AIQ_FINALS[c]||0;const fv=lData?hebVal(c):0;
 if(lData){h+=`<div style="display:inline-flex;flex-direction:column;align-items:center;padding:5px 7px;background:#07070c66;border:1px solid #9B7BDB22;border-radius:8px;min-width:42px">
 <div style="${sz(20)};color:var(--gold);direction:rtl">${c}</div>
 <div style="${sz(8)};color:#606078">${lData.n.substring(0,4)}</div>
@@ -12265,8 +12356,8 @@ function scanActiveBeings(now){
 const pd=pHours(now,CFG.lat),ms=mSign(now),ch=pd.hours.find(h=>now>=h.start&&now<h.end)||pd.hours[0];
 const results=[];_nowActions=[];
 G.forEach(s=>{const sc=accessScore(s.pl,s.si);if(sc>=3)results.push({type:'goetia',nm:s.nm,n:s.n,pl:s.pl,sc,col:pc(s.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.n;S.detailType='goetia';S.planView=false;render();})-1});});
-OL.forEach(s=>{const sc=accessScore(s.pl,'');if(sc>=3)results.push({type:'olympic',nm:s.nm,n:0,pl:s.pl,sc,col:pc(s.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='olympic';S.planView=false;render();})-1});});
-Object.entries(PA).forEach(([nm,a])=>{const sc=accessScore(a.pl,'');if(sc>=3)results.push({type:'angel',nm,n:0,pl:a.pl,sc,col:pc(a.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=nm;S.detailType='angels';S.planView=false;render();})-1});});
+OL.forEach(s=>{const sc=accessScore(s.pl,'');if(sc>=3)results.push({type:'olympic',sub:'Olympic spirit',nm:s.nm,n:0,pl:s.pl,sc,col:pc(s.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=s.nm;S.detailType='olympic';S.planView=false;render();})-1});});
+Object.entries(PA).forEach(([nm,a])=>{const sc=accessScore(a.pl,'');if(sc>=3)results.push({type:'angel',sub:'Planetary angel',nm,n:0,pl:a.pl,sc,col:pc(a.pl),ai:_nowActions.push(()=>{S.tab='beings';S.detail=nm;S.detailType='angels';S.planView=false;render();})-1});});
 const shA=getShemAngel(ms.lon);
 results.push({type:'shem',nm:shA.nm,n:shA.n,pl:'',sc:6,col:'#9B7BDB',ai:_nowActions.push(()=>{S.tab='shem';S.shemTriad=shA.n-1;render();})-1});
 // Pantheon deities — aligned through their planet
