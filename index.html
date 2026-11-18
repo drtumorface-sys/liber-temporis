@@ -553,7 +553,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.pill:focus-visibl
 </div>
 <div id="firm-tint"></div>
 <div id="app"></div>
-<div id="fw-overlay"></div><div id="settings-overlay"></div><div id="bible-overlay"></div><div id="search-overlay"></div><div id="proj-overlay"></div>
+<div id="fw-overlay"></div><div id="settings-overlay"></div><div id="bible-overlay"></div><div id="search-overlay"></div><div id="proj-overlay"></div><div id="tut-overlay"></div>
 <nav class="nav"><div class="nav-i" id="nav"></div></nav>
 <script>
 // ═══ FREQ MODE ANIMATION ENGINE ═══
@@ -3888,6 +3888,8 @@ function applyCFG(){
 }
 loadCFG();
 let S={tab:CFG.defaultTab||"now",chartSel:'now',chartForm:false,chartEdit:null,chartPick:null,chartSign:null,godPan:'All',southern:CFG.southern,lat:CFG.lat,detail:null,detailType:null,filter:"",planetF:"All",elCat:null,refP:"Sun",mansion:null,projDate:"",gemInput:"",gemSys:"auto",gemHist:[],gemMode:"calc",gemPhrase:false,gemRevVal:"",gemInputB:"",gemNotarIn:"",gemTranslit:false,gemTranslitInp:"",gemTranslitPreview:"",shemView:"list",shemTriad:null,shemOrigin:null,fwOpen:false,fwSeph:null,settingsOpen:false,studySub:"letters",planView:false,studyLetter:null,studySeph:null,studyColSeph:null,treeNode:null,treePath:null,treeEin:null,christianLens:false,ckabSection:'trinity',ckabExpanded:null,bibleOpen:false,bibleBook:'Ps',bibleChap:91,bibleHeb:false,refSub:'planets',searchOpen:false,searchQ:'',projOpen:false,projPl:null,projSi:null,projLabel:'',projDays:7,firmProjectH:0,grimCat:null,grimExpanded:null,freqTuning:'432',freqCustomBase:'440',freqInput:'',freqSigma:72,freqAin:-12,freqEngaged:false,freqSublim:false};
+// First visit (nothing saved yet): open the how-to guide
+try{if(!localStorage.getItem('ltcfg')&&!CFG.tutorialSeen){S.tutOpen=true;S.tutStep=0;S.tutPrevTab=S.tab;}}catch(e){}
 function fmt(d){return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:typeof CFG!=='undefined'?!CFG.tf24:true});}
 const fmtD=d=>d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
 function tag(t,c="#b89a42"){return`<span class="tag" style="background:${c}14;color:${c};border:1px solid ${c}22">${t}</span>`}
@@ -4698,6 +4700,42 @@ function toggleTab(id,show){
   saveCFG();applyCFG();render();
 }
 // ═══ RENDER SETTINGS ═══
+// ═══ HOW-TO GUIDE ═══
+// Opens on a first visit (no saved settings) and from ⚙ → How to use.
+// Each step can bring its tab up behind the sheet, so the reader sees what is being described.
+const TUT_STEPS=[
+{tab:'now',i:'☉',t:'Welcome',b:'Liber Temporis is a companion for magical and devotional practice. It shows what the heavens are doing right now (the planetary hour, the Moon and the ruling angel) and which beings, correspondences and times suit your work.<br><br>Everything is calculated on your device, so it works offline. To keep it on your phone, use your browser’s <b>Install</b> or <b>Add to Home Screen</b> option.'},
+{tab:'now',i:'⌖',t:'Set your location',b:'Planetary hours run from your local sunrise and sunset, so the app needs to know where you are. Until you set it, it uses Bathurst, Australia.<br><br>Open <b>⚙</b> (top right) → <b>Settings</b> → <b>Location</b> and search for your city.',act:{l:'Open Settings',fn:'S.settingsOpen=true;render()'}},
+{tab:'now',i:'✞',t:'Two lenses',b:'The switch at the top changes the lens. <b>☉ Liber Lucis</b> gives the Hermetic and Kabbalistic reading. <b>✞ Liber Crucis</b> adds Christian Kabbalah (sacraments, Scripture and the liturgical season) and renames some tabs: Now becomes Hora and Beings becomes Orders, for example. You can switch at any time.'},
+{tab:'now',i:'◉',t:'Now',b:'Start here. <b>Now</b> shows the current planetary hour and its ruler, the time left until the next hour, where the Moon is, a suggestion for what the hour suits, and the beings most aligned right now. Tap any being to open its page.'},
+{tab:'hours',i:'⏣',t:'Timing and Moon',b:'<b>Timing</b> lists every planetary hour of the day and night. <b>Moon</b> follows its phase and the lunar mansions. When the Moon is void of course, rest or finish work already begun rather than start something new.'},
+{tab:'elect',i:'⊕',t:'Elect: choose a time',b:'Pick a kind of working, such as love, wealth, protection, healing or knowledge. <b>Elect</b> searches the next seven days for the best hours and scores each one on the planetary hour, the Moon’s sign, mansion and phase, and the day. It also suggests who to invoke and how to perform the working.'},
+{tab:'beings',i:'⛧',t:'Beings and the 72 Names',b:'<b>Beings</b> holds the Goetic spirits, Olympic spirits, planetary angels, elementals, angelic orders and pantheon deities, and marks those most accessible this hour. <b>72 Names</b> covers the angels of the Shem HaMephorash. The ruling angel follows the Sun and changes about every five days.'},
+{tab:'gem',i:'א',t:'Study and reference',b:'<b>Gematria</b> works out Hebrew, Greek and Latin values and finds matching words. <b>Study</b> teaches the Hebrew letters and the Sephiroth, and <b>Tree</b> is an interactive Tree of Life. <b>Matrix</b> draws the hour, Moon, angel and stars together, <b>Chart</b> casts a birth chart, and <b>Ref</b> holds the planetary correspondences, a glossary and sources.'},
+{tab:'now',i:'⚙',t:'Make it yours',b:'Tap <b>⚙</b> at the top right for Settings, Search and this guide. In Settings you can hide tabs you don’t use, choose the tab the app opens on, turn on alerts for hour changes and void-of-course Moons, and set how strict Elect is.'}
+];
+function tutOpen(){S.tutPrevTab=S.tab;S.tutOpen=true;tutGo(0);}
+function tutGo(i){const st=TUT_STEPS[i];if(!st)return;S.tutStep=i;if(st.tab&&S.tab!==st.tab){S.tab=st.tab;S.detail=null;window.scrollTo(0,0);}render();}
+function tutClose(){S.tutOpen=false;S.tab=S.tutPrevTab||CFG.defaultTab||'now';S.detail=null;CFG.tutorialSeen=true;saveCFG();render();}
+function renderTutorial(){
+if(!S.tutOpen)return'';
+const n=TUT_STEPS.length,i=Math.max(0,Math.min(S.tutStep||0,n-1)),st=TUT_STEPS[i],last=i===n-1;
+const btn=`padding:8px 16px;border-radius:9px;cursor:pointer;font-family:'Cinzel',serif;${sz(11)};letter-spacing:1px`;
+return`<div style="position:fixed;inset:0;z-index:140;background:rgba(4,4,10,0.35)" onclick="if(event.target===this)tutClose()"></div>
+<div role="dialog" aria-modal="true" aria-label="How to use Liber Temporis" style="position:fixed;z-index:141;left:50%;transform:translateX(-50%);bottom:calc(70px + env(safe-area-inset-bottom));width:min(520px,calc(100vw - 24px));box-sizing:border-box;max-height:calc(100dvh - 110px);overflow-y:auto;background:rgba(10,10,18,0.97);border:1px solid var(--goldD);border-radius:16px;padding:16px 18px 14px;box-shadow:0 10px 40px rgba(0,0,0,0.7)">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+<div class="cin" style="${sz(9)};letter-spacing:3px;color:#7a6830">HOW TO USE · ${i+1} OF ${n}</div>
+<button onclick="tutClose()" style="background:none;border:none;color:#606078;cursor:pointer;padding:4px;${sz(12)};font-family:'EB Garamond',serif">Skip</button>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="${sz(22)};color:var(--gold);width:26px;text-align:center">${st.i}</div><div class="cin" style="${sz(15)};color:var(--gold);font-weight:700">${st.t}</div></div>
+<div style="${sz(13)};color:#c8c8d8;line-height:1.6">${st.b}</div>
+${st.act?`<button onclick="${st.act.fn}" style="${btn};margin-top:12px;background:#b89a4212;border:1px solid #b89a4240;color:var(--gold)">${st.act.l}</button>`:''}
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px">
+<div style="display:flex;gap:6px;flex-wrap:wrap">${TUT_STEPS.map((_,k)=>`<div onclick="tutGo(${k})" title="Step ${k+1}" style="cursor:pointer;width:8px;height:8px;border-radius:50%;background:${k===i?'var(--gold)':'#303048'}"></div>`).join('')}</div>
+<div style="display:flex;gap:6px;flex-shrink:0">
+${i>0?`<button onclick="tutGo(${i-1})" style="${btn};background:none;border:1px solid #242438;color:#8a96a8">Back</button>`:''}
+<button onclick="${last?'tutClose()':`tutGo(${i+1})`}" style="${btn};background:linear-gradient(135deg,#b89a4222,#b89a4238);border:1px solid var(--gold);color:var(--gold);font-weight:700">${last?'Begin':'Next'}</button>
+</div></div></div>`;}
 function renderSettings(){
 const ac=ACCENT_COLS[CFG.accent]||'#b89a42';
 let h=`<div class="settings-overlay" role="dialog" aria-modal="true" aria-label="Settings" onclick="if(event.target===this){S.settingsOpen=false;render()}">
@@ -5861,6 +5899,7 @@ if(S.bibleOpen){S.bibleOpen=false;_doRender();_isPopping=false;return;}
 if(S.searchOpen){S.searchOpen=false;_doRender();_isPopping=false;return;}
 if(S.projOpen){S.projOpen=false;_doRender();_isPopping=false;return;}
 if(S.settingsOpen){S.settingsOpen=false;_doRender();_isPopping=false;return;}
+if(S.tutOpen){_isPopping=false;tutClose();return;}
 if(S.fwOpen){S.fwOpen=false;_doRender();_isPopping=false;return;}
 if(navBack()){_doRender();}
 _isPopping=false;
@@ -5911,6 +5950,8 @@ let html=`<div class="${tabChanged?'fu':'fi'}">
 <div class="lt-signal-sep"></div>
 <div class="lt-signal-item" onclick="S.searchOpen=true;S.searchQ='';render();document.getElementById('lt-signal-menu').classList.remove('open');requestAnimationFrame(function(){var e=document.getElementById('searchIn');if(e)e.focus();})"><span class="lt-sig-icon">⊕</span>Search</div>
 <div class="lt-signal-sep"></div>
+<div class="lt-signal-item" onclick="document.getElementById('lt-signal-menu').classList.remove('open');tutOpen()"><span class="lt-sig-icon">?</span>How to use</div>
+<div class="lt-signal-sep"></div>
 <div class="lt-signal-item" onclick="window.open('https://github.com','_blank')"><span class="lt-sig-icon">⬆</span>Sync Repository</div>
 </div>
 </div>
@@ -5943,6 +5984,7 @@ const stEl=document.getElementById("settings-overlay");if(stEl)stEl.innerHTML=S.
 const biEl=document.getElementById("bible-overlay");if(biEl)biEl.innerHTML=renderBibleOverlay();
 const srEl=document.getElementById("search-overlay");if(srEl)srEl.innerHTML=renderSearchOverlay();
 const prEl=document.getElementById("proj-overlay");if(prEl)prEl.innerHTML=renderProjectionOverlay();
+const tuEl=document.getElementById("tut-overlay");if(tuEl)tuEl.innerHTML=renderTutorial();
 // Restore scroll without causing reflow jank
 if(!tabChanged&&scrollY>0){
   requestAnimationFrame(function(){window.scrollTo({top:scrollY,behavior:'instant'});});
@@ -10916,7 +10958,7 @@ function _ltTickCountdown(){
 function _ltTickAutoRefresh(){
   var activeEl=document.activeElement;
   var isTyping=activeEl&&(activeEl.tagName==='INPUT'||activeEl.tagName==='TEXTAREA'||activeEl.isContentEditable);
-  if(S.settingsOpen||S.searchOpen||S.bibleOpen||S.projOpen||isTyping||(S.tab==='chart'&&S.chartForm))return;
+  if(S.settingsOpen||S.searchOpen||S.bibleOpen||S.projOpen||S.tutOpen||isTyping||(S.tab==='chart'&&S.chartForm))return;
 
   // ─ I · Macrocosmic LFO Anchoring: extract η(Phour) ─
   // η is the Sephirotic index of the current planetary ruler.
@@ -11093,6 +11135,7 @@ document.addEventListener('keydown',function(e){
     if(S.searchOpen){S.searchOpen=false;_doRender();return;}
     if(S.projOpen){S.projOpen=false;_doRender();return;}
     if(S.settingsOpen){S.settingsOpen=false;_doRender();return;}
+    if(S.tutOpen){tutClose();return;}
     // Close signal menu (header dropdown)
     var _sm=document.getElementById('lt-signal-menu');
     if(_sm&&_sm.classList.contains('open')){_sm.classList.remove('open');return;}
