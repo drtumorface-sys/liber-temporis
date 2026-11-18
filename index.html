@@ -1342,7 +1342,12 @@ const ECATS=[
 {id:"spirit",l:"Spirit Work",i:"◎",pl:["Saturn","Moon"],ms:["Scorpio","Pisces","Cancer","Aquarius"],mn:[15,28,22],wx:null},
 {id:"necromancy",l:"Necromancy",i:"☽",pl:["Saturn"],ms:["Scorpio","Pisces","Cancer"],mn:[9,15,21],wx:false}
 ];
-function findEl(cat,lat,now){const r=[];for(let d=0;d<7;d++){const dt=new Date(now.getTime()+d*864e5),{hours}=pHours(dt,lat),ms_=mSign(dt),mp_=mPhase(dt),mn_=gMn(ms_.lon),wx=mp_.wax;for(const h of hours){if(!cat.pl.includes(h.ruler))continue;let sc=40;const re=[h.ruler+" hr"];if(cat.ms.includes(ms_.sign)){sc+=25;re.push("☽ "+ms_.sign)}if(cat.mn.includes(mn_.n)){sc+=20;re.push("Mansion "+mn_.n)}if(cat.wx===null||cat.wx===wx){sc+=15;re.push(wx?"Waxing":"Waning")}if(DR[dt.getDay()]===h.ruler){sc+=10;re.push("Day of "+h.ruler)}r.push({dt,h,sc,re,mp:mp_.name,ms:ms_.sign})}}return r.sort((a,b)=>b.sc-a.sc).slice(0,20)}
+// Election finder: scores every upcoming planetary hour of the working's planets over the next 7 days.
+// The Moon (sign, mansion, phase, void of course) is read at each hour's midpoint, and the day bonus uses
+// the planetary day (sunrise to sunrise). Hours already over are skipped; void-of-course hours are capped at 50 (below Good), so they show only under "All windows". Returns the best 3 hours of each
+// planetary day (so all 7 days are represented), best first; opts.all returns every scored hour instead.
+function findEl(cat,lat,now,opts){const all=[],seen=new Set();for(let d=0;d<7;d++){const pd=pHours(new Date(now.getTime()+d*864e5),lat);for(const h of pd.hours){if(h.end<=now||!cat.pl.includes(h.ruler))continue;const k=h.start.getTime();if(seen.has(k))continue;seen.add(k);const mid=new Date((h.start.getTime()+h.end.getTime())/2),ms_=mSign(mid),mp_=mPhase(mid),mn_=gMn(ms_.lon),wx=mp_.wax,voc=vocMoon(mid);let sc=40;const re=[h.ruler+" hr"];if(cat.ms.includes(ms_.sign)){sc+=25;re.push("☽ "+ms_.sign)}if(cat.mn.includes(mn_.n)){sc+=20;re.push("Mansion "+mn_.n)}if(cat.wx===null||cat.wx===wx){sc+=15;re.push(wx?"Waxing":"Waning")}if(pd.dayRuler===h.ruler){sc+=10;re.push("Day of "+h.ruler)}sc=Math.min(100,sc);if(voc.isVOC){sc=Math.min(sc,50);re.push("☽ void of course")}all.push({dt:h.start,h,sc,re,mp:mp_.name,ms:ms_.sign,voc:voc.isVOC,day:pd.sunrise.getTime()})}}const best=(a,b)=>b.sc-a.sc||a.h.start-b.h.start;if(opts&&opts.all)return all.sort(best);const perDay={};return all.sort(best).filter(e=>(perDay[e.day]=(perDay[e.day]||0)+1)<=3)}
+function electThreshold(){return(typeof CFG!=='undefined'&&CFG&&typeof CFG.electThreshold==='number')?CFG.electThreshold:60}
 // ═══ GEMATRIA DATA ═══
 const HEB_LETTERS={
 'א':{n:'Aleph',v:1},'ב':{n:'Beth',v:2},'ג':{n:'Gimel',v:3},'ד':{n:'Daleth',v:4},
@@ -4013,9 +4018,9 @@ ${fwBtn(sephN)}
 <div class="cin" style="${sz(13)};color:${elCol};font-weight:600">${el}</div>
 <div style="${sz(10)};color:#606078;margin-top:4px">${elSeph.s}</div>
 </div>
-<div style="padding:10px 8px;background:${shemCol}08;border:1px solid ${shemCol}28;border-radius:10px;cursor:pointer" onclick="S.tab='shem';S.shemTriad=${Math.floor((shemA.n-1)/3)};render()">
+<div style="padding:10px 8px;background:${shemCol}08;border:1px solid ${shemCol}28;border-radius:10px;cursor:pointer" onclick="S.tab='shem';S.shemTriad=${shemA.n-1};render()">
 <div style="${sz(9)};letter-spacing:2px;color:${shemCol}" class="cin">SHEM ANGEL</div>
-<div style="${sz(18)};color:${shemCol};margin:4px 0;direction:rtl;font-family:'EB Garamond',serif">${shemA.heb.slice(0,2)}</div>
+<div style="${sz(18)};color:${shemCol};margin:4px 0;direction:rtl;font-family:'EB Garamond',serif">${shemA.heb}</div>
 <div class="cin" style="${sz(11)};color:${shemCol};font-weight:600">${shemA.nm}</div>
 <div style="${sz(10)};color:#606078;margin-top:4px">Name ${shemA.n}</div>
 </div>
@@ -4486,7 +4491,7 @@ h+=`<div onclick="S.studyLetter=${idx};render()" style="cursor:pointer;width:52p
 <div style="${sz(26)};color:${col};font-family:'EB Garamond',serif;direction:rtl;line-height:1">${lt.l}</div>
 <div style="${sz(9)};color:#8a96a8;margin-top:3px">${lt.n}</div>
 <div class="d8">${lt.v}</div>
-${ckl?`<div style="${sz(7)};color:#b89a42;margin-top:2px;letter-spacing:0.5px;line-height:1.2">${ckl.apo||ckl.sacr||ckl.ico||''}</div>`:(lt.pl?`<div style="${sz(8)};color:${pc(lt.pl)}">${PD[lt.pl]?PD[lt.pl].sym:''}</div>`:lt.zo?`<div style="${sz(9)}">${ZY[ZS.indexOf(lt.zo)]||''}</div>`:lt.el?`<div style="${sz(8)};color:#8a96a8">${lt.el.slice(0,3)}</div>`:'')}
+${ckl?`<div style="${sz(7)};color:#b89a42;margin-top:2px;letter-spacing:0.5px;line-height:1.2">${ckl.apo||ckl.sacr||ckl.ico||''}</div>`:(lt.pl?`<div style="${sz(8)};color:${pc(lt.pl)}">${PD[lt.pl]?PD[lt.pl].sym:''}</div>`:lt.zo?`<div style="${sz(9)}">${ZY[ZS.indexOf(lt.zo)]||''}</div>`:lt.el?`<div style="${sz(8)};color:#8a96a8">${lt.el}</div>`:'')}
 </div>`;
 });
 h+=`</div>`;
@@ -6039,7 +6044,8 @@ const beings=scanActiveBeings(now).slice(0,5);
 const rec=getNowRecommendation(ch,mp,ms,mn,voc,stars);
 
 // ── Phase label ──
-const phaseLabel=separation<20?'Conjunction':separation<90?'Waxing':separation<120?'Sextile':separation<150?'Square':separation<180?'Trine':separation<200?'Opposition':separation<240?'Waning Gibbous':separation<270?'Waning Trine':'Waning';
+// Eight lunation phases (Rudhyar), 45° each, measured by the Moon's elongation from the Sun
+const phaseLabel=['New','Crescent','First Quarter','Gibbous','Full','Disseminating','Last Quarter','Balsamic'][Math.floor(separation/45)%8];
 
 // ── Alignment score (0–5) ──
 let alignScore=0;
@@ -6095,7 +6101,7 @@ h+=`<div class="card" style="padding:10px 6px;text-align:center;border-color:${s
 <div style="${sz(7)};color:#8a96a8;line-height:1.4;margin-top:4px">${shemA.domain.split(',')[0]}</div>
 ${hourShemMatch?`<div style="${sz(7)};color:#4ade80;margin-top:3px;letter-spacing:1px" class="cin">⚡ HOUR MATCH</div>`:''}
 ${decanShemMatch?`<div style="${sz(7)};color:#FFD70088;margin-top:2px" class="cin">☉ DECAN MATCH</div>`:''}
-<div onclick="S.tab='shem';S.shemTriad=${Math.floor((shemA.n-1)/3)};render()" style="margin-top:5px;cursor:pointer;${sz(7)};color:#b89a4255;font-family:'Cinzel',serif;letter-spacing:1px">72 NAMES ›</div>
+<div onclick="S.tab='shem';S.shemTriad=${shemA.n-1};render()" style="margin-top:5px;cursor:pointer;${sz(7)};color:#b89a4255;font-family:'Cinzel',serif;letter-spacing:1px">72 NAMES ›</div>
 </div>`;
 
 // Node III — Astral Vessel (Lunar Mansion)
@@ -6222,23 +6228,8 @@ h+=`<div class="card" style="padding:10px 12px;border-radius:12px;margin-bottom:
 <div onclick="S.tab='elect';render()" style="cursor:pointer;${sz(7)};color:#b89a4255;font-family:'Cinzel',serif;letter-spacing:1px">ELECT ›</div>
 </div>
 ${(()=>{
-const _elPd=pHours(now,S.lat),_elMs=mSign(now),_elMp=mPhase(now);
-const _elCh=_elPd.hours.find(h=>now>=h.start&&now<h.end)||_elPd.hours[0];
-const _elVoc=vocMoon(now);
-const _xi=_elVoc.isVOC?0.10:1.0;
-const _ph=_elMp.phase;
-const _waxAmt=_ph<=14?(_ph/14):0;
-const _wanAmt=_ph>14?((_ph-14)/15):0;
-const _ruler=_elCh.ruler;
-const ecatScored=ECATS.map(cat=>{
-  let d=0;
-  if(cat.pl[0]===_ruler)d=1.0;
-  else if(cat.pl.length>1&&cat.pl[1]===_ruler)d=0.65;
-  const ph=cat.wx===true?_waxAmt:cat.wx===false?_wanAmt:0.5;
-  const signBonus=cat.ms.includes(_elMs.sign)?0.18:0;
-  const raw=Math.min(1.0,(d*0.45)+(ph*0.35)+(0.20*0.6)+signBonus);
-  return{cat,v:+((raw*_xi).toFixed(3))};
-}).sort((a,b)=>b.v-a.v).slice(0,4);
+const _aff=ecatAffinityCtx(now);
+const ecatScored=ECATS.map(cat=>({cat,v:_aff.score(cat)})).sort((a,b)=>b.v-a.v).slice(0,4);
 const _SUB_COL={love:'#E87BA8',wealth:'#4ade80',protection:'#FF8C00',knowledge:'#9B7BDB',healing:'#00BFFF',destruction:'#FF4500',spirit:'#9370DB',necromancy:'#8888aa'};
 return ecatScored.map(({cat,v})=>{const dc=_SUB_COL[cat.id]||'#b89a42';return`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid #24243808">
 <div style="${sz(14)};flex-shrink:0">${cat.i}</div>
@@ -6365,7 +6356,7 @@ return`<div class="card" style="border-radius:14px;padding:14px;border-color:#b8
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">SHEM</div>
-<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_sSab.shem.heb.slice(0,2)}</div>
+<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_sSab.shem.heb}</div>
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">LETTER</div>
@@ -6400,7 +6391,7 @@ ${_timerStrip(_tr.sun,_sunCol)}
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">SHEM</div>
-<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_mSab.shem.heb.slice(0,2)}</div>
+<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_mSab.shem.heb}</div>
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">LETTER</div>
@@ -6443,7 +6434,7 @@ ${_timerStrip(_tr.moon,_moonCol)}
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">SHEM</div>
-<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_cSab.shem.heb.slice(0,2)}</div>
+<div style="${sz(12)};color:#9B7BDB;direction:rtl">${_cSab.shem.heb}</div>
 </div>
 <div style="padding:5px;background:#07070c66;border-radius:6px;text-align:center">
 <div class="d7l">LETTER</div>
@@ -8013,8 +8004,9 @@ for(let n=1;n<=10;n++){
   // Number
   svg+=`<text x="${x}" y="${y-3}" font-family="Cinzel,serif" font-size="8" fill="${col}" text-anchor="middle" onclick="S.treeNode=${n};S.treePath=null;render()" style="cursor:pointer;pointer-events:none">${n}</text>`;
   // Name abbreviated
-  const shortName=sp.name.length>7?sp.name.slice(0,6)+'…':sp.name;
-  svg+=`<text x="${x}" y="${y+7}" font-family="Cinzel,serif" font-size="6.5" fill="${col}cc" text-anchor="middle" onclick="S.treeNode=${n};S.treePath=null;render()" style="cursor:pointer;pointer-events:none">${shortName}</text>`;
+  // Long names (Tiphareth) are squeezed to fit inside the circle rather than cut off
+  const fitLen=sp.name.length>7?` textLength="${(2*r-6).toFixed(1)}" lengthAdjust="spacingAndGlyphs"`:'';
+  svg+=`<text x="${x}" y="${y+7}" font-family="Cinzel,serif" font-size="${sp.name.length>7?6:6.5}" fill="${col}cc" text-anchor="middle"${fitLen} onclick="S.treeNode=${n};S.treePath=null;render()" style="cursor:pointer;pointer-events:none">${sp.name}</text>`;
   // NOW badge
   if(isActive){
     svg+=`<text x="${x+r-1}" y="${y-r+3}" font-family="Cinzel,serif" font-size="5.5" fill="${col}" text-anchor="middle">●</text>`;
@@ -8647,7 +8639,7 @@ if(olympicSp){h+=`<div class="card" style="padding:10px 14px;border-radius:12px;
 const shemCorr=SHEM72[s.n-1];
 h+=`<div class="card" style="padding:10px 14px;border-radius:12px;border-color:#9B7BDB33;background:#9B7BDB06;cursor:pointer;margin-bottom:2px" onclick="S.shemOrigin=null;S.tab='shem';S.shemTriad=${s.n-1};render()">
 <div style="display:flex;align-items:center;gap:10px">
-<div style="${sz(22)};color:#9B7BDB;direction:rtl;font-family:'EB Garamond',serif;width:36px;text-align:center">${shemCorr.heb.slice(0,2)}</div>
+<div style="${sz(22)};color:#9B7BDB;direction:rtl;font-family:'EB Garamond',serif;width:50px;text-align:center;white-space:nowrap">${shemCorr.heb}</div>
 <div class="f1">
 <div class="d9l2" class="cin">SHEM CORRESPONDENT</div>
 <div class="cin" style="${sz(14)};color:#9B7BDB;margin-top:1px">${shemCorr.nm} <span class="d10">· Name ${shemCorr.n} of 72</span></div>
@@ -8946,8 +8938,9 @@ ${aoAngel?`<div style="margin-top:8px;padding:12px;background:#07070c66;border-r
 <div style="display:flex;align-items:center;gap:8px"><div style="${sz(22)};color:${pc(aoAngel[1].pl)}">${PD[aoAngel[1].pl].sym}</div><div><div class="cin" style="${sz(13)};color:${pc(aoAngel[1].pl)}">${aoAngel[0]}</div><div class="d11">${aoAngel[1].pl} archangel · tap to view</div></div></div></div>`:''}
 </div>`}
 h+='</div>';return h}
-function renderElect(now){
-// ── Affinity engine: Ak(t) = w1·δ(Phour,k) + w2·Φ(Mphase,k) + w3·ξ(VOC) ──
+// ── Operative affinity engine (shared by Elect and Matrix) ──
+// Ak(t) = w1·δ(Phour,k) + w2·Φ(Mphase,k) + w3·ξ(VOC) + Moon-sign bonus, scaled down ×0.10 when the Moon is void of course
+function ecatAffinityCtx(now){
 const _elPd=pHours(now,S.lat),_elMs=mSign(now),_elMp=mPhase(now);
 const _elCh=_elPd.hours.find(h=>now>=h.start&&now<h.end)||_elPd.hours[0];
 const _elVoc=vocMoon(now);
@@ -8958,14 +8951,12 @@ const _wanAmt=_ph>14?((_ph-14)/15):0;
 const _fullAmt=Math.max(0,1-Math.abs(_ph-14.5)/3.5);
 const _xi=_elVoc.isVOC?0.10:1.0;
 const _ruler=_elCh.ruler;
-// ── Per-ECAT affinity: each working type has its own planetary, lunar, and sign weights ──
-// Ak(t) computed directly from ECATS planet list + moon phase + sign + VOC
-function _ecatAffinity(cat){
+function score(cat){
   // δ: planet hour match — primary ruler scores 1.0, secondary 0.65
   let d=0;
   if(cat.pl[0]===_ruler) d=1.0;
   else if(cat.pl.length>1&&cat.pl[1]===_ruler) d=0.65;
-  else if({Sun:true,Moon:true,Mars:true,Mercury:true,Jupiter:true,Venus:true,Saturn:true}[_ruler]){
+  else{
     // Partial affinity: sympathetic planets
     const sym={
       love:   {Moon:0.45,Jupiter:0.30,Sun:0.20},
@@ -8989,6 +8980,11 @@ function _ecatAffinity(cat){
   const raw=Math.min(1.0,(d*_w1)+(ph*_w2)+(_w3*0.6)+signBonus);
   return+(raw*_xi).toFixed(4);
 }
+return{ruler:_ruler,ms:_elMs,mp:_elMp,voc:_elVoc,score};
+}
+function renderElect(now){
+const _aff=ecatAffinityCtx(now);
+const _elMs=_aff.ms,_elMp=_aff.mp,_elVoc=_aff.voc,_ruler=_aff.ruler,_ecatAffinity=_aff.score;
 // ── Grouped taxonomy: Severity / Mercy / Illumination with subcategories ──
 const _GROUPS=[
   {
@@ -9077,13 +9073,13 @@ h+=`<div onclick="S.elCat=ECATS.find(x=>x.id==='${cat.id}');render()" style="bac
 h+=`</div>`;
 if(S.elCat){
   const meta=ECAT_META[S.elCat.id]||{};
-  const els=findEl(S.elCat,S.lat,now).filter(e=>e.sc>=(CFG.electThreshold||60));
+  const _thr=electThreshold();
   const allEls=findEl(S.elCat,S.lat,now);
+  const els=allEls.filter(e=>e.sc>=_thr);
   // ── Right now check
   const curH=pHours(now,S.lat).hours.find(h=>now>=h.start&&now<h.end)||pHours(now,S.lat).hours[0];
-  const curMs=mSign(now);const curMp=mPhase(now);const curMn=gMn(curMs.lon);
-  const nowScore=findEl(S.elCat,S.lat,now).find(e=>Math.abs(e.h.start-curH.start)<1000);
-  const nowMatch=nowScore&&nowScore.sc>=60;
+  const nowScore=findEl(S.elCat,S.lat,now,{all:true}).find(e=>Math.abs(e.h.start-curH.start)<1000);
+  const nowMatch=nowScore&&nowScore.sc>=Math.max(_thr,60);
   if(nowMatch){
     const ql=nowScore.sc>=80?'Excellent':'Good';
     h+=`<div style="padding:10px 14px;background:#4ade800a;border:1px solid #4ade8033;border-radius:10px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
@@ -9107,7 +9103,7 @@ ${S.christianLens?(()=>{const _lit=getLiturgicalSeason(now);return`<div style="m
     meta.shemNms.forEach(nm=>{
       const sa=SHEM72.find(x=>x.nm===nm);
       if(sa)h+=`<div onclick="S.tab='shem';S.shemTriad=${sa.n-1};render()" style="cursor:pointer;padding:4px 10px;background:#9B7BDB0a;border:1px solid #9B7BDB28;border-radius:7px;display:flex;align-items:center;gap:5px">
-<div style="direction:rtl;${sz(14)};color:#9B7BDB;font-family:'EB Garamond',serif">${sa.heb.slice(0,2)}</div>
+<div style="direction:rtl;${sz(14)};color:#9B7BDB;font-family:'EB Garamond',serif">${sa.heb}</div>
 <div><div style="${sz(10)};color:#9B7BDB" class="cin">${sa.nm}</div>
 <div class="d9">${sa.domain.split(',')[0]}</div></div></div>`;
     });
@@ -9190,7 +9186,7 @@ ${eVoc.isVOC?`<div style="display:flex;align-items:center;gap:3px;margin-bottom:
 </div>
 </div>
 <div onclick="S.tab='shem';S.shemTriad=${eShemAngel.n-1};render()" style="cursor:pointer;display:flex;align-items:center;gap:6px;padding:5px 8px;background:#9B7BDB08;border-radius:6px;border:1px solid #9B7BDB18">
-<div style="direction:rtl;${sz(14)};color:#9B7BDB;font-family:'EB Garamond',serif">${eShemAngel.heb.slice(0,2)}</div>
+<div style="direction:rtl;${sz(14)};color:#9B7BDB;font-family:'EB Garamond',serif">${eShemAngel.heb}</div>
 <div class="f1"><div style="${sz(9)};color:#606078;letter-spacing:1px">ACTIVE SHEM ANGEL</div>
 <div class="cin" style="${sz(11)};color:#9B7BDB">${eShemAngel.nm} \u2014 ${eShemAngel.domain.split(',')[0]}</div></div>
 <div style="${sz(9)};color:#9B7BDB;letter-spacing:1px" class="cin">VIEW \u2192</div>
@@ -9627,7 +9623,7 @@ h+=`<div class="row" onclick="S.shemTriad=${s.n-1};render()" style="background:$
 <div class="cin" style="${sz(16)};color:${isActive?'#9B7BDB':'#9B7BDB88'};font-weight:700">${s.n}</div>
 <div style="${sz(7)};color:#606078;margin-top:1px">G${s.n}</div>
 </div>
-<div style="direction:rtl;${sz(20)};color:#9B7BDB;width:36px;text-align:center;font-family:'EB Garamond',serif;flex-shrink:0">${s.heb.slice(0,2)}</div>
+<div style="direction:rtl;${sz(20)};color:#9B7BDB;width:46px;text-align:center;font-family:'EB Garamond',serif;flex-shrink:0;white-space:nowrap">${s.heb}</div>
 <div class="f1">
 <div class="cin" style="${sz(13)};color:${isActive?'#9B7BDB':shemSc>=3?'#ccccd8':'#ccccd8'}">${s.nm} ${isActive?'<span style="${sz(8)};background:#9B7BDB28;padding:1px 5px;border-radius:6px;color:#9B7BDB">NOW</span>':''}</div>
 <div class="d10">${s.domain.split(',')[0]}</div>
@@ -9635,7 +9631,7 @@ h+=`<div class="row" onclick="S.shemTriad=${s.n-1};render()" style="background:$
 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
 <div class="d11">Ps ${s.ps}</div>
 ${shemBadge}
-<button onclick="event.stopPropagation();openProjection('${shemPl}','${shemZodSign}','${s.nm} (#${s.n})')" style="${sz(7)};padding:1px 5px;border-radius:4px;background:#07070c;border:1px solid #24243818;color:#606078;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px">NEXT ▸</button>
+<button onclick="event.stopPropagation();openProjection('${shemPl}','${shemZodSign}','${s.nm} (#${s.n})')" style="${sz(7)};padding:1px 5px;border-radius:4px;background:#07070c;border:1px solid #24243818;color:#606078;cursor:pointer;font-family:'Cinzel',serif;letter-spacing:1px" title="Upcoming windows for this angel">WINDOWS ▸</button>
 </div></div>`});
 h+='</div></div>';return h;} // close shem-list-wrap + fu
 // SOURCE VIEW — Feature G: Boustrophedon Derivation
@@ -9675,7 +9671,7 @@ ${c}</div>`).join('')}</div></div>
 <div style="display:flex;margin-bottom:2px">
 <div style="width:72px;flex-shrink:0"></div>
 <div style="display:flex">${SHEM72.map((s,i)=>`<div onclick="S.shemTriad=${i};render()" style="width:30px;text-align:center;cursor:pointer">
-<div style="${sz(11)};color:${i===activeAngel.n-1?'#9B7BDB':'#606078'};font-weight:${i===activeAngel.n-1?700:400};direction:rtl;font-family:'EB Garamond',serif;line-height:1.3">${s.heb.slice(0,2)}</div>
+<div style="${sz(11)};color:${i===activeAngel.n-1?'#9B7BDB':'#606078'};font-weight:${i===activeAngel.n-1?700:400};direction:rtl;font-family:'EB Garamond',serif;line-height:1.3">${s.heb}</div>
 <div style="${sz(7)};color:#40404c;line-height:1.2" class="cin">${s.n}</div>
 </div>`).join('')}</div></div>
 </div>
@@ -9684,7 +9680,7 @@ ${c}</div>`).join('')}</div></div>
 ${title('Currently Active','#9B7BDB')}
 <div class="row" style="border-color:#9B7BDB33;background:#9B7BDB08;cursor:pointer" onclick="S.shemTriad=${activeAngel.n-1};render()">
 <div class="cin" style="${sz(15)};color:#9B7BDB;width:26px;text-align:center;flex-shrink:0">${activeAngel.n}</div>
-<div style="direction:rtl;${sz(22)};color:#9B7BDB;width:36px;text-align:center;font-family:'EB Garamond',serif;flex-shrink:0">${activeAngel.heb.slice(0,2)}</div>
+<div style="direction:rtl;${sz(22)};color:#9B7BDB;width:50px;text-align:center;font-family:'EB Garamond',serif;flex-shrink:0;white-space:nowrap">${activeAngel.heb}</div>
 <div class="f1"><div class="cin" style="${sz(14)};color:#9B7BDB">${activeAngel.nm}</div>
 <div class="d11">${activeAngel.domain.split(',')[0]}</div></div>
 <div class="d10">G${activeAngel.n} · Ps ${activeAngel.ps}</div>
@@ -10099,7 +10095,7 @@ h+=`</div>`;
 const shemLinks=SHEM72.filter(sh=>{const sv=gemHeb(sh.heb);return sv>0&&sv===val});
 if(shemLinks.length){
 h+=`<div class="card" style="border-radius:12px;border-color:#4A7BF720">${title('Shem Angel Links','#4A7BF7')}<div style="${sz(12)};color:#606078;margin-bottom:8px">Shemhamphorasch angels whose name-root shares this value.</div>`;
-shemLinks.forEach(sh=>{h+=`<div style="padding:6px 0;border-bottom:1px solid #24243810;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="S.shemTriad=${sh.n};S.shemView='triad';S.tab='shem';render()"><div style="${sz(20)};color:#4A7BF7;direction:rtl;min-width:44px;text-align:center">${sh.heb}</div><div class="f1"><div style="${sz(13)};color:#ccccd8">${sh.nm} · #${sh.n}</div><div class="d11">${sh.domain}</div></div><div style="${sz(10)};color:#4A7BF7;border:1px solid #4A7BF740;padding:2px 7px;border-radius:6px;font-family:'Cinzel',serif">VIEW →</div></div>`});
+shemLinks.forEach(sh=>{h+=`<div style="padding:6px 0;border-bottom:1px solid #24243810;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="S.shemTriad=${sh.n-1};S.tab='shem';render()"><div style="${sz(20)};color:#4A7BF7;direction:rtl;min-width:44px;text-align:center">${sh.heb}</div><div class="f1"><div style="${sz(13)};color:#ccccd8">${sh.nm} · #${sh.n}</div><div class="d11">${sh.domain}</div></div><div style="${sz(10)};color:#4A7BF7;border:1px solid #4A7BF740;padding:2px 7px;border-radius:6px;font-family:'Cinzel',serif">VIEW →</div></div>`});
 h+=`</div>`;
 }
 // Cross-app: Sephiroth links
@@ -10201,9 +10197,9 @@ h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bo
 </div>
 <div style="${sz(10)};color:var(--gold);border:1px solid var(--gold)40;padding:3px 8px;border-radius:6px;font-family:'Cinzel',serif">CALC \u2192</div>
 </div>`});
-revShem.forEach(sh=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #24243810;cursor:pointer" onclick="S.shemTriad=${sh.n};S.shemView='triad';S.tab='shem';render()">
+revShem.forEach(sh=>{h+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #24243810;cursor:pointer" onclick="S.shemTriad=${sh.n-1};S.tab='shem';render()">
 <div style="width:40px;height:40px;border-radius:8px;background:#4A7BF70a;border:1px solid #4A7BF722;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-<div style="${sz(18)};color:#4A7BF7;direction:rtl">${sh.heb.substring(0,2)}</div>
+<div style="${sz(18)};color:#4A7BF7;direction:rtl">${sh.heb}</div>
 </div>
 <div class="f1"><div style="${sz(13)};color:#ccccd8">${sh.nm} \u00b7 Shem #${sh.n}</div><div class="d11">${sh.domain}</div></div>
 <div style="${sz(10)};color:#4A7BF7;border:1px solid #4A7BF740;padding:3px 8px;border-radius:6px;font-family:'Cinzel',serif">VIEW \u2192</div>
