@@ -1,7 +1,7 @@
 {
   "name": "Liber Temporis",
   "short_name": "Liber Temporis",
-  "description": "The Third Temple — Syncretic Semiotics Grimoire. Kabbalistic and Christian mystical apparatus: planetary hours, gematria, 72 Names, Tree of Life, electional astrology, and the Fibonacci acoustic matrix.",
+  "description": "Kabbalistic and Christian mystical apparatus: planetary hours, gematria, 72 Names, Tree of Life, electional astrology, and the Fibonacci acoustic matrix.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

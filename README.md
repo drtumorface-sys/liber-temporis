@@ -1,10 +1,6 @@
 # Liber Temporis v6
 
-> *The Third Temple — Syncretic Semiotics Grimoire*
-
-**ΩTemple = Σᵢ₌₁¹⁰ (Vᵢ ⊗ Lᵢ)**
-
-A single-file Progressive Web App fusing the Hebrew metaphysical scaffold (Sephirotic Vessels) with the kinetic descent of the Christian Logos. Operates strictly within Syncretic Semiotics — neither tradition overwrites the other; they form an orthogonal matrix. Runs fully offline. Installs as a native app on any device.
+A single-file Progressive Web App fusing the Hebrew metaphysical scaffold (Sephirotic Vessels) with the kinetic descent of the Christian Logos. Neither tradition overwrites the other. Runs fully offline. Installs as a native app on any device.
 
 ---
 
